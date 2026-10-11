@@ -1,0 +1,42 @@
+name: a report leaves the tasks repo as it was
+scenario: "task-reporting: Nothing written"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: client, type: text }
+    - { name: hours, type: number }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-20-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-09-20
+    done_at: 2026-09-20
+    metadata:
+      client: acme
+      hours: 3
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2026-09-20
+
+    - Fixed the cookie flag.
+run: [report, --by, workstream, --by, client, --sum, hours]
+exit: 0
+stdout_json:
+  by: [workstream, client]
+  sum: [hours]
+  groups:
+    - key: { workstream: support, client: acme }
+      tasks: 1
+      refs: [SUP-1]
+      sums: { hours: { total: 3, missing: 0 } }
+  total: { tasks: 1, sums: { hours: { total: 3, missing: 0 } } }
+  problems: []
+unchanged: true

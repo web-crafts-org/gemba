@@ -1,0 +1,56 @@
+name: the completion range compares done_at and never matches a task without it
+scenario: "task-listing: Completion date range"
+config:
+  default_workstream: operations
+  workstreams:
+    code-reviews: { prefix: CR, description: Review a merge request before it is merged }
+    deployments: { prefix: DEP, description: Deploy one or more projects }
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-01-SUP-1-done-on-the-19th.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-09-19
+    done_at: 2026-09-19
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-09-02-SUP-2-done-on-the-22nd.md: |
+    ---
+    status: done
+    ref: SUP-2
+    updated_at: 2026-09-22
+    done_at: 2026-09-22
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-09-03-SUP-3-still-open.md: |
+    ---
+    status: open
+    ref: SUP-3
+    updated_at: 2026-09-22
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list, --done-from, 2026-09-20, --done-to, 2026-09-25]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-09-02-SUP-2-done-on-the-22nd.md
+      workstream: support
+      archived: false
+      ref: SUP-2
+      date: 2026-09-02
+      title: Done on the 22nd
+      status: done
+      updated_at: 2026-09-22
+      done_at: 2026-09-22
+      metadata: {}
+      description: null
+  problems: []
+unchanged: true

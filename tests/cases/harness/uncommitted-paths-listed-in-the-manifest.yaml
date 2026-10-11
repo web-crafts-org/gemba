@@ -1,0 +1,40 @@
+name: remove without --yes lists a drafted note and an unrecorded update in the manifest and deletes nothing
+scenario: "harness-removal: Uncommitted paths listed in the manifest"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+setup:
+  - [harness, launch, SUP-1, --no-open]
+tree_after_setup:
+  harnesses/support/2026-09-30-SUP-1-login-fails/notes/draft.md: |
+    The session cookie lacks SameSite=None.
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: |
+    - Reproduced the failure on Safari 17.
+run: [harness, remove, SUP-1]
+exit: 0
+stdout: |
+  harnesses/support/2026-09-30-SUP-1-login-fails
+  task: tasks/support/2026-09-30-SUP-1-login-fails.md
+  launched_at: {today}
+  notes: 1
+  assets: 0
+  commits: 1
+  worktrees: 0
+  uncommitted: 2
+  - notes/draft.md
+  - update.md
+  not removed: pass --yes to delete the harness
+unchanged: true

@@ -1,0 +1,55 @@
+name: the archived switch lists archived tasks flagged as archived
+scenario: "task-listing: Archived tasks included on request"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-2-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-2
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/archive/2026-08-01-SUP-1-old-issue.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-08-03
+    done_at: 2026-08-03
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list, --include-archived]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/archive/2026-08-01-SUP-1-old-issue.md
+      workstream: support
+      archived: true
+      ref: SUP-1
+      date: 2026-08-01
+      title: Old issue
+      status: done
+      updated_at: 2026-08-03
+      done_at: 2026-08-03
+      metadata: {}
+      description: null
+    - path: tasks/support/2026-09-30-SUP-2-login-fails.md
+      workstream: support
+      archived: false
+      ref: SUP-2
+      date: 2026-09-30
+      title: Login fails
+      status: open
+      updated_at: 2026-09-30
+      done_at: null
+      metadata: {}
+      description: null
+  problems: []
+unchanged: true

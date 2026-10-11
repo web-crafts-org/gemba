@@ -1,0 +1,12 @@
+name: a config that is not valid YAML stops the command
+scenario: "gemba-config: Malformed YAML"
+config: |
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: [unclosed
+tree:
+  tasks/operations/.gitkeep: ""
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [malformed YAML]
+unchanged: true

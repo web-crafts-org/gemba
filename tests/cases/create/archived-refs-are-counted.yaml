@@ -1,0 +1,22 @@
+name: refs in the archive are counted
+scenario: "task-creation: Archived refs are counted"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/archive/2026-08-01-SUP-3-old-issue.md: "---\nstatus: done\nref: SUP-3\nupdated_at: 2026-08-02\ndone_at: 2026-08-02\nmetadata: {}\n---\n\n## Updates\n"
+run: [create, --workstream, support, --slug, new-issue, --date, 2026-09-30]
+exit: 0
+stdout_contains: [SUP-4]
+files:
+  tasks/support/2026-09-30-SUP-4-new-issue.md: |
+    ---
+    status: open
+    ref: SUP-4
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates

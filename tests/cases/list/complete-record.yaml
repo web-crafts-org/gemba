@@ -1,0 +1,97 @@
+# Reading side of the format: a file that conforms to every rule is read whole.
+name: a conforming file is read with its ref, status, dates, metadata and description
+scenario: "task-file-format: Valid file read"
+config:
+  default_workstream: operations
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - name: client
+          type: text
+        - name: hours
+          type: number
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-14-SUP-2-export-times-out.md: |
+    ---
+    status: done
+    ref: SUP-2
+    updated_at: 2026-09-18
+    done_at: 2026-09-18
+    metadata:
+      client: globex
+      hours: 2.5
+    ---
+
+    The monthly export times out for large accounts
+
+    ## Updates
+
+    ### 2026-09-18
+
+    - Raised the timeout and confirmed with the client
+run: [list]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-09-14-SUP-2-export-times-out.md
+      workstream: support
+      archived: false
+      ref: SUP-2
+      date: 2026-09-14
+      title: Export times out
+      status: done
+      updated_at: 2026-09-18
+      done_at: 2026-09-18
+      metadata: { client: globex, hours: 2.5 }
+      description: The monthly export times out for large accounts
+  problems: []
+unchanged: true
+---
+name: the record carries every field of the task and nothing else
+scenario: "task-listing: Complete record"
+config:
+  default_workstream: operations
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - name: client
+          type: text
+        - name: project
+          type: text
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails-on-safari.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      client: acme
+      project: null
+    ---
+
+    Login fails on Safari for the checkout app
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-09-30-SUP-1-login-fails-on-safari.md
+      workstream: support
+      archived: false
+      ref: SUP-1
+      date: 2026-09-30
+      title: Login fails on safari
+      status: open
+      updated_at: 2026-09-30
+      done_at: null
+      metadata: { client: acme, project: null }
+      description: Login fails on Safari for the checkout app
+  problems: []
+unchanged: true

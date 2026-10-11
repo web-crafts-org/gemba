@@ -1,0 +1,37 @@
+name: an empty ide command is refused naming ide
+scenario: "gemba-config: Malformed IDE command refused"
+config:
+  default_workstream: operations
+  ide: ""
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, ide must be a non-empty string]
+unchanged: true
+---
+name: an ide command written as a list is refused naming ide
+scenario: "gemba-config: Malformed IDE command refused"
+config:
+  default_workstream: operations
+  ide: [code, -n]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, ide must be a non-empty string]
+unchanged: true
+---
+name: an ide command written as a map is refused naming ide
+scenario: "gemba-config: Malformed IDE command refused"
+config:
+  default_workstream: operations
+  ide: { command: code }
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/operations/.gitkeep: ""
+run: [list]
+exit: 1
+stderr_contains: [invalid gemba config, ide must be a non-empty string]
+unchanged: true

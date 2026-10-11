@@ -1,0 +1,31 @@
+name: a task marked done and then blocked holds no done_at, with every other key as it was
+scenario: "task-file-format: Done at follows the status"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+setup:
+  - [mark, SUP-1, done, --date, 2026-10-01]
+run: [mark, SUP-1, blocked, --date, 2026-10-02]
+exit: 0
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: blocked
+    ref: SUP-1
+    updated_at: 2026-10-02
+    metadata: {}
+    ---
+
+    ## Updates

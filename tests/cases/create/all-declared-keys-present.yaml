@@ -1,0 +1,28 @@
+name: every declared key is written, null when unset
+scenario: "task-file-format: All declared keys present"
+config:
+  default_workstream: operations
+  metadata:
+    - name: client
+      type: text
+    - name: hours
+      type: number
+    - name: billed
+      type: boolean
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30, --set, client=acme]
+exit: 0
+files:
+  tasks/operations/2026-09-30-OPS-1-renew-domain.md: |
+    ---
+    status: open
+    ref: OPS-1
+    updated_at: 2026-09-30
+    metadata:
+      client: acme
+      hours: null
+      billed: null
+    ---
+
+    ## Updates

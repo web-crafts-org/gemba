@@ -1,0 +1,54 @@
+name: the update range compares updated_at, both ends included
+scenario: "task-listing: Update date range"
+config:
+  default_workstream: operations
+  workstreams:
+    code-reviews: { prefix: CR, description: Review a merge request before it is merged }
+    deployments: { prefix: DEP, description: Deploy one or more projects }
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-01-SUP-1-updated-on-the-14th.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-14
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-09-02-SUP-2-updated-on-the-15th.md: |
+    ---
+    status: open
+    ref: SUP-2
+    updated_at: 2026-09-15
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-09-03-SUP-3-updated-on-the-16th.md: |
+    ---
+    status: open
+    ref: SUP-3
+    updated_at: 2026-09-16
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list, --updated-from, 2026-09-15, --updated-to, 2026-09-15]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-09-02-SUP-2-updated-on-the-15th.md
+      workstream: support
+      archived: false
+      ref: SUP-2
+      date: 2026-09-02
+      title: Updated on the 15th
+      status: open
+      updated_at: 2026-09-15
+      done_at: null
+      metadata: {}
+      description: null
+  problems: []
+unchanged: true

@@ -1,0 +1,31 @@
+name: the written guide explains how git is used in a worktree and what the agent never runs
+scenario: "harness-guide: Guide explains the worktree rules"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [harness, launch, SUP-1, --no-open]
+exit: 0
+files_contain:
+  harnesses/support/2026-09-30-SUP-1-login-fails/CLAUDE.md:
+    - "\n## Working in a worktree\n"
+    - "one local branch named by gemba"
+    - "never pushed under its own name"
+    - "`git push -u origin HEAD:<the branch the note names>`"
+    - "`git push` alone"
+    - "`git push origin HEAD`"
+    - "`git worktree`"
+    - "`git branch`"
+    - "`gemba-worktree` skill"

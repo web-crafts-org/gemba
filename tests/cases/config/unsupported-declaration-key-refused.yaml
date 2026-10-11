@@ -1,0 +1,16 @@
+name: a declaration carrying allowed values stops the command and lists the allowed keys
+scenario: "gemba-config: Unsupported declaration key"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: client, type: text, values: [acme, globex] }
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains:
+  - invalid gemba config
+  - "metadata[0]"
+  - "field 'client' has unsupported keys values"
+  - "allowed: name, type, required, description"
+unchanged: true

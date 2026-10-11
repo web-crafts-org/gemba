@@ -1,0 +1,39 @@
+name: add refuses a folder at the worktree path that is not a worktree, and leaves it as it was
+scenario: "harness-worktrees: Folder that is not a worktree refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  organization: nakatomi
+  repos_dir: repos
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+repos:
+  nakatomi-web:
+    branches:
+      main: { README.md: "Nakatomi web\n" }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+tree_after_setup:
+  harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web/notes.txt: "Copied by hand.\n"
+run: [worktree, add, nakatomi-web]
+exit: 1
+stderr_contains: ["worktree not added:", "worktrees/nakatomi-web exists and is not a worktree of nakatomi-web"]
+files:
+  harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web/notes.txt: "Copied by hand.\n"
+absent:
+  - harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web/README.md
+  - harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web/.git
+git_branches:
+  repos/nakatomi-web: [main]

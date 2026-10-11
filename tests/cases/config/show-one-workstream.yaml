@@ -1,0 +1,47 @@
+name: show with a workstream prints that workstream only and the same top level
+scenario: "config-maintenance: One workstream shown"
+config:
+  default_workstream: operations
+  organization: acme
+  agent_providers: [claude]
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - { name: client, type: text, required: true }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [config, show, --workstream, support]
+exit: 0
+stdout_json:
+  organization: acme
+  branch_prefix: gemba
+  repos_dir: null
+  ide: null
+  agent_providers: [claude]
+  default_workstream: operations
+  workstreams:
+    - id: support
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - { name: client, type: text, required: true, description: null }
+      processes:
+        create: &empty { context: null, rules: [] }
+        list: *empty
+        record: *empty
+        report: *empty
+        mark: *empty
+        archive: *empty
+        set: *empty
+        harness:
+          guide: { organization: null, workstream: null }
+          launch: *empty
+          note: *empty
+          resolve: *empty
+          remove: *empty
+        worktree:
+          add: *empty
+          list: *empty
+          remove: *empty
+unchanged: true

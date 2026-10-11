@@ -1,0 +1,35 @@
+name: a string instead of a list is refused
+scenario: "gemba-config: Malformed providers refused"
+config:
+  default_workstream: operations
+  agent_providers: claude
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, agent_providers, "known providers: claude, agents"]
+unchanged: true
+---
+name: an empty list is refused
+scenario: "gemba-config: Malformed providers refused"
+config:
+  default_workstream: operations
+  agent_providers: []
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, agent_providers, "known providers: claude, agents"]
+unchanged: true
+---
+name: a list holding something other than strings is refused
+scenario: "gemba-config: Malformed providers refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude, { name: agents }]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, agent_providers, "known providers: claude, agents"]
+unchanged: true

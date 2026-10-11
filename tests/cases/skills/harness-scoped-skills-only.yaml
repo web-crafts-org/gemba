@@ -1,0 +1,47 @@
+name: skills update in a harness reports only the harness-scoped skills and creates no other
+scenario: "built-in-skills: Harness-scoped skills only"
+config:
+  default_workstream: operations
+  agent_providers: [claude, agents]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [skills, update]
+exit: 0
+stdout: |
+  kept .claude/skills/gemba-harness/SKILL.md
+  kept .claude/skills/gemba-record/SKILL.md
+  kept .claude/skills/gemba-mark/SKILL.md
+  kept .claude/skills/gemba-set/SKILL.md
+  kept .claude/skills/gemba-worktree/SKILL.md
+  kept .agents/skills/gemba-harness/SKILL.md
+  kept .agents/skills/gemba-record/SKILL.md
+  kept .agents/skills/gemba-mark/SKILL.md
+  kept .agents/skills/gemba-set/SKILL.md
+  kept .agents/skills/gemba-worktree/SKILL.md
+absent:
+  - harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-create
+  - harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-list
+  - harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-report
+  - harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-archive
+  - harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-init
+  - harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-config
+  - harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-create
+  - harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-list
+  - harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-report
+  - harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-archive
+  - harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-init
+  - harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-config

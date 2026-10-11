@@ -1,0 +1,31 @@
+name: a second init reports every path as kept and leaves the tree identical
+scenario: "repo-initialization: Second run changes nothing"
+cwd: .
+setup:
+  - [init]
+run: [init]
+exit: 0
+stdout: |
+  kept gemba.yaml
+  kept .gitignore
+  kept tasks/.gitkeep
+  kept .claude/skills/gemba-create/SKILL.md
+  kept .claude/skills/gemba-list/SKILL.md
+  kept .claude/skills/gemba-harness/SKILL.md
+  kept .claude/skills/gemba-report/SKILL.md
+  kept .claude/skills/gemba-mark/SKILL.md
+  kept .claude/skills/gemba-archive/SKILL.md
+  kept .claude/skills/gemba-set/SKILL.md
+  kept .claude/skills/gemba-init/SKILL.md
+  kept .claude/skills/gemba-config/SKILL.md
+  kept .agents/skills/gemba-create/SKILL.md
+  kept .agents/skills/gemba-list/SKILL.md
+  kept .agents/skills/gemba-harness/SKILL.md
+  kept .agents/skills/gemba-report/SKILL.md
+  kept .agents/skills/gemba-mark/SKILL.md
+  kept .agents/skills/gemba-archive/SKILL.md
+  kept .agents/skills/gemba-set/SKILL.md
+  kept .agents/skills/gemba-init/SKILL.md
+  kept .agents/skills/gemba-config/SKILL.md
+  next step: open this tasks repo with your agent and ask it to configure gemba (the gemba-init skill)
+unchanged: true

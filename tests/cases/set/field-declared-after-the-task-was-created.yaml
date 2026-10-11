@@ -1,0 +1,39 @@
+name: a key the schema gained after the task was created is added as null when the task is set
+scenario: "metadata-setting: Field declared after the task was created"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: client, type: text }
+    - { name: invoiced, type: date }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      client: acme
+    ---
+
+    ## Updates
+run: [set, SUP-1, client=globex]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  client: acme -> globex
+  invoiced: added as null
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      client: globex
+      invoiced: null
+    ---
+
+    ## Updates

@@ -1,0 +1,77 @@
+name: an in-progress task marked blocked moves its status and updated_at, and gets no done_at
+scenario: "task-marking: Task marked blocked and back"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-10-01
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+run: [mark, SUP-1, blocked, --date, 2026-10-02]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  status: in-progress -> blocked
+  updated_at: 2026-10-01 -> 2026-10-02
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: blocked
+    ref: SUP-1
+    updated_at: 2026-10-02
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+---
+name: a blocked task marked in-progress again moves its status and updated_at, and gets no done_at
+scenario: "task-marking: Task marked blocked and back"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-10-01
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+setup:
+  - [mark, SUP-1, blocked, --date, 2026-10-02]
+run: [mark, SUP-1, in-progress, --date, 2026-10-03]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  status: blocked -> in-progress
+  updated_at: 2026-10-02 -> 2026-10-03
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-10-03
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates

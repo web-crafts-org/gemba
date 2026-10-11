@@ -1,0 +1,45 @@
+name: a ref no task has is refused and nothing is deleted
+scenario: "harness-removal: No harness to remove"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [harness, remove, SUP-9, --yes]
+exit: 1
+stderr_contains: [harness not removed, "no task has ref 'SUP-9'"]
+unchanged: true
+---
+name: a task that was never launched has no harness to remove
+scenario: "harness-removal: No harness to remove"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [harness, remove, SUP-1, --yes]
+exit: 1
+stderr_contains: [harness not removed, SUP-1 has no harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+unchanged: true

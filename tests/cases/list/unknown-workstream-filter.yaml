@@ -1,0 +1,21 @@
+name: an unknown workstream filter lists nothing and names the valid workstreams
+scenario: "task-listing: Unknown workstream filter"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list, --workstream, legacy]
+exit: 1
+stderr_contains: ["unknown workstream 'legacy'", "valid workstreams: support, operations"]
+unchanged: true

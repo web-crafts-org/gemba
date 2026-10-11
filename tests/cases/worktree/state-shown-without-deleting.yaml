@@ -1,0 +1,38 @@
+name: remove without --yes prints the state of the worktree and deletes nothing
+scenario: "harness-worktrees: State shown without deleting"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  organization: nakatomi
+  repos_dir: repos
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+repos:
+  nakatomi-web:
+    branches:
+      main: { README.md: "Nakatomi web\n" }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+  - [worktree, add, nakatomi-web]
+run: [worktree, remove, nakatomi-web]
+exit: 0
+stdout: |
+  worktrees/nakatomi-web
+  branch: gemba/nakatomi/SUP-1
+  upstream: none
+  uncommitted: 0
+  unpushed: 0
+  not removed: pass --yes to delete the worktree
+unchanged: true

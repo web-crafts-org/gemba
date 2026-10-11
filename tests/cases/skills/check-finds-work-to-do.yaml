@@ -1,0 +1,28 @@
+name: check reports an edited and a missing skill, writes nothing and exits 1
+scenario: "built-in-skills: Check finds work to do"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  .claude/skills/gemba-create/SKILL.md: |
+    ---
+    name: gemba-create
+    description: Written by hand.
+    ---
+
+    My own steps.
+run: [skills, update, --check]
+exit: 1
+stdout: |
+  edited .claude/skills/gemba-create/SKILL.md
+  missing .claude/skills/gemba-list/SKILL.md
+  missing .claude/skills/gemba-harness/SKILL.md
+  missing .claude/skills/gemba-report/SKILL.md
+  missing .claude/skills/gemba-mark/SKILL.md
+  missing .claude/skills/gemba-archive/SKILL.md
+  missing .claude/skills/gemba-set/SKILL.md
+  missing .claude/skills/gemba-init/SKILL.md
+  missing .claude/skills/gemba-config/SKILL.md
+unchanged: true

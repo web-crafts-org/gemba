@@ -1,0 +1,93 @@
+name: bounds on a date field keep the dates between them, both included, and never null
+scenario: "task-listing: Range on a date"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: invoiced, type: date }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-08-20-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-08-20
+    done_at: 2026-08-20
+    metadata:
+      invoiced: 2026-08-31
+    ---
+
+    ## Updates
+  tasks/support/2026-08-21-SUP-2-export-broken.md: |
+    ---
+    status: done
+    ref: SUP-2
+    updated_at: 2026-08-21
+    done_at: 2026-08-21
+    metadata:
+      invoiced: 2026-09-01
+    ---
+
+    ## Updates
+  tasks/support/2026-08-22-SUP-3-refund-fails.md: |
+    ---
+    status: done
+    ref: SUP-3
+    updated_at: 2026-08-22
+    done_at: 2026-08-22
+    metadata:
+      invoiced: 2026-09-30
+    ---
+
+    ## Updates
+  tasks/support/2026-08-23-SUP-4-invoice-missing.md: |
+    ---
+    status: done
+    ref: SUP-4
+    updated_at: 2026-08-23
+    done_at: 2026-08-23
+    metadata:
+      invoiced: 2026-10-01
+    ---
+
+    ## Updates
+  tasks/support/2026-08-24-SUP-5-checkout-slow.md: |
+    ---
+    status: done
+    ref: SUP-5
+    updated_at: 2026-08-24
+    done_at: 2026-08-24
+    metadata:
+      invoiced: null
+    ---
+
+    ## Updates
+run: [list, --where-from, invoiced=2026-09-01, --where-to, invoiced=2026-09-30]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-08-21-SUP-2-export-broken.md
+      workstream: support
+      archived: false
+      ref: SUP-2
+      date: 2026-08-21
+      title: Export broken
+      status: done
+      updated_at: 2026-08-21
+      done_at: 2026-08-21
+      metadata: { invoiced: 2026-09-01 }
+      description: null
+    - path: tasks/support/2026-08-22-SUP-3-refund-fails.md
+      workstream: support
+      archived: false
+      ref: SUP-3
+      date: 2026-08-22
+      title: Refund fails
+      status: done
+      updated_at: 2026-08-22
+      done_at: 2026-08-22
+      metadata: { invoiced: 2026-09-30 }
+      description: null
+  problems: []
+unchanged: true

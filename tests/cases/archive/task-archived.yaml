@@ -1,0 +1,46 @@
+name: a done task moves byte for byte into its workstream's archive folder, updated_at included
+scenario: "task-archiving: Task archived"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-01
+    done_at: 2026-10-01
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2026-10-01
+
+    - Deployed the fix and confirmed it with the client.
+run: [archive, SUP-1]
+exit: 0
+stdout: |
+  archived: tasks/support/archive/2026-09-30-SUP-1-login-fails.md
+files:
+  tasks/support/archive/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-01
+    done_at: 2026-10-01
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2026-10-01
+
+    - Deployed the fix and confirmed it with the client.
+absent: [tasks/support/2026-09-30-SUP-1-login-fails.md]

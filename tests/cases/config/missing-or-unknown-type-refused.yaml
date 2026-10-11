@@ -1,0 +1,34 @@
+name: a declaration without a type stops the command and lists the four types
+scenario: "gemba-config: Missing or unknown type"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: hours }
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, "metadata[0]", "field 'hours' has no type", "types: text, number, boolean, date"]
+unchanged: true
+---
+name: a declaration with a type other than the four stops the command and lists them
+scenario: "gemba-config: Missing or unknown type"
+config:
+  default_workstream: operations
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - { name: hours, type: integer }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/.gitkeep: ""
+run: [list]
+exit: 1
+stderr_contains:
+  - invalid gemba config
+  - "workstream 'support' metadata[0]"
+  - "field 'hours' has unknown type 'integer'"
+  - "types: text, number, boolean, date"
+unchanged: true

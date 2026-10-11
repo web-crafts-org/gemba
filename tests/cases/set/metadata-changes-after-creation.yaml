@@ -1,0 +1,27 @@
+name: a value of a task that exists changes through gemba set
+scenario: "task-file-format: Metadata changes after creation"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: hours, type: number }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+setup:
+  - [create, --workstream, support, --slug, login-fails, --date, 2026-09-30, --set, hours=1]
+run: [set, SUP-1, hours=3]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  hours: 1 -> 3
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      hours: 3
+    ---
+
+    ## Updates

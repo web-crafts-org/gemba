@@ -1,0 +1,41 @@
+name: a string under a number field is read and listed as it is, and reported as a problem
+scenario: "task-file-format: Value of another type still read"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: hours, type: number }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-20-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-20
+    metadata:
+      hours: "3"
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-09-20-SUP-1-login-fails.md
+      workstream: support
+      archived: false
+      ref: SUP-1
+      date: 2026-09-20
+      title: Login fails
+      status: open
+      updated_at: 2026-09-20
+      done_at: null
+      metadata: { hours: "3" }
+      description: Login fails on Safari for the checkout app.
+  problems:
+    - path: tasks/support/2026-09-20-SUP-1-login-fails.md
+      problem: metadata value of 'hours' must be a number, not '3'
+unchanged: true

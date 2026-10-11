@@ -1,0 +1,113 @@
+name: a draft that does not exist is refused
+scenario: "task-recording: Invalid draft refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [record, update.md, --date, 2026-10-01, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 1
+stderr_contains: [record not done, update.md does not exist]
+unchanged: true
+---
+name: a draft outside the harness is refused and left where it is
+scenario: "task-recording: Invalid draft refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+  harnesses/support/outside.md: |
+    - Reproduced the failure on Safari 17.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [record, ../outside.md, --date, 2026-10-01, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 1
+stderr_contains: [record not done, ../outside.md is not inside the harness]
+unchanged: true
+---
+name: a draft of blank lines holds no bullet and is refused
+scenario: "task-recording: Invalid draft refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: "\n\n  \n"
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [record, update.md, --date, 2026-10-01, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 1
+stderr_contains: [record not done, update.md holds no bullet]
+unchanged: true
+---
+name: a draft with a paragraph line is refused and names the line
+scenario: "task-recording: Invalid draft refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: |
+    - Reproduced the failure on Safari 17.
+    The cookie is sent without the SameSite attribute.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [record, update.md, --date, 2026-10-01, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 1
+stderr_contains: [record not done, "update.md line 2 is neither a '- ' bullet nor a continuation"]
+unchanged: true

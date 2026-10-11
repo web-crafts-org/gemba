@@ -1,0 +1,20 @@
+name: an absent default is refused
+scenario: "gemba-config: Default names a missing workstream"
+config:
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [default_workstream is missing]
+unchanged: true
+---
+name: a default outside the catalogue is refused
+scenario: "gemba-config: Default names a missing workstream"
+config:
+  default_workstream: general
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["default_workstream 'general'"]
+unchanged: true

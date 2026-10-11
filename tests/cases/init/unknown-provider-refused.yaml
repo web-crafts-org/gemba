@@ -1,0 +1,15 @@
+name: init with a provider the CLI does not know is refused naming it and the known providers
+scenario: "repo-initialization: Unknown or repeated provider refused"
+cwd: .
+run: [init, --providers, "claude,cursor"]
+exit: 1
+stderr_contains: ["'cursor'", "known providers: claude, agents"]
+unchanged: true
+---
+name: init with a provider given twice is refused naming it and the known providers
+scenario: "repo-initialization: Unknown or repeated provider refused"
+cwd: .
+run: [init, --providers, "claude,claude"]
+exit: 1
+stderr_contains: ["'claude' is listed more than once", "known providers: claude, agents"]
+unchanged: true

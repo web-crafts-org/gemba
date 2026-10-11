@@ -1,0 +1,26 @@
+name: setting the value a task already holds writes nothing and says so
+scenario: "metadata-setting: Same value left as it was"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: client, type: text }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      client: acme
+    ---
+
+    ## Updates
+run: [set, SUP-1, client=acme]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  client: acme (unchanged)
+unchanged: true

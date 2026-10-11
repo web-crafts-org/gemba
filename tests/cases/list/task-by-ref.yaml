@@ -1,0 +1,56 @@
+# CR-7 was moved into operations and is done; CR-70 shares the prefix of the ref but not the ref.
+name: the ref filter matches the frontmatter ref exactly, whatever the folder or status
+scenario: "task-listing: Task by ref"
+config:
+  default_workstream: operations
+  workstreams:
+    code-reviews: { prefix: CR, description: Review a merge request before it is merged }
+    deployments: { prefix: DEP, description: Deploy one or more projects }
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/operations/2026-09-12-CR-7-review-checkout.md: |
+    ---
+    status: done
+    ref: CR-7
+    updated_at: 2026-09-14
+    done_at: 2026-09-14
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/code-reviews/2026-09-13-CR-70-review-landing.md: |
+    ---
+    status: open
+    ref: CR-70
+    updated_at: 2026-09-13
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-09-15-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-15
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list, --ref, CR-7]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/operations/2026-09-12-CR-7-review-checkout.md
+      workstream: operations
+      archived: false
+      ref: CR-7
+      date: 2026-09-12
+      title: Review checkout
+      status: done
+      updated_at: 2026-09-14
+      done_at: 2026-09-14
+      metadata: {}
+      description: null
+  problems: []
+unchanged: true

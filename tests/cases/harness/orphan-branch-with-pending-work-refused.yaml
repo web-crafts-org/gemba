@@ -1,0 +1,40 @@
+# The branch of the run is left without a worktree, holding a commit that is on no remote branch.
+name: remove --yes refuses while a branch of the run left without a worktree holds unpushed commits
+scenario: "harness-removal: Orphan branch with pending work refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  organization: nakatomi
+  repos_dir: repos
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+repos:
+  nakatomi-web:
+    branches:
+      main: { README.md: "Nakatomi web\n" }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+setup:
+  - [harness, launch, SUP-1, --no-open]
+git_after_setup:
+  - [repos/nakatomi-web, checkout, --quiet, -b, gemba/nakatomi/SUP-1]
+  - [repos/nakatomi-web, commit, --quiet, --allow-empty, -m, work of a deleted harness]
+  - [repos/nakatomi-web, checkout, --quiet, main]
+run: [harness, remove, SUP-1, --yes]
+exit: 1
+stdout_contains: ["harnesses/support/2026-09-30-SUP-1-login-fails\n", "worktrees: 0\n"]
+stderr_contains:
+  - "harness not removed:\n"
+  - "- branch gemba/nakatomi/SUP-1 of nakatomi-web has 1 commit not on any remote branch and no worktree"
+git_branches:
+  repos/nakatomi-web: [gemba/nakatomi/SUP-1, main]
+unchanged: true

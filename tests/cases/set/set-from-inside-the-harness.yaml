@@ -1,0 +1,34 @@
+name: setting from inside the launched harness writes the task and leaves the harness repository as launch left it
+scenario: "metadata-setting: Set from inside the harness"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  metadata:
+    - { name: hours, type: number }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      hours: 2
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [set, SUP-1, hours+=1]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  hours: 2 -> 3
+files_contain:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: ["\nstatus: in-progress\n", "\nupdated_at: {today}\n", "\nmetadata:\n  hours: 3\n"]
+git_log:
+  harnesses/support/2026-09-30-SUP-1-login-fails: [launch SUP-1]
+git_clean: [harnesses/support/2026-09-30-SUP-1-login-fails]

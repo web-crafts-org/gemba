@@ -1,0 +1,31 @@
+name: check after an update reports every skill unchanged and exits 0
+scenario: "built-in-skills: Check finds everything current"
+config:
+  default_workstream: operations
+  agent_providers: [claude, agents]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+setup:
+  - [skills, update]
+run: [skills, update, --check]
+exit: 0
+stdout: |
+  unchanged .claude/skills/gemba-create/SKILL.md
+  unchanged .claude/skills/gemba-list/SKILL.md
+  unchanged .claude/skills/gemba-harness/SKILL.md
+  unchanged .claude/skills/gemba-report/SKILL.md
+  unchanged .claude/skills/gemba-mark/SKILL.md
+  unchanged .claude/skills/gemba-archive/SKILL.md
+  unchanged .claude/skills/gemba-set/SKILL.md
+  unchanged .claude/skills/gemba-init/SKILL.md
+  unchanged .claude/skills/gemba-config/SKILL.md
+  unchanged .agents/skills/gemba-create/SKILL.md
+  unchanged .agents/skills/gemba-list/SKILL.md
+  unchanged .agents/skills/gemba-harness/SKILL.md
+  unchanged .agents/skills/gemba-report/SKILL.md
+  unchanged .agents/skills/gemba-mark/SKILL.md
+  unchanged .agents/skills/gemba-archive/SKILL.md
+  unchanged .agents/skills/gemba-set/SKILL.md
+  unchanged .agents/skills/gemba-init/SKILL.md
+  unchanged .agents/skills/gemba-config/SKILL.md
+unchanged: true

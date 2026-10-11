@@ -1,0 +1,75 @@
+name: null, missing and values of another type add nothing, are counted as missing, and group under null
+scenario: "task-reporting: Tasks without a value counted"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: client, type: text }
+    - { name: hours, type: number }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-20-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-20
+    metadata:
+      client: acme
+      hours: null
+    ---
+
+    ## Updates
+  tasks/support/2026-09-21-SUP-2-export-broken.md: |
+    ---
+    status: open
+    ref: SUP-2
+    updated_at: 2026-09-21
+    metadata:
+      client: acme
+    ---
+
+    ## Updates
+  tasks/support/2026-09-22-SUP-3-refund-fails.md: |
+    ---
+    status: open
+    ref: SUP-3
+    updated_at: 2026-09-22
+    metadata:
+      client: 7
+      hours: two
+    ---
+
+    ## Updates
+  tasks/support/2026-09-23-SUP-4-invoice-missing.md: |
+    ---
+    status: open
+    ref: SUP-4
+    updated_at: 2026-09-23
+    metadata:
+      client: acme
+      hours: 2
+    ---
+
+    ## Updates
+run: [report, --by, client, --sum, hours]
+exit: 0
+stdout_json:
+  by: [client]
+  sum: [hours]
+  groups:
+    - key: { client: acme }
+      tasks: 3
+      refs: [SUP-1, SUP-2, SUP-4]
+      sums: { hours: { total: 2, missing: 2 } }
+    - key: { client: null }
+      tasks: 1
+      refs: [SUP-3]
+      sums: { hours: { total: 0, missing: 1 } }
+  total: { tasks: 4, sums: { hours: { total: 2, missing: 3 } } }
+  problems:
+    - path: tasks/support/2026-09-22-SUP-3-refund-fails.md
+      problem: metadata value of 'client' must be text, not 7
+    - path: tasks/support/2026-09-22-SUP-3-refund-fails.md
+      problem: metadata value of 'hours' must be a number, not two
+unchanged: true

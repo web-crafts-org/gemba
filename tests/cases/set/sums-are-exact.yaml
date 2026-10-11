@@ -1,0 +1,73 @@
+name: 0.1 plus 0.2 is written as exactly 0.3
+scenario: "metadata-setting: Sums are exact"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: hours, type: number }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      hours: 0.1
+    ---
+
+    ## Updates
+run: [set, SUP-1, hours+=0.2]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  hours: 0.1 -> 0.3
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      hours: 0.3
+    ---
+
+    ## Updates
+---
+name: 1.5 plus 0.5 is written as the integer 2
+scenario: "metadata-setting: Sums are exact"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: hours, type: number }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-2-export-broken.md: |
+    ---
+    status: open
+    ref: SUP-2
+    updated_at: 2026-09-30
+    metadata:
+      hours: 1.5
+    ---
+
+    ## Updates
+run: [set, SUP-2, hours+=0.5]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-2-export-broken.md
+  hours: 1.5 -> 2
+files:
+  tasks/support/2026-09-30-SUP-2-export-broken.md: |
+    ---
+    status: open
+    ref: SUP-2
+    updated_at: 2026-09-30
+    metadata:
+      hours: 2
+    ---
+
+    ## Updates

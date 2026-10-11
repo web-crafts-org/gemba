@@ -1,0 +1,25 @@
+name: a blocked task marked blocked is reported and nothing is written
+scenario: "task-marking: Same status left as it was"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: blocked
+    ref: SUP-1
+    updated_at: 2026-10-01
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+run: [mark, SUP-1, blocked, --date, 2026-10-02]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  status: blocked, left as it was
+unchanged: true

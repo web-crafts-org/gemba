@@ -1,0 +1,46 @@
+# Creation side of the scenario: creating a task never touches archived files.
+# Skipping archived tasks in listings belongs to the Sprint 2 lister.
+name: archived task is left unchanged by a creation
+scenario: "task-file-format: Archived task"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/archive/2026-08-01-SUP-1-old-issue.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-08-03
+    done_at: 2026-08-03
+    metadata: {}
+    ---
+
+    An old issue.
+
+    ## Updates
+run: [create, --workstream, support, --slug, new-issue, --date, 2026-09-30]
+exit: 0
+files:
+  tasks/support/archive/2026-08-01-SUP-1-old-issue.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-08-03
+    done_at: 2026-08-03
+    metadata: {}
+    ---
+
+    An old issue.
+
+    ## Updates
+  tasks/support/2026-09-30-SUP-2-new-issue.md: |
+    ---
+    status: open
+    ref: SUP-2
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates

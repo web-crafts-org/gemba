@@ -1,0 +1,11 @@
+name: show with a workstream that is not in the catalogue is refused naming the valid ones
+scenario: "config-maintenance: Unknown workstream refused"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [config, show, --workstream, billing]
+exit: 1
+stderr_contains: ["unknown workstream 'billing'", "valid workstreams: support, operations"]
+unchanged: true

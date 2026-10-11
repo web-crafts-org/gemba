@@ -1,0 +1,69 @@
+name: a heading under the updates section that is not a date is refused and left as it was
+scenario: "task-file-format: Invalid subsection headings"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### Monday
+
+    - Reproduced the failure on Safari 17.
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: |
+    - Traced the failure to the session cookie.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [record, update.md, --date, 2026-10-01, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 1
+stderr_contains: ["tasks/support/2026-09-30-SUP-1-login-fails.md has '### Monday' under '## Updates'", "not a date heading"]
+unchanged: true
+---
+name: date headings out of order under the updates section are refused and left as they were
+scenario: "task-file-format: Invalid subsection headings"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-10-02
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2026-10-02
+
+    - Traced the failure to the session cookie.
+
+    ### 2026-10-01
+
+    - Reproduced the failure on Safari 17.
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: |
+    - Asked the client for the browser console log.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [record, update.md, --date, 2026-10-01, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 1
+stderr_contains: ["tasks/support/2026-09-30-SUP-1-login-fails.md has '### 2026-10-01' under '## Updates'", "strictly increasing"]
+unchanged: true

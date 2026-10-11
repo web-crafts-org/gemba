@@ -1,0 +1,23 @@
+name: a workstream without description is refused
+scenario: "gemba-config: Missing description"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["workstream 'support'", description]
+unchanged: true
+---
+name: a workstream with an empty description is refused
+scenario: "gemba-config: Missing description"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: "" }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["workstream 'support'", description]
+unchanged: true

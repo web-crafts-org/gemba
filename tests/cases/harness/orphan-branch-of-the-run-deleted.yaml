@@ -1,0 +1,46 @@
+# The branch of the run is left without a worktree, as a harness deleted by hand leaves it;
+# every commit of it is on a remote branch.
+name: remove --yes deletes a branch of the run left without a worktree in a repository of repos_dir
+scenario: "harness-removal: Orphan branch of the run deleted"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  organization: nakatomi
+  repos_dir: repos
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+repos:
+  nakatomi-web:
+    branches:
+      main: { README.md: "Nakatomi web\n" }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+setup:
+  - [harness, launch, SUP-1, --no-open]
+git_after_setup:
+  - [repos/nakatomi-web, branch, gemba/nakatomi/SUP-1, origin/main]
+run: [harness, remove, SUP-1, --yes]
+exit: 0
+stdout: |
+  harnesses/support/2026-09-30-SUP-1-login-fails
+  task: tasks/support/2026-09-30-SUP-1-login-fails.md
+  launched_at: {today}
+  notes: 0
+  assets: 0
+  commits: 1
+  worktrees: 0
+  uncommitted: 0
+  removed
+absent: [harnesses/support/2026-09-30-SUP-1-login-fails]
+git_branches:
+  repos/nakatomi-web: [main]
+  remotes/nakatomi-web.git: [main]

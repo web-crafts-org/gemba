@@ -1,0 +1,10 @@
+name: a config without agent providers is refused naming the known ones
+scenario: "built-in-skills: No providers declared"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [skills, update]
+exit: 1
+stderr_contains: [no agent providers declared, agent_providers, "known providers: claude, agents"]
+unchanged: true

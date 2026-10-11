@@ -1,0 +1,78 @@
+name: a done task is set in place, its status and done_at as they were
+scenario: "metadata-setting: Archived or done task set"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: invoiced, type: date }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-01
+    done_at: 2026-10-01
+    metadata:
+      invoiced: null
+    ---
+
+    ## Updates
+run: [set, SUP-1, invoiced=2026-10-03]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  invoiced: null -> 2026-10-03
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-01
+    done_at: 2026-10-01
+    metadata:
+      invoiced: 2026-10-03
+    ---
+
+    ## Updates
+---
+name: an archived task is set in place, under archive/
+scenario: "metadata-setting: Archived or done task set"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: invoiced, type: date }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/archive/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-01
+    done_at: 2026-10-01
+    metadata:
+      invoiced: null
+    ---
+
+    ## Updates
+run: [set, SUP-1, invoiced=2026-10-03]
+exit: 0
+stdout: |
+  tasks/support/archive/2026-09-30-SUP-1-login-fails.md
+  invoiced: null -> 2026-10-03
+files:
+  tasks/support/archive/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-01
+    done_at: 2026-10-01
+    metadata:
+      invoiced: 2026-10-03
+    ---
+
+    ## Updates
+absent: [tasks/support/2026-09-30-SUP-1-login-fails.md]

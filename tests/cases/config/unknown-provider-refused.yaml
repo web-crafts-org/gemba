@@ -1,0 +1,11 @@
+name: a provider the CLI does not know is refused naming it and the known ones
+scenario: "gemba-config: Unknown provider refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude, cursor]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, agent_providers, "'cursor'", "known providers: claude, agents"]
+unchanged: true

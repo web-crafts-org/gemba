@@ -1,0 +1,9 @@
+name: gemba report exists and names the selection filters, the groupings and the sums
+scenario: "task-reporting: Report subcommand exists"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [report, --help]
+exit: 0
+stdout_contains: [--workstream, --status, --done-from, --where, --where-from, --by, --sum]

@@ -1,0 +1,90 @@
+# The branch of the run is left in the base repository at another commit than origin/main,
+# as a harness deleted by hand leaves it.
+name: add refuses when the branch of the run already exists without a worktree
+scenario: "harness-worktrees: Orphan branch refused and forced"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  organization: nakatomi
+  repos_dir: repos
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+repos:
+  nakatomi-web:
+    branches:
+      main: { README.md: "Nakatomi web\n" }
+      feature/a: { README.md: "Nakatomi web, feature a\n", feature.txt: "a\n" }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+git_after_setup:
+  - [repos/nakatomi-web, branch, gemba/nakatomi/SUP-1, origin/feature/a]
+run: [worktree, add, nakatomi-web]
+exit: 1
+stderr_contains:
+  - "worktree not added:"
+  - branch gemba/nakatomi/SUP-1 already exists in nakatomi-web without a worktree
+  - --force deletes and recreates it
+absent:
+  - harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/*
+git_branches:
+  repos/nakatomi-web: [gemba/nakatomi/SUP-1, main]
+---
+name: add --force deletes the branch of the run left without a worktree and recreates it at the base
+scenario: "harness-worktrees: Orphan branch refused and forced"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  organization: nakatomi
+  repos_dir: repos
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+repos:
+  nakatomi-web:
+    branches:
+      main: { README.md: "Nakatomi web\n" }
+      feature/a: { README.md: "Nakatomi web, feature a\n", feature.txt: "a\n" }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+git_after_setup:
+  - [repos/nakatomi-web, branch, gemba/nakatomi/SUP-1, origin/feature/a]
+run: [worktree, add, nakatomi-web, --force]
+exit: 0
+stdout: |
+  worktrees/nakatomi-web
+  branch: gemba/nakatomi/SUP-1
+  from: origin/main
+  created
+files:
+  harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web/README.md: "Nakatomi web\n"
+absent:
+  - harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web/feature.txt
+files_contain:
+  repos/nakatomi-web/.git/worktrees/nakatomi-web/HEAD: ["ref: refs/heads/gemba/nakatomi/SUP-1\n"]
+git_log:
+  harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web: [add main]
+git_branches:
+  repos/nakatomi-web: [gemba/nakatomi/SUP-1, main]

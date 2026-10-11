@@ -1,0 +1,89 @@
+name: two declared providers get the same skills in their own folders
+scenario: "built-in-skills: One skills folder per declared provider"
+config:
+  default_workstream: operations
+  agent_providers: [claude, agents]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [skills, update]
+exit: 0
+files_contain:
+  .claude/skills/gemba-create/SKILL.md: &create
+    - "---\nname: gemba-create\n"
+    - "metadata:\n  generatedBy: \"{version}\"\n  contentHash: \""
+    - "\n---\n\n# Create a task\n"
+  .agents/skills/gemba-create/SKILL.md: *create
+  .claude/skills/gemba-list/SKILL.md: &list
+    - "---\nname: gemba-list\n"
+    - "metadata:\n  generatedBy: \"{version}\"\n  contentHash: \""
+    - "\n---\n\n# List tasks\n"
+  .agents/skills/gemba-list/SKILL.md: *list
+  .claude/skills/gemba-harness/SKILL.md: &harness
+    - "---\nname: gemba-harness\n"
+    - "metadata:\n  generatedBy: \"{version}\"\n  contentHash: \""
+    - "\n---\n\n# Work in a harness\n"
+  .agents/skills/gemba-harness/SKILL.md: *harness
+  .claude/skills/gemba-report/SKILL.md: &report
+    - "---\nname: gemba-report\n"
+    - "metadata:\n  generatedBy: \"{version}\"\n  contentHash: \""
+  .agents/skills/gemba-report/SKILL.md: *report
+  .claude/skills/gemba-mark/SKILL.md: &mark
+    - "---\nname: gemba-mark\n"
+    - "metadata:\n  generatedBy: \"{version}\"\n  contentHash: \""
+  .agents/skills/gemba-mark/SKILL.md: *mark
+  .claude/skills/gemba-archive/SKILL.md: &archive
+    - "---\nname: gemba-archive\n"
+    - "metadata:\n  generatedBy: \"{version}\"\n  contentHash: \""
+  .agents/skills/gemba-archive/SKILL.md: *archive
+  .claude/skills/gemba-set/SKILL.md: &set
+    - "---\nname: gemba-set\n"
+    - "metadata:\n  generatedBy: \"{version}\"\n  contentHash: \""
+  .agents/skills/gemba-set/SKILL.md: *set
+  .claude/skills/gemba-init/SKILL.md: &init
+    - "---\nname: gemba-init\n"
+    - "metadata:\n  generatedBy: \"{version}\"\n  contentHash: \""
+  .agents/skills/gemba-init/SKILL.md: *init
+  .claude/skills/gemba-config/SKILL.md: &config
+    - "---\nname: gemba-config\n"
+    - "metadata:\n  generatedBy: \"{version}\"\n  contentHash: \""
+  .agents/skills/gemba-config/SKILL.md: *config
+---
+name: the skills process writes for both known providers
+scenario: "gemba-config: Known providers accepted"
+config:
+  default_workstream: operations
+  agent_providers: [claude, agents]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [skills, update]
+exit: 0
+stdout: |
+  written .claude/skills/gemba-create/SKILL.md
+  written .claude/skills/gemba-list/SKILL.md
+  written .claude/skills/gemba-harness/SKILL.md
+  written .claude/skills/gemba-report/SKILL.md
+  written .claude/skills/gemba-mark/SKILL.md
+  written .claude/skills/gemba-archive/SKILL.md
+  written .claude/skills/gemba-set/SKILL.md
+  written .claude/skills/gemba-init/SKILL.md
+  written .claude/skills/gemba-config/SKILL.md
+  written .agents/skills/gemba-create/SKILL.md
+  written .agents/skills/gemba-list/SKILL.md
+  written .agents/skills/gemba-harness/SKILL.md
+  written .agents/skills/gemba-report/SKILL.md
+  written .agents/skills/gemba-mark/SKILL.md
+  written .agents/skills/gemba-archive/SKILL.md
+  written .agents/skills/gemba-set/SKILL.md
+  written .agents/skills/gemba-init/SKILL.md
+  written .agents/skills/gemba-config/SKILL.md
+---
+name: the create process accepts both known providers
+scenario: "gemba-config: Known providers accepted"
+config:
+  default_workstream: operations
+  agent_providers: [claude, agents]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 0
+stdout_contains: [tasks/operations/2026-09-30-OPS-1-renew-domain.md]

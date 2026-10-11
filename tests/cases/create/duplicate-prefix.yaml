@@ -1,0 +1,12 @@
+name: two workstreams with one prefix are refused naming both
+scenario: "gemba-config: Duplicate prefix"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    supplies: { prefix: SUP, description: Buy hardware and licenses }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["'support'", "'supplies'", "'SUP'"]
+unchanged: true

@@ -1,0 +1,51 @@
+# Two documents chained: the second starts from the tree the first one leaves.
+name: first of two consecutive creations
+scenario: "task-creation: Two consecutive creations"
+config:
+  default_workstream: operations
+  workstreams:
+    development: { prefix: DEV, description: New features or projects }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/development/.gitkeep: ""
+  tasks/development/archive/.gitkeep: ""
+  tasks/development/2026-09-01-DEV-4-checkout-api.md: "---\nstatus: open\nref: DEV-4\nupdated_at: 2026-09-01\nmetadata: {}\n---\n\n## Updates\n"
+run: [create, --workstream, development, --slug, landing-page, --date, 2026-09-30]
+exit: 0
+stdout_contains: [DEV-5]
+files:
+  tasks/development/2026-09-30-DEV-5-landing-page.md: |
+    ---
+    status: open
+    ref: DEV-5
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+---
+name: second of two consecutive creations
+scenario: "task-creation: Two consecutive creations"
+config:
+  default_workstream: operations
+  workstreams:
+    development: { prefix: DEV, description: New features or projects }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/development/.gitkeep: ""
+  tasks/development/archive/.gitkeep: ""
+  tasks/development/2026-09-01-DEV-4-checkout-api.md: "---\nstatus: open\nref: DEV-4\nupdated_at: 2026-09-01\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/development/2026-09-30-DEV-5-landing-page.md: "---\nstatus: open\nref: DEV-5\nupdated_at: 2026-09-30\nmetadata: {}\n---\n\n## Updates\n"
+run: [create, --workstream, development, --slug, landing-page, --date, 2026-09-30]
+exit: 0
+stdout_contains: [DEV-6]
+files:
+  tasks/development/2026-09-30-DEV-6-landing-page.md: |
+    ---
+    status: open
+    ref: DEV-6
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates

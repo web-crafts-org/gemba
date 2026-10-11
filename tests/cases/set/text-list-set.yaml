@@ -1,0 +1,36 @@
+name: a text key given twice sets a list in the order given, replacing the previous value
+scenario: "metadata-setting: Text list set"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: project, type: text }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      project: billing
+    ---
+
+    ## Updates
+run: [set, SUP-1, project=checkout, project=landing]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  project: billing -> [checkout, landing]
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      project: [checkout, landing]
+    ---
+
+    ## Updates

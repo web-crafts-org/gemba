@@ -1,0 +1,37 @@
+# The clone under repos/ is one commit behind its remote on main: add fetches before it starts.
+name: add fetches origin before creating the worktree, so the base is the one origin has now
+scenario: "harness-worktrees: Fresh base fetched"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  organization: nakatomi
+  repos_dir: repos
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+repos:
+  nakatomi-web:
+    branches:
+      main: { README.md: "Nakatomi web\n" }
+    unfetched:
+      main: { fresh.txt: "pushed after the clone\n" }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [worktree, add, nakatomi-web]
+exit: 0
+files:
+  harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web/README.md: "Nakatomi web\n"
+  harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web/fresh.txt: "pushed after the clone\n"
+git_log:
+  harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web: [unfetched main, add main]

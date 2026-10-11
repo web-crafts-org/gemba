@@ -1,0 +1,30 @@
+name: a field named status stops the command and is said to be reserved
+scenario: "gemba-config: Reserved field name"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: status, type: text }
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, "metadata[0]", "field name 'status' is reserved"]
+unchanged: true
+---
+name: a field named workstream stops the command and is said to be reserved
+scenario: "gemba-config: Reserved field name"
+config:
+  default_workstream: operations
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - { name: workstream, type: text }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/.gitkeep: ""
+run: [list]
+exit: 1
+stderr_contains: [invalid gemba config, "workstream 'support' metadata[0]", "field name 'workstream' is reserved"]
+unchanged: true

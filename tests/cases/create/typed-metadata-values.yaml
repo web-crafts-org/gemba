@@ -1,0 +1,31 @@
+name: metadata values keep their YAML scalar type
+scenario: "task-creation: Typed metadata values"
+config:
+  default_workstream: operations
+  metadata:
+    - name: hours
+      type: number
+    - name: billed
+      type: boolean
+    - name: client
+      type: text
+    - name: due
+      type: date
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30, --set, hours=3, --set, billed=false, --set, "client=Acme Corp", --set, due=2026-10-15]
+exit: 0
+files:
+  tasks/operations/2026-09-30-OPS-1-renew-domain.md: |
+    ---
+    status: open
+    ref: OPS-1
+    updated_at: 2026-09-30
+    metadata:
+      hours: 3
+      billed: false
+      client: Acme Corp
+      due: 2026-10-15
+    ---
+
+    ## Updates

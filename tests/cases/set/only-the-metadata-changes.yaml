@@ -1,0 +1,65 @@
+name: setting a done task changes the value only; updated_at, done_at and the body are as they were
+scenario: "metadata-setting: Only the metadata changes"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: hours, type: number }
+    - { name: project, type: text }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-01
+    done_at: 2026-10-01
+    metadata:
+      hours: 3
+      project: [checkout, landing]
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    Ticket: https://support.example.invalid/tickets/4211
+
+    ## Updates
+
+    ### 2026-09-30
+
+    - Reproduced the failure on Safari 17.
+
+    ### 2026-10-01
+
+    - Shipped the fix to the cookie flag.
+run: [set, SUP-1, hours+=2]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  hours: 3 -> 5
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-01
+    done_at: 2026-10-01
+    metadata:
+      hours: 5
+      project: [checkout, landing]
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    Ticket: https://support.example.invalid/tickets/4211
+
+    ## Updates
+
+    ### 2026-09-30
+
+    - Reproduced the failure on Safari 17.
+
+    ### 2026-10-01
+
+    - Shipped the fix to the cookie flag.

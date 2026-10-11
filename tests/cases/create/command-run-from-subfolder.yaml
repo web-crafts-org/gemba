@@ -1,0 +1,22 @@
+name: root is discovered by walking up from a subfolder
+scenario: "gemba-config: Command run from a subfolder"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+cwd: runs/support/2026-09-30-SUP-1-login-fails/notes
+run: [create, --workstream, support, --slug, login-fails, --date, 2026-09-30]
+exit: 0
+stdout_contains: [tasks/support/2026-09-30-SUP-1-login-fails.md]
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+absent: [runs/support/2026-09-30-SUP-1-login-fails/notes/tasks]

@@ -1,0 +1,50 @@
+name: a workstream that redeclares a base field with another type stops the command
+scenario: "gemba-config: One type per field name"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: hours, type: number }
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - { name: hours, type: text }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains:
+  - invalid gemba config
+  - "field 'hours'"
+  - "number in metadata"
+  - "text in workstream 'support' metadata"
+  - a field name has one type across the config
+unchanged: true
+---
+name: two workstreams that declare one field with two types stop the command
+scenario: "gemba-config: One type per field name"
+config:
+  default_workstream: operations
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - { name: due, type: date }
+    operations:
+      prefix: OPS
+      description: Anything that does not fit another workstream
+      metadata:
+        - { name: due, type: text }
+tree:
+  tasks/support/.gitkeep: ""
+  tasks/operations/.gitkeep: ""
+run: [list]
+exit: 1
+stderr_contains:
+  - invalid gemba config
+  - "field 'due'"
+  - "date in workstream 'support' metadata"
+  - "text in workstream 'operations' metadata"
+  - a field name has one type across the config
+unchanged: true

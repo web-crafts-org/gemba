@@ -1,0 +1,36 @@
+# A done task cannot be launched, so the harness config is written by hand with the six
+# keys launch writes.
+name: a day recorded on a done task keeps its status and its done_at
+scenario: "task-marking: Done task recorded"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-01
+    done_at: 2026-10-01
+    metadata: {}
+    ---
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/harness.yaml: |
+    task: tasks/support/2026-09-30-SUP-1-login-fails.md
+    ref: SUP-1
+    workstream: support
+    agent_providers: [claude]
+    launched_at: 2026-09-30
+    gemba_version: "0.1.0"
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: |
+    - Confirmed the fix with the client.
+run: [record, update.md, --date, 2026-10-02, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 0
+files_contain:
+  tasks/support/2026-09-30-SUP-1-login-fails.md:
+    - "\nstatus: done\nref: SUP-1\nupdated_at: 2026-10-02\ndone_at: 2026-10-01\nmetadata: {}\n"
+    - "## Updates\n\n### 2026-10-02\n\n- Confirmed the fix with the client.\n"

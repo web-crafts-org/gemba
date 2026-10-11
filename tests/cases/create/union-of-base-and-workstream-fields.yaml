@@ -1,0 +1,32 @@
+name: effective schema is the union of base and workstream fields
+scenario: "gemba-config: Union of base and workstream fields"
+config:
+  default_workstream: operations
+  metadata:
+    - name: client
+      type: text
+    - name: hours
+      type: number
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - name: project
+          type: text
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, support, --slug, login-fails, --date, 2026-09-30, --set, project=checkout]
+exit: 0
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      client: null
+      hours: null
+      project: checkout
+    ---
+
+    ## Updates

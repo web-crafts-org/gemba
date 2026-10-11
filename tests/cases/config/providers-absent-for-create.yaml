@@ -1,0 +1,19 @@
+name: a config without agent providers still creates tasks
+scenario: "gemba-config: Providers absent for a process that does not need them"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 0
+stdout_contains: [tasks/operations/2026-09-30-OPS-1-renew-domain.md, OPS-1]
+files:
+  tasks/operations/2026-09-30-OPS-1-renew-domain.md: |
+    ---
+    status: open
+    ref: OPS-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates

@@ -1,0 +1,12 @@
+name: a workstream removed from the config is refused and its files are untouched
+scenario: "gemba-config: Workstream removed from the config"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/legacy/2026-08-01-LEG-1-old-work.md: "---\nstatus: open\nref: LEG-1\nupdated_at: 2026-08-01\nmetadata: {}\n---\n\n## Updates\n"
+run: [create, --workstream, legacy, --slug, more-work, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["unknown workstream 'legacy'", "valid workstreams: operations"]
+unchanged: true

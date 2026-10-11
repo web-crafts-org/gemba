@@ -1,0 +1,44 @@
+name: a task whose harness folder exists is left in place while the other ref is archived
+scenario: "task-archiving: Task with a harness refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-01
+    done_at: 2026-10-01
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-10-01-SUP-2-checkout-timeout.md: |
+    ---
+    status: open
+    ref: SUP-2
+    updated_at: 2026-10-01
+    metadata: {}
+    ---
+
+    ## Updates
+setup:
+  - [harness, launch, SUP-2, --no-open]
+run: [archive, SUP-1, SUP-2]
+exit: 1
+stdout_contains:
+  - "archived: tasks/support/archive/2026-09-30-SUP-1-login-fails.md\n"
+  - "not archived: SUP-2 "
+  - harnesses/support/2026-10-01-SUP-2-checkout-timeout
+  - gemba harness remove SUP-2
+files_contain:
+  tasks/support/archive/2026-09-30-SUP-1-login-fails.md: ["\nref: SUP-1\n"]
+  tasks/support/2026-10-01-SUP-2-checkout-timeout.md: ["\nref: SUP-2\n"]
+absent:
+  - tasks/support/2026-09-30-SUP-1-login-fails.md
+  - tasks/support/archive/2026-10-01-SUP-2-checkout-timeout.md
+folders: [harnesses/support/2026-10-01-SUP-2-checkout-timeout]

@@ -1,0 +1,31 @@
+name: no task selected gives no group, zero totals and a zero exit
+scenario: "task-reporting: Nothing selected"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: client, type: text }
+    - { name: hours, type: number }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-20-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-20
+    metadata:
+      client: acme
+      hours: 3
+    ---
+
+    ## Updates
+run: [report, --status, blocked, --by, client, --sum, hours]
+exit: 0
+stdout_json:
+  by: [client]
+  sum: [hours]
+  groups: []
+  total: { tasks: 0, sums: { hours: { total: 0, missing: 0 } } }
+  problems: []
+unchanged: true

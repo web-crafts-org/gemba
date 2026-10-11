@@ -1,0 +1,21 @@
+name: a status filter outside the allowed values lists nothing and names them
+scenario: "task-listing: Invalid status filter"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list, --status, closed]
+exit: 1
+stderr_contains: ["invalid status 'closed'", "allowed: open, in-progress, blocked, done"]
+unchanged: true

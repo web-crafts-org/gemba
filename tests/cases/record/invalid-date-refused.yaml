@@ -1,0 +1,86 @@
+name: a date that is not a valid ISO date is refused
+scenario: "task-recording: Invalid date refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: |
+    - Reproduced the failure on Safari 17.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [record, update.md, --date, "2026-13-01", --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 1
+stderr_contains: [record not done, "invalid date '2026-13-01': use YYYY-MM-DD"]
+unchanged: true
+---
+name: a date after today is refused
+scenario: "task-recording: Invalid date refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: |
+    - Reproduced the failure on Safari 17.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [record, update.md, --date, 2999-01-01, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 1
+stderr_contains: [record not done, date 2999-01-01 is after today]
+unchanged: true
+---
+name: a date before the creation date of the task is refused
+scenario: "task-recording: Invalid date refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: |
+    - Reproduced the failure on Safari 17.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [record, update.md, --date, 2026-09-01, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 1
+stderr_contains: [record not done, "date 2026-09-01 is before 2026-09-30, the creation date of the task"]
+unchanged: true

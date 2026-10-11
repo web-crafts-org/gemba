@@ -1,0 +1,22 @@
+name: a repeated key becomes a list in the order given
+scenario: "task-creation: Repeated key becomes a list"
+config:
+  default_workstream: operations
+  metadata:
+    - name: project
+      type: text
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, rotate-keys, --date, 2026-09-30, --set, project=checkout, --set, project=landing, --set, project=3]
+exit: 0
+files:
+  tasks/operations/2026-09-30-OPS-1-rotate-keys.md: |
+    ---
+    status: open
+    ref: OPS-1
+    updated_at: 2026-09-30
+    metadata:
+      project: [checkout, landing, '3']
+    ---
+
+    ## Updates

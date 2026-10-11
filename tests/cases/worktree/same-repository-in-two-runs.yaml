@@ -1,0 +1,51 @@
+name: two runs check out the same repository on two branches, leaving its own branch as it was
+scenario: "harness-worktrees: Same repository in two runs"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  organization: nakatomi
+  repos_dir: repos
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+repos:
+  nakatomi-web:
+    branches:
+      main: { README.md: "Nakatomi web\n" }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-09-30-SUP-2-checkout-slow.md: |
+    ---
+    status: open
+    ref: SUP-2
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+setup:
+  - [harness, launch, SUP-1, --no-open]
+  - [harness, launch, SUP-2, --no-open]
+  - [worktree, add, nakatomi-web, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+run: [worktree, add, nakatomi-web, --harness, harnesses/support/2026-09-30-SUP-2-checkout-slow]
+exit: 0
+stdout: |
+  worktrees/nakatomi-web
+  branch: gemba/nakatomi/SUP-2
+  from: origin/main
+  created
+files:
+  harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web/README.md: "Nakatomi web\n"
+  harnesses/support/2026-09-30-SUP-2-checkout-slow/worktrees/nakatomi-web/README.md: "Nakatomi web\n"
+files_contain:
+  repos/nakatomi-web/.git/HEAD: ["ref: refs/heads/main\n"]
+git_branches:
+  repos/nakatomi-web: [gemba/nakatomi/SUP-1, gemba/nakatomi/SUP-2, main]

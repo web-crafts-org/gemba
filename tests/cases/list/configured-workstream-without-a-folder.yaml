@@ -1,0 +1,35 @@
+name: a configured workstream without a folder adds no task and no problem
+scenario: "task-listing: Configured workstream without a folder"
+config:
+  default_workstream: operations
+  workstreams:
+    estimates: { prefix: EST, description: Estimates and proposals }
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-2-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-2
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list, --include-archived]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-09-30-SUP-2-login-fails.md
+      workstream: support
+      archived: false
+      ref: SUP-2
+      date: 2026-09-30
+      title: Login fails
+      status: open
+      updated_at: 2026-09-30
+      done_at: null
+      metadata: {}
+      description: null
+  problems: []
+unchanged: true

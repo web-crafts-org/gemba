@@ -1,0 +1,61 @@
+name: base blocks at the top level do not stop the create process
+scenario: "gemba-config: Base blocks accepted"
+config:
+  default_workstream: operations
+  create:
+    context: Every task is billed to one client.
+  harness:
+    guide: Open the harness through its workspace.
+    note:
+      rules: [name the client in every note]
+  worktree:
+    add:
+      rules: [start from the default branch of origin]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, support, --slug, login-fails, --date, 2026-09-30]
+exit: 0
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+---
+name: launching a task under base blocks renders the base guide text
+scenario: "gemba-config: Base blocks accepted"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  create:
+    context: Every task is billed to one client.
+  harness:
+    guide: Open the harness through its workspace.
+    note:
+      rules: [name the client in every note]
+  worktree:
+    add:
+      rules: [start from the default branch of origin]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [harness, launch, SUP-1, --no-open]
+exit: 0
+files_contain:
+  harnesses/support/2026-09-30-SUP-1-login-fails/CLAUDE.md:
+    - "\n\n## Your organization\n\nOpen the harness through its workspace.\n"

@@ -1,0 +1,31 @@
+name: a second update leaves the tree as the first one wrote it
+scenario: "built-in-skills: Unchanged skill is left alone"
+config:
+  default_workstream: operations
+  agent_providers: [claude, agents]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+setup:
+  - [skills, update]
+run: [skills, update]
+exit: 0
+stdout: |
+  kept .claude/skills/gemba-create/SKILL.md
+  kept .claude/skills/gemba-list/SKILL.md
+  kept .claude/skills/gemba-harness/SKILL.md
+  kept .claude/skills/gemba-report/SKILL.md
+  kept .claude/skills/gemba-mark/SKILL.md
+  kept .claude/skills/gemba-archive/SKILL.md
+  kept .claude/skills/gemba-set/SKILL.md
+  kept .claude/skills/gemba-init/SKILL.md
+  kept .claude/skills/gemba-config/SKILL.md
+  kept .agents/skills/gemba-create/SKILL.md
+  kept .agents/skills/gemba-list/SKILL.md
+  kept .agents/skills/gemba-harness/SKILL.md
+  kept .agents/skills/gemba-report/SKILL.md
+  kept .agents/skills/gemba-mark/SKILL.md
+  kept .agents/skills/gemba-archive/SKILL.md
+  kept .agents/skills/gemba-set/SKILL.md
+  kept .agents/skills/gemba-init/SKILL.md
+  kept .agents/skills/gemba-config/SKILL.md
+unchanged: true

@@ -1,0 +1,25 @@
+name: a frontmatter ref that differs from the filename ref is reported with both
+scenario: "task-file-format: Ref mismatch"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-3-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-4
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks: []
+  problems:
+    - path: tasks/support/2026-09-30-SUP-3-login-fails.md
+      problem: ref 'SUP-4' in the frontmatter does not match 'SUP-3' in the filename
+unchanged: true

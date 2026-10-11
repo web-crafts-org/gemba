@@ -1,0 +1,50 @@
+name: remove --yes deletes a harness holding a drafted note, an unrecorded update and a changed skill
+scenario: "harness-removal: Uncommitted paths deleted with the harness"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+setup:
+  - [harness, launch, SUP-1, --no-open]
+tree_after_setup:
+  harnesses/support/2026-09-30-SUP-1-login-fails/notes/draft.md: |
+    The session cookie lacks SameSite=None.
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: |
+    - Reproduced the failure on Safari 17.
+  harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-harness/SKILL.md: |
+    A skill refreshed after the launch.
+run: [harness, remove, SUP-1, --yes]
+exit: 0
+stdout_contains:
+  - "worktrees: 0\nuncommitted: 3\n"
+  - "- .claude/skills/gemba-harness/SKILL.md\n"
+  - "- notes/draft.md\n"
+  - "- update.md\n"
+  - "\nremoved\n"
+absent: [harnesses/support/2026-09-30-SUP-1-login-fails]
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: {today}
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates

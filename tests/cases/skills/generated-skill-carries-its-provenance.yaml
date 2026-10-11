@@ -1,0 +1,16 @@
+name: a written skill holds name, description, provenance and the asset body
+scenario: "built-in-skills: Generated skill carries its provenance"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [skills, update]
+exit: 0
+files_contain:
+  .claude/skills/gemba-create/SKILL.md:
+    - "---\nname: gemba-create\ndescription: Register a new task in this tasks repo. Use whenever"
+    - "whatever the workstream.\nmetadata:\n  generatedBy: \"{version}\"\n  contentHash: \""
+    - "\"\n---\n\n# Create a task\n\nRegister one unit of work as a task file."
+    - "\n1. **Locate the config.** Walk up from the current folder to the nearest `gemba.yaml`.\n"
+    - "  a workstream, field or rule is added, changed or removed.\n"

@@ -1,0 +1,45 @@
+name: a folder under tasks that the config does not declare is reported, not listed
+scenario: "task-listing: Folder that is not a configured workstream"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-2-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-2
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/legacy/2026-07-01-LEG-1-old-work.md: |
+    ---
+    status: open
+    ref: LEG-1
+    updated_at: 2026-07-01
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-09-30-SUP-2-login-fails.md
+      workstream: support
+      archived: false
+      ref: SUP-2
+      date: 2026-09-30
+      title: Login fails
+      status: open
+      updated_at: 2026-09-30
+      done_at: null
+      metadata: {}
+      description: null
+  problems:
+    - path: tasks/legacy
+      problem: folder is not a workstream of the config; its files are not listed
+unchanged: true

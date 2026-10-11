@@ -1,0 +1,57 @@
+name: a decision filed with --approval is gated
+scenario: "harness-notes: Decision gated on request"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/notes/cookie-or-header.md: |
+    Keep the session in the cookie; moving it to a header breaks the mobile app.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [harness, note, notes/cookie-or-header.md, --type, decision, --approval, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 0
+files_contain:
+  "harnesses/support/2026-09-30-SUP-1-login-fails/notes/{today}-[0-9][0-9][0-9][0-9][0-9][0-9]-cookie-or-header.md":
+    - "---\ntype: decision\ndate: {today}\ntime: \""
+    - "\"\napproved: false\n---\n\nKeep the session in the cookie"
+---
+name: a decision filed without --approval has no approved key
+scenario: "harness-notes: Decision gated on request"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/notes/cookie-or-header.md: |
+    Keep the session in the cookie; moving it to a header breaks the mobile app.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [harness, note, notes/cookie-or-header.md, --type, decision, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 0
+files_contain:
+  "harnesses/support/2026-09-30-SUP-1-login-fails/notes/{today}-[0-9][0-9][0-9][0-9][0-9][0-9]-cookie-or-header.md":
+    - "---\ntype: decision\ndate: {today}\ntime: \""
+    - "\"\n---\n\nKeep the session in the cookie"

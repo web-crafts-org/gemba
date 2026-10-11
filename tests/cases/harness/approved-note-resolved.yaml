@@ -1,0 +1,42 @@
+name: an approved note gains resolved_at as its last key and a commit, its body untouched
+scenario: "harness-notes: Approved note resolved"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/notes/2026-09-30-153012-push-fix.md: |
+    ---
+    type: external-action
+    date: 2026-09-30
+    time: "15:30:12"
+    approved: true
+    ---
+
+    Push branch fix-login to origin.
+
+    Done: pushed fix-login at 4f2a91c to origin.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [harness, resolve, notes/2026-09-30-153012-push-fix.md, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 0
+stdout: |
+  notes/2026-09-30-153012-push-fix.md
+files_contain:
+  harnesses/support/2026-09-30-SUP-1-login-fails/notes/2026-09-30-153012-push-fix.md:
+    - "---\ntype: external-action\ndate: 2026-09-30\ntime: \"15:30:12\"\napproved: true\nresolved_at: \"{today}T"
+    - "\"\n---\n\nPush branch fix-login to origin.\n\nDone: pushed fix-login at 4f2a91c to origin.\n"
+git_log:
+  harnesses/support/2026-09-30-SUP-1-login-fails: [resolve push-fix, launch SUP-1]
+git_clean: [harnesses/support/2026-09-30-SUP-1-login-fails]

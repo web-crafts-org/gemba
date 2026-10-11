@@ -1,0 +1,23 @@
+name: a registered skill without a file is written next to the ones present
+scenario: "built-in-skills: Missing skill is written"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  .claude/skills/gemba-create/SKILL.md: |
+    ---
+    name: gemba-create
+    description: Written by hand.
+    ---
+
+    My own steps.
+run: [skills, update]
+exit: 0
+stdout_contains: ["written .claude/skills/gemba-list/SKILL.md\n"]
+files_contain:
+  .claude/skills/gemba-list/SKILL.md:
+    - "---\nname: gemba-list\n"
+    - "metadata:\n  generatedBy: \"{version}\"\n  contentHash: \""
+    - "\n---\n\n# List tasks\n"

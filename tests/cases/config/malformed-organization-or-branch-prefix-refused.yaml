@@ -1,0 +1,50 @@
+name: an organization that is not kebab-case is refused naming organization
+scenario: "gemba-config: Malformed organization or branch prefix refused"
+config:
+  default_workstream: operations
+  organization: Nakatomi Corp
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, organization must be kebab-case]
+unchanged: true
+---
+name: an empty organization is refused naming organization
+scenario: "gemba-config: Malformed organization or branch prefix refused"
+config:
+  default_workstream: operations
+  organization: ""
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, organization must be kebab-case]
+unchanged: true
+---
+name: an organization written as a list is refused naming organization
+scenario: "gemba-config: Malformed organization or branch prefix refused"
+config:
+  default_workstream: operations
+  organization: [nakatomi]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/operations/.gitkeep: ""
+run: [list]
+exit: 1
+stderr_contains: [invalid gemba config, organization must be kebab-case]
+unchanged: true
+---
+name: a branch prefix that is not kebab-case is refused naming branch_prefix
+scenario: "gemba-config: Malformed organization or branch prefix refused"
+config:
+  default_workstream: operations
+  organization: nakatomi
+  branch_prefix: Gemba/
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, branch_prefix must be kebab-case]
+unchanged: true

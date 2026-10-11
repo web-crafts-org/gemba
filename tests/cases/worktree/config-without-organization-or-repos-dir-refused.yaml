@@ -1,0 +1,69 @@
+name: add refuses a config without organization, naming the key
+scenario: "harness-worktrees: Config without organization or repositories folder refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  repos_dir: repos
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+repos:
+  nakatomi-web:
+    branches:
+      main: { README.md: "Nakatomi web\n" }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [worktree, add, nakatomi-web]
+exit: 1
+stderr_contains: ["worktree not added:", "no organization declared: add organization to gemba.yaml"]
+absent:
+  - harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/*
+git_branches:
+  repos/nakatomi-web: [main]
+unchanged: true
+---
+name: add refuses a config without repos_dir, naming the key
+scenario: "harness-worktrees: Config without organization or repositories folder refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  organization: nakatomi
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+repos:
+  nakatomi-web:
+    branches:
+      main: { README.md: "Nakatomi web\n" }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [worktree, add, nakatomi-web]
+exit: 1
+stderr_contains: ["worktree not added:", "no repos_dir declared: add repos_dir to gemba.yaml"]
+absent:
+  - harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/*
+git_branches:
+  repos/nakatomi-web: [main]
+unchanged: true

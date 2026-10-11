@@ -1,0 +1,63 @@
+name: a harness block with the guide text and verb blocks does not stop the create process
+scenario: "gemba-config: Harness verb blocks accepted"
+config:
+  default_workstream: operations
+  workstreams:
+    code-reviews:
+      prefix: CR
+      description: Review a merge request before it is merged
+      harness:
+        guide: Review against the merge request description, not against your own taste.
+        note:
+          rules: [quote the line of the diff each finding is about]
+        resolve:
+          context: Comments are posted on the merge request.
+        remove:
+          rules: [check the review comments were posted before removing]
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, code-reviews, --slug, review-checkout, --date, 2026-09-30]
+exit: 0
+files:
+  tasks/code-reviews/2026-09-30-CR-1-review-checkout.md: |
+    ---
+    status: open
+    ref: CR-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+---
+name: launching a task of a workstream with a harness block renders its guide text
+scenario: "gemba-config: Harness verb blocks accepted"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    code-reviews:
+      prefix: CR
+      description: Review a merge request before it is merged
+      harness:
+        guide: Review against the merge request description, not against your own taste.
+        note:
+          rules: [quote the line of the diff each finding is about]
+        resolve:
+          context: Comments are posted on the merge request.
+        remove:
+          rules: [check the review comments were posted before removing]
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/code-reviews/2026-09-30-CR-1-review-checkout.md: |
+    ---
+    status: open
+    ref: CR-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [harness, launch, CR-1, --no-open]
+exit: 0
+files_contain:
+  harnesses/code-reviews/2026-09-30-CR-1-review-checkout/CLAUDE.md:
+    - "\n\n## Your workstream\n\nReview against the merge request description, not against your own taste.\n"

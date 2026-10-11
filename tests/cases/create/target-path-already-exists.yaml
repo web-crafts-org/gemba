@@ -1,0 +1,15 @@
+# The ref is always new, so the only way the computed path can already exist is a
+# non-file entry with the same name; the command must refuse rather than overwrite.
+name: an existing target path is never overwritten
+scenario: "task-creation: Target path already exists"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md/keep: ""
+run: [create, --workstream, support, --slug, login-fails, --date, 2026-09-30]
+exit: 1
+stderr_contains: [tasks/support/2026-09-30-SUP-1-login-fails.md already exists]
+unchanged: true

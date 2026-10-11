@@ -1,0 +1,53 @@
+name: remove --yes deletes every worktree of the harness and its branch, then the harness, never the remote's
+scenario: "harness-removal: Harness removed with its worktrees"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  organization: nakatomi
+  repos_dir: repos
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+repos:
+  nakatomi-web:
+    branches:
+      main: { README.md: "Nakatomi web\n" }
+      develop: { README.md: "Nakatomi web, develop\n" }
+  nakatomi-api:
+    branches:
+      main: { README.md: "Nakatomi api\n" }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+setup:
+  - [harness, launch, SUP-1, --no-open]
+  - [worktree, add, nakatomi-web, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+  - [worktree, add, nakatomi-api, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+run: [harness, remove, SUP-1, --yes]
+exit: 0
+stdout: |
+  harnesses/support/2026-09-30-SUP-1-login-fails
+  task: tasks/support/2026-09-30-SUP-1-login-fails.md
+  launched_at: {today}
+  notes: 0
+  assets: 0
+  commits: 1
+  worktrees: 2
+  uncommitted: 0
+  removed
+absent:
+  - harnesses/support/2026-09-30-SUP-1-login-fails
+  - repos/nakatomi-web/.git/worktrees/*
+  - repos/nakatomi-api/.git/worktrees/*
+git_branches:
+  repos/nakatomi-web: [main]
+  repos/nakatomi-api: [main]
+  remotes/nakatomi-web.git: [develop, main]
+  remotes/nakatomi-api.git: [main]

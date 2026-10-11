@@ -1,0 +1,65 @@
+# Listing side of the scenario; the creation side is create/archived-task.yaml.
+name: an archived task is skipped by a listing of active tasks
+scenario: "task-file-format: Archived task"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/archive/2026-08-01-SUP-1-old-issue.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-08-03
+    done_at: 2026-08-03
+    metadata: {}
+    ---
+
+    An old issue.
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks: []
+  problems: []
+unchanged: true
+---
+name: an archived task is listed unchanged when archived tasks are requested
+scenario: "task-file-format: Archived task"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/archive/2026-08-01-SUP-1-old-issue.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-08-03
+    done_at: 2026-08-03
+    metadata: {}
+    ---
+
+    An old issue.
+
+    ## Updates
+run: [list, --include-archived]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/archive/2026-08-01-SUP-1-old-issue.md
+      workstream: support
+      archived: true
+      ref: SUP-1
+      date: 2026-08-01
+      title: Old issue
+      status: done
+      updated_at: 2026-08-03
+      done_at: 2026-08-03
+      metadata: {}
+      description: An old issue.
+  problems: []
+unchanged: true

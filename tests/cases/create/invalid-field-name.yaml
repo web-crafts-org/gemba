@@ -1,0 +1,28 @@
+name: a declaration without name is refused
+scenario: "gemba-config: Invalid field name"
+config:
+  default_workstream: operations
+  metadata:
+    - { type: text, required: true }
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["metadata[0]", no name]
+unchanged: true
+---
+name: a declaration whose name is not snake_case is refused
+scenario: "gemba-config: Invalid field name"
+config:
+  default_workstream: operations
+  workstreams:
+    code-reviews:
+      prefix: CR
+      description: Review a merge request before it is merged
+      metadata:
+        - { name: merge-url, type: text }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["workstream 'code-reviews' metadata[0]", "'merge-url'", snake_case]
+unchanged: true

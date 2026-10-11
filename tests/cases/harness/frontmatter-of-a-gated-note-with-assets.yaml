@@ -1,0 +1,59 @@
+name: a gated note with an asset gets type, date, time, approved and assets in that order
+scenario: "harness-notes: Frontmatter of a gated note with assets"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/assets/1759350491-console.log: "TypeError: session is undefined\n"
+  harnesses/support/2026-09-30-SUP-1-login-fails/notes/push-fix.md: |
+    Push branch fix-login to origin and open a merge request against main.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [harness, note, notes/push-fix.md, --type, external-action, --asset, assets/1759350491-console.log, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 0
+files_contain:
+  "harnesses/support/2026-09-30-SUP-1-login-fails/notes/{today}-[0-9][0-9][0-9][0-9][0-9][0-9]-push-fix.md":
+    - "---\ntype: external-action\ndate: {today}\ntime: \""
+    - "\"\napproved: false\nassets: [assets/1759350491-console.log]\n---\n\nPush branch fix-login to origin"
+---
+name: an asset is listed in the frontmatter and left where it was
+scenario: "harness-notes: Asset referenced"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/assets/1759350491-console.log: "TypeError: session is undefined\n"
+  harnesses/support/2026-09-30-SUP-1-login-fails/notes/login-trace.md: |
+    The console shows the session is undefined before the redirect.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [harness, note, notes/login-trace.md, --type, finding, --asset, assets/1759350491-console.log, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 0
+files_contain:
+  "harnesses/support/2026-09-30-SUP-1-login-fails/notes/{today}-[0-9][0-9][0-9][0-9][0-9][0-9]-login-trace.md": ["\"\nassets: [assets/1759350491-console.log]\n---\n"]
+files:
+  harnesses/support/2026-09-30-SUP-1-login-fails/assets/1759350491-console.log: "TypeError: session is undefined\n"

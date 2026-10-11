@@ -1,0 +1,47 @@
+name: remove --yes deletes the harness folder and leaves the task file as it was
+scenario: "harness-removal: Harness removed"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [harness, remove, SUP-1, --yes]
+exit: 0
+stdout: |
+  harnesses/support/2026-09-30-SUP-1-login-fails
+  task: tasks/support/2026-09-30-SUP-1-login-fails.md
+  launched_at: {today}
+  notes: 0
+  assets: 0
+  commits: 1
+  worktrees: 0
+  uncommitted: 0
+  removed
+absent: [harnesses/support/2026-09-30-SUP-1-login-fails]
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: {today}
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates

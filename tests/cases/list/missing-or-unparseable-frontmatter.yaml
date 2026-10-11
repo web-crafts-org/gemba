@@ -1,0 +1,75 @@
+name: a file without a frontmatter block is reported and not read
+scenario: "task-file-format: Missing or unparseable frontmatter"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    Login fails on Safari for the checkout app
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks: []
+  problems:
+    - path: tasks/support/2026-09-30-SUP-1-login-fails.md
+      problem: "no frontmatter: the file does not start with a --- line"
+unchanged: true
+---
+name: a frontmatter block that is never closed is reported and not read
+scenario: "task-file-format: Missing or unparseable frontmatter"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+
+    Login fails on Safari for the checkout app
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks: []
+  problems:
+    - path: tasks/support/2026-09-30-SUP-1-login-fails.md
+      problem: frontmatter is not closed by a --- line
+unchanged: true
+---
+name: a frontmatter block that is not valid YAML is reported with its line
+scenario: "task-file-format: Missing or unparseable frontmatter"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1: urgent
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks: []
+  problems:
+    - path: tasks/support/2026-09-30-SUP-1-login-fails.md
+      problem: "frontmatter is not valid YAML (line 3): mapping values are not allowed here"
+unchanged: true

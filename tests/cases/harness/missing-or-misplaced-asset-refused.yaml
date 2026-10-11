@@ -1,0 +1,54 @@
+name: an asset that does not exist is refused naming it
+scenario: "harness-notes: Missing or misplaced asset refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/notes/login-trace.md: |
+    The login request returns 500.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [harness, note, notes/login-trace.md, --type, finding, --asset, assets/1759350491-console.log, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 1
+stderr_contains: [assets/1759350491-console.log, does not exist]
+unchanged: true
+---
+name: an asset outside assets/ is refused naming it
+scenario: "harness-notes: Missing or misplaced asset refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/console.log: "TypeError: session is undefined\n"
+  harnesses/support/2026-09-30-SUP-1-login-fails/notes/login-trace.md: |
+    The login request returns 500.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [harness, note, notes/login-trace.md, --type, finding, --asset, console.log, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 1
+stderr_contains: [console.log, "is not under assets/"]
+unchanged: true

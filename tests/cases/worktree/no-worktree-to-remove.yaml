@@ -1,0 +1,53 @@
+name: remove of a repository with nothing at its worktree path is refused
+scenario: "harness-worktrees: No worktree to remove"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [worktree, remove, nakatomi-web, --yes]
+exit: 1
+stderr_contains: ["worktree not removed:", "nothing exists at worktrees/nakatomi-web"]
+unchanged: true
+---
+name: remove of a plain folder under worktrees is refused and deletes nothing
+scenario: "harness-worktrees: No worktree to remove"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+tree_after_setup:
+  harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web/notes.txt: "Copied by hand.\n"
+run: [worktree, remove, nakatomi-web, --yes]
+exit: 1
+stderr_contains: ["worktree not removed:", "worktrees/nakatomi-web is not a worktree"]
+unchanged: true

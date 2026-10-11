@@ -1,0 +1,87 @@
+name: 0.1 and 0.2 add up to exactly 0.3
+scenario: "task-reporting: Sums are exact"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: hours, type: number }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-20-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-20
+    metadata:
+      hours: 0.1
+    ---
+
+    ## Updates
+  tasks/support/2026-09-21-SUP-2-export-broken.md: |
+    ---
+    status: open
+    ref: SUP-2
+    updated_at: 2026-09-21
+    metadata:
+      hours: 0.2
+    ---
+
+    ## Updates
+run: [report, --sum, hours]
+exit: 0
+stdout_json:
+  by: []
+  sum: [hours]
+  groups:
+    - key: {}
+      tasks: 2
+      refs: [SUP-1, SUP-2]
+      sums: { hours: { total: 0.3, missing: 0 } }
+  total: { tasks: 2, sums: { hours: { total: 0.3, missing: 0 } } }
+  problems: []
+unchanged: true
+---
+name: 1.5 and 0.5 add up to the integer 2
+scenario: "task-reporting: Sums are exact"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: hours, type: number }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-20-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-20
+    metadata:
+      hours: 1.5
+    ---
+
+    ## Updates
+  tasks/support/2026-09-21-SUP-2-export-broken.md: |
+    ---
+    status: open
+    ref: SUP-2
+    updated_at: 2026-09-21
+    metadata:
+      hours: 0.5
+    ---
+
+    ## Updates
+run: [report, --sum, hours]
+exit: 0
+stdout_json:
+  by: []
+  sum: [hours]
+  groups:
+    - key: {}
+      tasks: 2
+      refs: [SUP-1, SUP-2]
+      sums: { hours: { total: 2, missing: 0 } }
+  total: { tasks: 2, sums: { hours: { total: 2, missing: 0 } } }
+  problems: []
+unchanged: true

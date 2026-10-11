@@ -1,0 +1,69 @@
+name: init in an empty folder writes the config, the tasks folder, the ignore line and the skills of every provider
+scenario: "repo-initialization: Tasks repo scaffolded in the working directory"
+cwd: .
+run: [init]
+exit: 0
+stdout: |
+  written gemba.yaml
+  written .gitignore
+  written tasks/.gitkeep
+  written .claude/skills/gemba-create/SKILL.md
+  written .claude/skills/gemba-list/SKILL.md
+  written .claude/skills/gemba-harness/SKILL.md
+  written .claude/skills/gemba-report/SKILL.md
+  written .claude/skills/gemba-mark/SKILL.md
+  written .claude/skills/gemba-archive/SKILL.md
+  written .claude/skills/gemba-set/SKILL.md
+  written .claude/skills/gemba-init/SKILL.md
+  written .claude/skills/gemba-config/SKILL.md
+  written .agents/skills/gemba-create/SKILL.md
+  written .agents/skills/gemba-list/SKILL.md
+  written .agents/skills/gemba-harness/SKILL.md
+  written .agents/skills/gemba-report/SKILL.md
+  written .agents/skills/gemba-mark/SKILL.md
+  written .agents/skills/gemba-archive/SKILL.md
+  written .agents/skills/gemba-set/SKILL.md
+  written .agents/skills/gemba-init/SKILL.md
+  written .agents/skills/gemba-config/SKILL.md
+  next step: open this tasks repo with your agent and ask it to configure gemba (the gemba-init skill)
+files:
+  gemba.yaml: |
+    # The gemba config of this tasks repo, edited by hand: no gemba command rewrites it.
+    # Ask your agent to configure gemba for the first time (the gemba-init skill) and to
+    # change it later (the gemba-config skill, which holds the reference of every key).
+
+    default_workstream: default
+
+    agent_providers: [claude, agents]
+
+    workstreams:
+      default:
+        prefix: TASK
+        description: Work that fits no other workstream
+  .gitignore: "harnesses/\n"
+  tasks/.gitkeep: ""
+folders: [tasks]
+files_contain:
+  .claude/skills/gemba-create/SKILL.md: &create ["---\nname: gemba-create\n", "  generatedBy: \"{version}\"\n"]
+  .claude/skills/gemba-list/SKILL.md: &list ["---\nname: gemba-list\n", "  generatedBy: \"{version}\"\n"]
+  .claude/skills/gemba-harness/SKILL.md: &harness ["---\nname: gemba-harness\n", "  generatedBy: \"{version}\"\n"]
+  .claude/skills/gemba-report/SKILL.md: &report ["---\nname: gemba-report\n", "  generatedBy: \"{version}\"\n"]
+  .claude/skills/gemba-mark/SKILL.md: &mark ["---\nname: gemba-mark\n", "  generatedBy: \"{version}\"\n"]
+  .claude/skills/gemba-archive/SKILL.md: &archive ["---\nname: gemba-archive\n", "  generatedBy: \"{version}\"\n"]
+  .claude/skills/gemba-set/SKILL.md: &set ["---\nname: gemba-set\n", "  generatedBy: \"{version}\"\n"]
+  .claude/skills/gemba-init/SKILL.md: &init ["---\nname: gemba-init\n", "  generatedBy: \"{version}\"\n"]
+  .claude/skills/gemba-config/SKILL.md: &config ["---\nname: gemba-config\n", "  generatedBy: \"{version}\"\n"]
+  .agents/skills/gemba-create/SKILL.md: *create
+  .agents/skills/gemba-list/SKILL.md: *list
+  .agents/skills/gemba-harness/SKILL.md: *harness
+  .agents/skills/gemba-report/SKILL.md: *report
+  .agents/skills/gemba-mark/SKILL.md: *mark
+  .agents/skills/gemba-archive/SKILL.md: *archive
+  .agents/skills/gemba-set/SKILL.md: *set
+  .agents/skills/gemba-init/SKILL.md: *init
+  .agents/skills/gemba-config/SKILL.md: *config
+absent:
+  - .claude/skills/gemba-record
+  - .claude/skills/gemba-worktree
+  - .agents/skills/gemba-record
+  - .agents/skills/gemba-worktree

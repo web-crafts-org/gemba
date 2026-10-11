@@ -1,0 +1,44 @@
+# The config no longer declares ticket_id for support; the task written before stays readable.
+name: a metadata key the config no longer declares is still read and listed
+scenario: "task-file-format: Metadata keys outside the current schema"
+config:
+  default_workstream: operations
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - name: client
+          type: text
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails-on-safari.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      client: acme
+      ticket_id: PROD-16283
+    ---
+
+    Login fails on Safari for the checkout app
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-09-30-SUP-1-login-fails-on-safari.md
+      workstream: support
+      archived: false
+      ref: SUP-1
+      date: 2026-09-30
+      title: Login fails on safari
+      status: open
+      updated_at: 2026-09-30
+      done_at: null
+      metadata: { client: acme, ticket_id: PROD-16283 }
+      description: Login fails on Safari for the checkout app
+  problems: []
+unchanged: true

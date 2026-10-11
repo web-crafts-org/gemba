@@ -1,0 +1,76 @@
+name: a missing metadata block is reported naming metadata
+scenario: "task-file-format: Metadata not a map"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    ---
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks: []
+  problems:
+    - path: tasks/support/2026-09-30-SUP-1-login-fails.md
+      problem: metadata is missing (it must be a map, {} when empty)
+unchanged: true
+---
+name: a metadata list is reported naming metadata
+scenario: "task-file-format: Metadata not a map"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: [acme, checkout]
+    ---
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks: []
+  problems:
+    - path: tasks/support/2026-09-30-SUP-1-login-fails.md
+      problem: metadata must be a map, not a list
+unchanged: true
+---
+name: a metadata scalar is reported naming metadata
+scenario: "task-file-format: Metadata not a map"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: acme
+    ---
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks: []
+  problems:
+    - path: tasks/support/2026-09-30-SUP-1-login-fails.md
+      problem: metadata must be a map, not a scalar
+unchanged: true

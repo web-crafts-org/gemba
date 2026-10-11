@@ -1,0 +1,50 @@
+name: next ref follows the highest one of the prefix
+scenario: "task-file-format: Consecutive refs within a workstream"
+config:
+  default_workstream: operations
+  workstreams:
+    code-reviews: { prefix: CR, description: Review a merge request before it is merged }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/code-reviews/2026-09-01-CR-12-review-checkout.md: "---\nstatus: open\nref: CR-12\nupdated_at: 2026-09-01\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/code-reviews/archive/2026-08-01-CR-9-review-landing.md: "---\nstatus: done\nref: CR-9\nupdated_at: 2026-08-02\ndone_at: 2026-08-02\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/operations/2026-09-02-OPS-40-unrelated.md: "---\nstatus: open\nref: OPS-40\nupdated_at: 2026-09-02\nmetadata: {}\n---\n\n## Updates\n"
+run: [create, --workstream, code-reviews, --slug, review-billing, --date, 2026-09-30]
+exit: 0
+stdout_contains: [CR-13]
+files:
+  tasks/code-reviews/2026-09-30-CR-13-review-billing.md: |
+    ---
+    status: open
+    ref: CR-13
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+---
+name: a longer prefix is not counted as a shorter one
+scenario: "task-file-format: Consecutive refs within a workstream"
+config:
+  default_workstream: operations
+  workstreams:
+    design: { prefix: DE, description: Visual design work }
+    development: { prefix: DEV, description: New features or projects }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/design/2026-09-01-DE-9-new-logo.md: "---\nstatus: open\nref: DE-9\nupdated_at: 2026-09-01\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/development/2026-09-01-DEV-4-checkout-api.md: "---\nstatus: open\nref: DEV-4\nupdated_at: 2026-09-01\nmetadata: {}\n---\n\n## Updates\n"
+run: [create, --workstream, development, --slug, landing-page, --date, 2026-09-30]
+exit: 0
+stdout_contains: [DEV-5]
+absent: [tasks/development/2026-09-30-DEV-10-landing-page.md]
+files:
+  tasks/development/2026-09-30-DEV-5-landing-page.md: |
+    ---
+    status: open
+    ref: DEV-5
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates

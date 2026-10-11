@@ -1,0 +1,12 @@
+# The gemba config of this tasks repo, edited by hand: no gemba command rewrites it.
+# Ask your agent to configure gemba for the first time (the gemba-init skill) and to
+# change it later (the gemba-config skill, which holds the reference of every key).
+
+default_workstream: default
+
+agent_providers: __PROVIDERS__
+
+workstreams:
+  default:
+    prefix: TASK
+    description: Work that fits no other workstream

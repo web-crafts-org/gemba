@@ -1,0 +1,44 @@
+# The drafts and the asset are in the tree, so launch commits them; each note filing then
+# commits once, which makes three commits.
+name: remove without --yes prints the manifest of the run and deletes nothing
+scenario: "harness-removal: Manifest shown without deleting"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/notes/safari-reproduced.md: |
+    Login fails on Safari 17 with a blank page.
+  harnesses/support/2026-09-30-SUP-1-login-fails/notes/cookie-flag.md: |
+    The session cookie lacks SameSite=None.
+  harnesses/support/2026-09-30-SUP-1-login-fails/assets/console.txt: |
+    TypeError: cannot read properties of null
+setup:
+  - [harness, launch, SUP-1, --no-open]
+  - [harness, note, notes/safari-reproduced.md, --type, finding, --asset, assets/console.txt,
+     --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+  - [harness, note, notes/cookie-flag.md, --type, finding, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+run: [harness, remove, SUP-1]
+exit: 0
+stdout: |
+  harnesses/support/2026-09-30-SUP-1-login-fails
+  task: tasks/support/2026-09-30-SUP-1-login-fails.md
+  launched_at: {today}
+  notes: 2
+  assets: 1
+  commits: 3
+  worktrees: 0
+  uncommitted: 0
+  not removed: pass --yes to delete the harness
+unchanged: true

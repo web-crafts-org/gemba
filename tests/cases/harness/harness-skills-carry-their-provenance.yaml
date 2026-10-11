@@ -1,0 +1,33 @@
+name: a skill written by launch carries the provenance that skills update writes
+scenario: "harness-launch: Harness skills carry their provenance"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [harness, launch, SUP-1, --no-open]
+exit: 0
+files_contain:
+  harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-harness/SKILL.md:
+    - "---\nname: gemba-harness\ndescription: "
+    - "\nmetadata:\n  generatedBy: \"{version}\"\n  contentHash: \""
+  harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-record/SKILL.md:
+    - "---\nname: gemba-record\ndescription: "
+    - "\nmetadata:\n  generatedBy: \"{version}\"\n  contentHash: \""
+  harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-mark/SKILL.md:
+    - "---\nname: gemba-mark\ndescription: "
+    - "\nmetadata:\n  generatedBy: \"{version}\"\n  contentHash: \""
+  harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-set/SKILL.md:
+    - "---\nname: gemba-set\ndescription: "
+    - "\nmetadata:\n  generatedBy: \"{version}\"\n  contentHash: \""

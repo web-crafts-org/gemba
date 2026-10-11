@@ -1,0 +1,24 @@
+name: a set block with rules and context does not stop the create process
+scenario: "gemba-config: Set block accepted"
+config:
+  default_workstream: operations
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      set:
+        rules: [set the invoice date only when the task is done]
+        context: Support work is invoiced at the end of each month.
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, support, --slug, login-fails, --date, 2026-09-30]
+exit: 0
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates

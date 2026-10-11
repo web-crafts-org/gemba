@@ -1,0 +1,34 @@
+name: add --from a branch origin does not have is refused and creates nothing
+scenario: "harness-worktrees: Missing remote branch refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  organization: nakatomi
+  repos_dir: repos
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+repos:
+  nakatomi-web:
+    branches:
+      main: { README.md: "Nakatomi web\n" }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [worktree, add, nakatomi-web, --from, feature/none]
+exit: 1
+stderr_contains: ["worktree not added:", "origin has no branch feature/none"]
+absent:
+  - harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/*
+git_branches:
+  repos/nakatomi-web: [main]

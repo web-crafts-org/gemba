@@ -1,0 +1,37 @@
+# The contentHash below is the SHA-256 of the file with its metadata map removed:
+#   ---
+#   name: gemba-create
+#   description: An older generation of the skill.
+#   ---
+#
+#   # Create a task
+#
+#   Old steps.
+name: an untouched older generation is rewritten with the current content
+scenario: "built-in-skills: Outdated skill is refreshed"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  .claude/skills/gemba-create/SKILL.md: |
+    ---
+    name: gemba-create
+    description: An older generation of the skill.
+    metadata:
+      generatedBy: "0.0.1"
+      contentHash: "b05c4b67d44614d41d4a220c073fb95a3621484cca529c76dcced573e651fe39"
+    ---
+
+    # Create a task
+
+    Old steps.
+run: [skills, update]
+exit: 0
+stdout_contains: ["updated .claude/skills/gemba-create/SKILL.md\n"]
+files_contain:
+  .claude/skills/gemba-create/SKILL.md:
+    - "---\nname: gemba-create\ndescription: Register a new task in this tasks repo."
+    - "metadata:\n  generatedBy: \"{version}\"\n  contentHash: \""
+    - "\n---\n\n# Create a task\n\nRegister one unit of work as a task file."

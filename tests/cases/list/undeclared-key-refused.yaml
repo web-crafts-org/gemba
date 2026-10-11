@@ -1,0 +1,30 @@
+name: a condition on a key that no schema declares lists nothing and names the key
+scenario: "task-listing: Undeclared key refused"
+config:
+  default_workstream: operations
+  metadata:
+    - name: client
+      type: text
+  workstreams:
+    code-reviews:
+      prefix: CR
+      description: Review a merge request before it is merged
+      metadata:
+        - name: merge_url
+          type: text
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/operations/2026-09-30-OPS-1-renew-domain.md: |
+    ---
+    status: open
+    ref: OPS-1
+    updated_at: 2026-09-30
+    metadata:
+      client: acme
+    ---
+
+    ## Updates
+run: [list, --where, colour=red]
+exit: 1
+stderr_contains: ["undeclared metadata key 'colour'", "declared: client, merge_url"]
+unchanged: true

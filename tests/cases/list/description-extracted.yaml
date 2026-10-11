@@ -1,0 +1,38 @@
+name: the description is the first paragraph of the body, links below it excluded
+scenario: "task-file-format: Description extracted"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails-on-safari.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app
+
+    https://tickets.example.com/browse/PROD-16283
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-09-30-SUP-1-login-fails-on-safari.md
+      workstream: support
+      archived: false
+      ref: SUP-1
+      date: 2026-09-30
+      title: Login fails on safari
+      status: open
+      updated_at: 2026-09-30
+      done_at: null
+      metadata: {}
+      description: Login fails on Safari for the checkout app
+  problems: []
+unchanged: true

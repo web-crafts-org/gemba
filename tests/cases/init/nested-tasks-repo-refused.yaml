@@ -1,0 +1,29 @@
+name: init from a subfolder of a tasks repo is refused naming the tasks repo found
+scenario: "repo-initialization: Nested tasks repo refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  notes/today.md: nothing here
+cwd: notes
+run: [init]
+exit: 1
+stderr_contains: [is inside the tasks repo, a tasks repo is never created inside another one]
+absent: [notes/gemba.yaml, notes/tasks]
+unchanged: true
+---
+name: init of a subfolder given at the root of a tasks repo is refused naming the tasks repo found
+scenario: "repo-initialization: Nested tasks repo refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+cwd: .
+run: [init, sub]
+exit: 1
+stderr_contains: [is inside the tasks repo, a tasks repo is never created inside another one]
+absent: [sub]
+unchanged: true

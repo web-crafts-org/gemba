@@ -1,0 +1,96 @@
+# The candidates for 2026-09-15: every task that can hold an update for that day.
+name: created on or before the day and updated on or after it, whatever the status
+scenario: "task-listing: Candidates for a past day"
+config:
+  default_workstream: operations
+  workstreams:
+    code-reviews: { prefix: CR, description: Review a merge request before it is merged }
+    deployments: { prefix: DEP, description: Deploy one or more projects }
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-10-SUP-1-updated-after-the-day.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-16
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-09-10-SUP-2-last-updated-before-the-day.md: |
+    ---
+    status: open
+    ref: SUP-2
+    updated_at: 2026-09-14
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/operations/2026-09-15-OPS-1-created-and-updated-on-the-day.md: |
+    ---
+    status: open
+    ref: OPS-1
+    updated_at: 2026-09-15
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-09-16-SUP-3-created-after-the-day.md: |
+    ---
+    status: open
+    ref: SUP-3
+    updated_at: 2026-09-16
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/operations/2026-09-01-OPS-2-closed-on-the-day.md: |
+    ---
+    status: done
+    ref: OPS-2
+    updated_at: 2026-09-15
+    done_at: 2026-09-15
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list, --to, 2026-09-15, --updated-from, 2026-09-15]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/operations/2026-09-01-OPS-2-closed-on-the-day.md
+      workstream: operations
+      archived: false
+      ref: OPS-2
+      date: 2026-09-01
+      title: Closed on the day
+      status: done
+      updated_at: 2026-09-15
+      done_at: 2026-09-15
+      metadata: {}
+      description: null
+    - path: tasks/support/2026-09-10-SUP-1-updated-after-the-day.md
+      workstream: support
+      archived: false
+      ref: SUP-1
+      date: 2026-09-10
+      title: Updated after the day
+      status: open
+      updated_at: 2026-09-16
+      done_at: null
+      metadata: {}
+      description: null
+    - path: tasks/operations/2026-09-15-OPS-1-created-and-updated-on-the-day.md
+      workstream: operations
+      archived: false
+      ref: OPS-1
+      date: 2026-09-15
+      title: Created and updated on the day
+      status: open
+      updated_at: 2026-09-15
+      done_at: null
+      metadata: {}
+      description: null
+  problems: []
+unchanged: true

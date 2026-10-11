@@ -1,0 +1,11 @@
+name: an undeclared key is named in the refusal
+scenario: "task-creation: Undeclared key"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, support, --slug, login-fails, --date, 2026-09-30, --set, ticket_id=PROD-16283]
+exit: 1
+stderr_contains: ["undeclared metadata keys for 'support': ticket_id"]
+unchanged: true

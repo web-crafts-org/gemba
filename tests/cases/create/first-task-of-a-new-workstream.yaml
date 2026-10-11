@@ -1,0 +1,25 @@
+name: folders and .gitkeep files are created for a new workstream
+scenario: "task-creation: First task of a new workstream"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+    hosting: { prefix: HOST, description: Servers, domains and certificates }
+tree:
+  tasks/operations/.gitkeep: ""
+  tasks/operations/archive/.gitkeep: ""
+run: [create, --workstream, hosting, --slug, renew-certificates, --date, 2026-09-30]
+exit: 0
+stdout_contains: [tasks/hosting/2026-09-30-HOST-1-renew-certificates.md, HOST-1]
+files:
+  tasks/hosting/.gitkeep: ""
+  tasks/hosting/archive/.gitkeep: ""
+  tasks/hosting/2026-09-30-HOST-1-renew-certificates.md: |
+    ---
+    status: open
+    ref: HOST-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates

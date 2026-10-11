@@ -1,0 +1,27 @@
+name: a ref no task has is reported while the other ref is archived
+scenario: "task-archiving: Unknown ref refused"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-01
+    done_at: 2026-10-01
+    metadata: {}
+    ---
+
+    ## Updates
+run: [archive, SUP-1, SUP-9]
+exit: 1
+stdout_contains:
+  - "archived: tasks/support/archive/2026-09-30-SUP-1-login-fails.md\n"
+  - "not archived: SUP-9 "
+  - no task
+files_contain:
+  tasks/support/archive/2026-09-30-SUP-1-login-fails.md: ["\nref: SUP-1\n"]
+absent: [tasks/support/2026-09-30-SUP-1-login-fails.md]

@@ -1,0 +1,21 @@
+name: a ref no task has is refused and nothing is written
+scenario: "task-marking: Unknown ref refused"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-10-01
+    metadata: {}
+    ---
+
+    ## Updates
+run: [mark, SUP-9, done]
+exit: 1
+stderr_contains: [task not marked, "no task has ref 'SUP-9'"]
+unchanged: true

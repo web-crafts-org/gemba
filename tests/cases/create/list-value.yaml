@@ -1,0 +1,25 @@
+name: several values for one field are written as a flow list
+scenario: "task-file-format: List value"
+config:
+  default_workstream: operations
+  workstreams:
+    deployments:
+      prefix: DEP
+      description: Deploy one or more projects
+      metadata:
+        - name: project
+          type: text
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, deployments, --slug, release-october, --date, 2026-09-30, --set, project=checkout, --set, project=landing]
+exit: 0
+files:
+  tasks/deployments/2026-09-30-DEP-1-release-october.md: |
+    ---
+    status: open
+    ref: DEP-1
+    updated_at: 2026-09-30
+    metadata:
+      project: [checkout, landing]
+    ---
+
+    ## Updates

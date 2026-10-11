@@ -1,0 +1,30 @@
+name: a name repeated in the base list is refused
+scenario: "gemba-config: Repeated name within one list"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: client, type: text }
+    - { name: client, type: text, required: true }
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["field 'client' is declared more than once"]
+unchanged: true
+---
+name: a name repeated in one workstream list is refused
+scenario: "gemba-config: Repeated name within one list"
+config:
+  default_workstream: operations
+  workstreams:
+    deployments:
+      prefix: DEP
+      description: Deploy one or more projects
+      metadata:
+        - { name: environment, type: text }
+        - { name: environment, type: text }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["workstream 'deployments' metadata", "field 'environment' is declared more than once"]
+unchanged: true

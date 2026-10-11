@@ -1,0 +1,26 @@
+name: task.md is a relative link to the task file and reads as the task
+scenario: "harness-launch: Task linked"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app
+
+    ## Updates
+run: [harness, launch, SUP-1, --no-open]
+exit: 0
+links:
+  harnesses/support/2026-09-30-SUP-1-login-fails/task.md: ../../../tasks/support/2026-09-30-SUP-1-login-fails.md
+files_contain:
+  harnesses/support/2026-09-30-SUP-1-login-fails/task.md: ["ref: SUP-1\n", "Login fails on Safari for the checkout app\n"]

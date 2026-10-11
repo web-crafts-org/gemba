@@ -1,0 +1,37 @@
+name: every missing required key is named in one message
+scenario: "task-creation: Missing required keys reported together"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: client, type: text, required: true }
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - { name: project, type: text, required: true }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, support, --slug, login-fails, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["missing required metadata keys for 'support': client, project"]
+unchanged: true
+---
+name: missing and undeclared keys are reported in the same message
+scenario: "task-creation: Missing required keys reported together"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: client, type: text, required: true }
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - { name: project, type: text, required: true }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, support, --slug, login-fails, --date, 2026-09-30, --set, ticket_id=PROD-1, --set, requester=ana, --set, client=null]
+exit: 1
+stderr_contains:
+  - "undeclared metadata keys for 'support': ticket_id, requester"
+  - "missing required metadata keys for 'support': client, project"
+unchanged: true

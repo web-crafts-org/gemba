@@ -1,0 +1,67 @@
+name: a body holding the updates heading twice is refused and left as it was
+scenario: "task-file-format: Updates not the last section"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2026-09-30
+
+    - Reproduced the failure on Safari 17.
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: |
+    - Traced the failure to the session cookie.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [record, update.md, --date, 2026-10-01, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 1
+stderr_contains: ["tasks/support/2026-09-30-SUP-1-login-fails.md holds '## Updates' more than once"]
+unchanged: true
+---
+name: a body with another section after the updates heading is refused and left as it was
+scenario: "task-file-format: Updates not the last section"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ## Links
+
+    - https://example.invalid/tickets/4821
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: |
+    - Traced the failure to the session cookie.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [record, update.md, --date, 2026-10-01, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 1
+stderr_contains: ["tasks/support/2026-09-30-SUP-1-login-fails.md has '## Links' after '## Updates'", "must be the last section"]
+unchanged: true

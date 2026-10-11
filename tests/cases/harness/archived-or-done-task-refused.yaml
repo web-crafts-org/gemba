@@ -1,0 +1,46 @@
+name: an archived task is refused and nothing is written
+scenario: "harness-launch: Archived or done task refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/archive/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [harness, launch, SUP-1]
+exit: 1
+stderr_contains: [SUP-1 is archived, tasks/support/archive/2026-09-30-SUP-1-login-fails.md]
+unchanged: true
+---
+name: a done task is refused and nothing is written
+scenario: "harness-launch: Archived or done task refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-01
+    done_at: 2026-10-01
+    metadata: {}
+    ---
+
+    ## Updates
+run: [harness, launch, SUP-1]
+exit: 1
+stderr_contains: [SUP-1 is done, gemba mark]
+unchanged: true

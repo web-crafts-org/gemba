@@ -1,0 +1,11 @@
+name: unknown workstream is refused and the valid ones are listed
+scenario: "task-creation: Unknown workstream"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, sales, --slug, new-lead, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["unknown workstream 'sales'", "support, operations"]
+unchanged: true

@@ -1,0 +1,9 @@
+name: check with no gemba.yaml above the working directory says so
+scenario: "config-maintenance: Check without a config"
+tree:
+  notes/today.md: nothing here
+cwd: notes
+run: [config, check]
+exit: 1
+stderr_contains: [no gemba config found]
+unchanged: true

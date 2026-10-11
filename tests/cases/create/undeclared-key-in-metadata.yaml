@@ -1,0 +1,13 @@
+name: a key outside the effective schema is refused
+scenario: "task-file-format: Undeclared key"
+config:
+  default_workstream: operations
+  metadata:
+    - name: client
+      type: text
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30, --set, client=acme, --set, colour=blue]
+exit: 1
+stderr_contains: [undeclared, colour]
+unchanged: true

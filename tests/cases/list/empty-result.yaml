@@ -1,0 +1,42 @@
+name: an empty ledger lists nothing and succeeds
+scenario: "task-listing: Empty result"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/.gitkeep: ""
+  tasks/support/archive/.gitkeep: ""
+  tasks/operations/.gitkeep: ""
+  tasks/operations/archive/.gitkeep: ""
+run: [list]
+exit: 0
+stdout_json:
+  tasks: []
+  problems: []
+unchanged: true
+---
+name: a filter that no task matches lists nothing and succeeds
+scenario: "task-listing: Empty result"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails-on-safari.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list, --workstream, operations]
+exit: 0
+stdout_json:
+  tasks: []
+  problems: []
+unchanged: true

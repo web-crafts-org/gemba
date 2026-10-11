@@ -1,0 +1,33 @@
+name: without --date the update is dated today and updated_at moves to today
+scenario: "task-recording: Default date is today"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: |
+    - Reproduced the failure on Safari 17.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [record, update.md, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  updated_at: 2026-09-30 -> {today}
+files_contain:
+  tasks/support/2026-09-30-SUP-1-login-fails.md:
+    - "\nupdated_at: {today}\n"
+    - "## Updates\n\n### {today}\n\n- Reproduced the failure on Safari 17.\n"

@@ -1,0 +1,93 @@
+name: launching an open task moves it to in-progress today and keeps the body byte for byte
+scenario: "harness-launch: Open task started"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app
+
+    Reported in https://support.example.com/tickets/4521
+
+    ## Updates
+run: [harness, launch, SUP-1, --no-open]
+exit: 0
+stdout: |
+  harnesses/support/2026-09-30-SUP-1-login-fails
+  status: open -> in-progress
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: {today}
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app
+
+    Reported in https://support.example.com/tickets/4521
+
+    ## Updates
+---
+name: launch rewrites the frontmatter keys in their order and leaves the body as it was
+scenario: "task-file-format: Launch rewrites only the frontmatter"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - name: client
+          type: text
+        - name: project
+          type: text
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      client: acme
+      project: [checkout, landing]
+    ---
+
+    Login fails on Safari for the checkout app
+
+    - Ticket: https://support.example.com/tickets/4521
+    -   Trace:   kept with its spacing  
+
+    ## Updates
+run: [harness, launch, SUP-1, --no-open]
+exit: 0
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: {today}
+    metadata:
+      client: acme
+      project: [checkout, landing]
+    ---
+
+    Login fails on Safari for the checkout app
+
+    - Ticket: https://support.example.com/tickets/4521
+    -   Trace:   kept with its spacing  
+
+    ## Updates

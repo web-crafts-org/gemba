@@ -1,0 +1,33 @@
+name: mark.rules written as a string stops the command and names the block
+scenario: "gemba-config: Malformed mark or archive block"
+config:
+  default_workstream: operations
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      mark:
+        rules: before done, confirm the client was told
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, support, --slug, login-fails, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, "workstream 'support'", mark.rules must be a list of non-empty strings]
+unchanged: true
+---
+name: archive.context written as a list stops the command and names the block
+scenario: "gemba-config: Malformed mark or archive block"
+config:
+  default_workstream: operations
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      archive:
+        context: [one line, another line]
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/.gitkeep: ""
+run: [list]
+exit: 1
+stderr_contains: [invalid gemba config, "workstream 'support'", archive.context must be a string]
+unchanged: true

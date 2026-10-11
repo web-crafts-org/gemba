@@ -1,0 +1,10 @@
+name: a valid catalogue entry gives the folder and the prefix
+scenario: "gemba-config: Valid catalogue"
+config:
+  default_workstream: operations
+  workstreams:
+    code-reviews: { prefix: CR, description: Review a merge request before it is merged }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, code-reviews, --slug, review-checkout-refactor, --date, 2026-09-30]
+exit: 0
+stdout_contains: [tasks/code-reviews/2026-09-30-CR-1-review-checkout-refactor.md, CR-1]

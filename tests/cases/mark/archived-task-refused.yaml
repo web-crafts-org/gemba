@@ -1,0 +1,25 @@
+name: an archived task is refused, with the way out of archive/, and nothing is written
+scenario: "task-marking: Archived task refused"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/archive/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-01
+    done_at: 2026-10-01
+    metadata: {}
+    ---
+
+    ## Updates
+run: [mark, SUP-1, open]
+exit: 1
+stderr_contains:
+  - task not marked
+  - SUP-1 is archived (tasks/support/archive/2026-09-30-SUP-1-login-fails.md)
+  - move the file out of archive/
+unchanged: true

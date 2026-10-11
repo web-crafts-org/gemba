@@ -1,0 +1,42 @@
+name: a text and a date are written by type and each change is printed
+scenario: "metadata-setting: Values set"
+config:
+  default_workstream: operations
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - { name: client, type: text }
+        - { name: invoiced, type: date }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      client: null
+      invoiced: null
+    ---
+
+    ## Updates
+run: [set, SUP-1, client=acme, invoiced=2026-10-03]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  client: null -> acme
+  invoiced: null -> 2026-10-03
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      client: acme
+      invoiced: 2026-10-03
+    ---
+
+    ## Updates

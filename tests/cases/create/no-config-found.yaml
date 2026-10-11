@@ -1,0 +1,8 @@
+name: missing gemba.yaml stops the command
+scenario: "gemba-config: No config found"
+tree:
+  tasks/operations/.gitkeep: ""
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [no gemba config found]
+unchanged: true

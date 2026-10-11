@@ -1,0 +1,28 @@
+name: a worktree block with verb blocks does not stop the create process
+scenario: "gemba-config: Worktree verb blocks accepted"
+config:
+  default_workstream: operations
+  workstreams:
+    code-reviews:
+      prefix: CR
+      description: Review a merge request before it is merged
+      worktree:
+        add:
+          rules: [pass --from with the source branch of each merge request of the task]
+        list:
+          context: Each merge request under review has its own repository.
+        remove:
+          rules: [check the review comments were posted before removing]
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, code-reviews, --slug, review-checkout, --date, 2026-09-30]
+exit: 0
+files:
+  tasks/code-reviews/2026-09-30-CR-1-review-checkout.md: |
+    ---
+    status: open
+    ref: CR-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates

@@ -1,0 +1,44 @@
+name: launching an open task creates its harness with every piece of the layout
+scenario: "harness-launch: Harness layout created"
+config:
+  default_workstream: operations
+  agent_providers: [claude, agents]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [harness, launch, SUP-1]
+exit: 0
+stdout: |
+  harnesses/support/2026-09-30-SUP-1-login-fails
+  status: open -> in-progress
+files_contain:
+  harnesses/support/2026-09-30-SUP-1-login-fails/harness.yaml: ["ref: SUP-1\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/task.md: ["ref: SUP-1\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/CLAUDE.md: ["`task.md`"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/AGENTS.md: ["`task.md`"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-harness/SKILL.md: ["name: gemba-harness\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-harness/SKILL.md: ["name: gemba-harness\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-record/SKILL.md: ["name: gemba-record\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-mark/SKILL.md: ["name: gemba-mark\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-set/SKILL.md: ["name: gemba-set\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-record/SKILL.md: ["name: gemba-record\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-mark/SKILL.md: ["name: gemba-mark\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-set/SKILL.md: ["name: gemba-set\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/.gitignore: ["worktrees/\n"]
+folders:
+  - harnesses/support/2026-09-30-SUP-1-login-fails/notes
+  - harnesses/support/2026-09-30-SUP-1-login-fails/assets
+  - harnesses/support/2026-09-30-SUP-1-login-fails/worktrees
+absent:
+  - harnesses/support/2026-09-30-SUP-1-login-fails/notes/*
+  - harnesses/support/2026-09-30-SUP-1-login-fails/assets/*

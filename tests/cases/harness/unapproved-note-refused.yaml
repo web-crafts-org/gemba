@@ -1,0 +1,33 @@
+name: a note whose approved is false is refused
+scenario: "harness-notes: Unapproved note refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/notes/2026-09-30-153012-push-fix.md: |
+    ---
+    type: external-action
+    date: 2026-09-30
+    time: "15:30:12"
+    approved: false
+    ---
+
+    Push branch fix-login to origin.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [harness, resolve, notes/2026-09-30-153012-push-fix.md, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 1
+stderr_contains: [notes/2026-09-30-153012-push-fix.md, is not approved]
+unchanged: true

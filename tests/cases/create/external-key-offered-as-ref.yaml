@@ -1,0 +1,27 @@
+name: an external ticket key goes to metadata, never to the ref
+scenario: "task-file-format: External key offered as ref"
+config:
+  default_workstream: operations
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - name: ticket_id
+          type: text
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, support, --slug, refund-fails, --date, 2026-09-30, --set, ticket_id=PROD-16283]
+exit: 0
+stdout_contains: [SUP-1]
+files:
+  tasks/support/2026-09-30-SUP-1-refund-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      ticket_id: PROD-16283
+    ---
+
+    ## Updates
+absent: [tasks/support/2026-09-30-PROD-16283-refund-fails.md]

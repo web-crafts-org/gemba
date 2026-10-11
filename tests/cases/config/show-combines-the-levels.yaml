@@ -1,0 +1,85 @@
+name: show combines the base blocks with the blocks of each workstream
+scenario: "config-maintenance: Blocks combined from both levels"
+config:
+  default_workstream: operations
+  create:
+    context: Every task is billed to one client.
+    rules: [ask who requested the work if not stated]
+  harness:
+    guide: Open the harness through its workspace.
+  worktree:
+    add:
+      rules: [start from the default branch of origin]
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      create:
+        rules: [ask for the ticket of the client]
+      harness:
+        guide: Quote the ticket in every note.
+      worktree:
+        add:
+          rules: [start from the branch deployed to production]
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [config, show]
+exit: 0
+stdout_json:
+  organization: null
+  branch_prefix: gemba
+  repos_dir: null
+  ide: null
+  agent_providers: null
+  default_workstream: operations
+  workstreams:
+    - id: support
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata: []
+      processes:
+        create:
+          context: Every task is billed to one client.
+          rules: [ask who requested the work if not stated, ask for the ticket of the client]
+        list: &empty { context: null, rules: [] }
+        record: *empty
+        report: *empty
+        mark: *empty
+        archive: *empty
+        set: *empty
+        harness:
+          guide: { organization: Open the harness through its workspace., workstream: Quote the ticket in every note. }
+          launch: *empty
+          note: *empty
+          resolve: *empty
+          remove: *empty
+        worktree:
+          add:
+            context: null
+            rules: [start from the default branch of origin, start from the branch deployed to production]
+          list: *empty
+          remove: *empty
+    - id: operations
+      prefix: OPS
+      description: Anything that does not fit another workstream
+      metadata: []
+      processes:
+        create:
+          context: Every task is billed to one client.
+          rules: [ask who requested the work if not stated]
+        list: *empty
+        record: *empty
+        report: *empty
+        mark: *empty
+        archive: *empty
+        set: *empty
+        harness:
+          guide: { organization: Open the harness through its workspace., workstream: null }
+          launch: *empty
+          note: *empty
+          resolve: *empty
+          remove: *empty
+        worktree:
+          add: { context: null, rules: [start from the default branch of origin] }
+          list: *empty
+          remove: *empty
+unchanged: true

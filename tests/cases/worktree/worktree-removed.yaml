@@ -1,0 +1,45 @@
+name: remove --yes deletes the worktree and its branch, and leaves the remote as it was
+scenario: "harness-worktrees: Worktree removed"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  organization: nakatomi
+  repos_dir: repos
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+repos:
+  nakatomi-web:
+    branches:
+      main: { README.md: "Nakatomi web\n" }
+      develop: { README.md: "Nakatomi web, develop\n" }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+  - [worktree, add, nakatomi-web]
+run: [worktree, remove, nakatomi-web, --yes]
+exit: 0
+stdout: |
+  worktrees/nakatomi-web
+  branch: gemba/nakatomi/SUP-1
+  upstream: none
+  uncommitted: 0
+  unpushed: 0
+  removed
+absent:
+  - harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web
+  - repos/nakatomi-web/.git/worktrees/nakatomi-web
+folders: [harnesses/support/2026-09-30-SUP-1-login-fails/worktrees]
+git_branches:
+  repos/nakatomi-web: [main]
+  remotes/nakatomi-web.git: [develop, main]

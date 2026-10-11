@@ -1,0 +1,41 @@
+name: a skill of another tool in the same folder is left as it was and not mentioned
+scenario: "built-in-skills: Unregistered skills are not touched"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  .claude/skills/openspec-explore/SKILL.md: |
+    ---
+    name: openspec-explore
+    description: Think through ideas.
+    metadata:
+      generatedBy: "1.3.0"
+    ---
+
+    Explore.
+  .claude/skills/openspec-explore/notes.txt: kept as it is
+run: [skills, update]
+exit: 0
+stdout: |
+  written .claude/skills/gemba-create/SKILL.md
+  written .claude/skills/gemba-list/SKILL.md
+  written .claude/skills/gemba-harness/SKILL.md
+  written .claude/skills/gemba-report/SKILL.md
+  written .claude/skills/gemba-mark/SKILL.md
+  written .claude/skills/gemba-archive/SKILL.md
+  written .claude/skills/gemba-set/SKILL.md
+  written .claude/skills/gemba-init/SKILL.md
+  written .claude/skills/gemba-config/SKILL.md
+files:
+  .claude/skills/openspec-explore/SKILL.md: |
+    ---
+    name: openspec-explore
+    description: Think through ideas.
+    metadata:
+      generatedBy: "1.3.0"
+    ---
+
+    Explore.
+  .claude/skills/openspec-explore/notes.txt: kept as it is

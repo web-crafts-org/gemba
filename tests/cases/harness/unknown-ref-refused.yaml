@@ -1,0 +1,22 @@
+name: a ref no task has is refused and nothing is written
+scenario: "harness-launch: Unknown ref refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [harness, launch, SUP-9]
+exit: 1
+stderr_contains: ["no task has ref 'SUP-9'"]
+unchanged: true

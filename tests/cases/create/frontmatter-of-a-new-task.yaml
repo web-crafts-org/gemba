@@ -1,0 +1,29 @@
+name: frontmatter has fixed keys, order and every declared metadata key
+scenario: "task-file-format: Frontmatter of a new task"
+config:
+  default_workstream: operations
+  metadata:
+    - name: client
+      type: text
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - name: project
+          type: text
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, support, --slug, login-fails-on-safari, --date, 2026-09-30, --set, client=acme]
+exit: 0
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails-on-safari.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      client: acme
+      project: null
+    ---
+
+    ## Updates

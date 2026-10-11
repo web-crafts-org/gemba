@@ -1,0 +1,33 @@
+name: complete creation with description and metadata
+scenario: "task-creation: Complete creation"
+config:
+  default_workstream: operations
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem and deliver a report or a fix
+      metadata:
+        - name: client
+          type: text
+        - name: project
+          type: text
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, support, --slug, login-fails-on-safari, --date, 2026-09-30, --description, Login fails on Safari for the checkout app, --set, client=acme]
+exit: 0
+stdout_contains: [tasks/support/2026-09-30-SUP-1-login-fails-on-safari.md, SUP-1]
+files:
+  tasks/support/.gitkeep: ""
+  tasks/support/archive/.gitkeep: ""
+  tasks/support/2026-09-30-SUP-1-login-fails-on-safari.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      client: acme
+      project: null
+    ---
+
+    Login fails on Safari for the checkout app
+
+    ## Updates

@@ -1,0 +1,9 @@
+name: no gemba.yaml above the working directory stops the command
+scenario: "built-in-skills: No tasks repo"
+tree:
+  notes/today.md: nothing here
+cwd: notes
+run: [skills, update]
+exit: 1
+stderr_contains: [no gemba config found]
+unchanged: true

@@ -1,0 +1,30 @@
+name: launching a task whose harness was removed creates a fresh harness with one commit
+scenario: "harness-removal: Removed harness relaunched"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+setup:
+  - [harness, launch, SUP-1, --no-open]
+  - [harness, remove, SUP-1, --yes]
+run: [harness, launch, SUP-1, --no-open]
+exit: 0
+stdout_contains: ["status: in-progress, left as it was\n"]
+folders:
+  - harnesses/support/2026-09-30-SUP-1-login-fails/notes
+  - harnesses/support/2026-09-30-SUP-1-login-fails/assets
+git_log:
+  harnesses/support/2026-09-30-SUP-1-login-fails: [launch SUP-1]
+git_clean: [harnesses/support/2026-09-30-SUP-1-login-fails]

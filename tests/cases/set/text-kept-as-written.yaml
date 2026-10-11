@@ -1,0 +1,40 @@
+name: text values are written as typed and quoted where YAML would read another type
+scenario: "metadata-setting: Text kept as written"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: client, type: text }
+    - { name: code, type: text }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      client: null
+      code: null
+    ---
+
+    ## Updates
+run: [set, SUP-1, client=no, code=007]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  client: null -> 'no'
+  code: null -> '007'
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      client: 'no'
+      code: '007'
+    ---
+
+    ## Updates

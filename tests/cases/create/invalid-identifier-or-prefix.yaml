@@ -1,0 +1,59 @@
+name: identifier with uppercase and underscore is refused
+scenario: "gemba-config: Invalid identifier or prefix"
+config:
+  default_workstream: operations
+  workstreams:
+    Client_Support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["workstream 'Client_Support'", kebab-case]
+unchanged: true
+---
+name: identifier with consecutive hyphens is refused
+scenario: "gemba-config: Invalid identifier or prefix"
+config:
+  default_workstream: operations
+  workstreams:
+    client--support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["workstream 'client--support'", kebab-case]
+unchanged: true
+---
+name: lowercase prefix is refused
+scenario: "gemba-config: Invalid identifier or prefix"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: sup, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["workstream 'support'", prefix]
+unchanged: true
+---
+name: empty prefix is refused
+scenario: "gemba-config: Invalid identifier or prefix"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: "", description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["workstream 'support'", prefix]
+unchanged: true
+---
+name: prefix with a digit is refused
+scenario: "gemba-config: Invalid identifier or prefix"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP2, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["workstream 'support'", prefix]
+unchanged: true

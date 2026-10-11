@@ -1,0 +1,59 @@
+# The contentHash below is the SHA-256 of the skill with its metadata map removed:
+#   ---
+#   name: gemba-harness
+#   description: An older generation of the skill.
+#   ---
+#
+#   # Work in a harness
+#
+#   Old steps.
+name: run from a folder inside a harness refreshes the harness skills of its providers only
+scenario: "built-in-skills: Run from inside a harness"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-harness/SKILL.md: |
+    ---
+    name: gemba-harness
+    description: An older generation of the skill.
+    metadata:
+      generatedBy: "0.0.1"
+      contentHash: "8c1a68c1816f684d1580a5cb9219cea49e52604724b3651894ecbd9daa4d5159"
+    ---
+
+    # Work in a harness
+
+    Old steps.
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails/notes
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [skills, update]
+exit: 0
+stdout: |
+  updated .claude/skills/gemba-harness/SKILL.md
+  kept .claude/skills/gemba-record/SKILL.md
+  kept .claude/skills/gemba-mark/SKILL.md
+  kept .claude/skills/gemba-set/SKILL.md
+  kept .claude/skills/gemba-worktree/SKILL.md
+files_contain:
+  harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-harness/SKILL.md:
+    - "---\nname: gemba-harness\ndescription: Launch, start or open the harness of a task"
+    - "metadata:\n  generatedBy: \"{version}\"\n  contentHash: \""
+absent:
+  - harnesses/support/2026-09-30-SUP-1-login-fails/.agents
+  - harnesses/support/2026-09-30-SUP-1-login-fails/notes/.claude
+  - .claude
+  - .agents

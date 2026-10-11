@@ -1,0 +1,35 @@
+name: list.rules written as a string stops the command and names the block
+scenario: "gemba-config: Malformed process block"
+config:
+  default_workstream: operations
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      list:
+        rules: always mention the client next to the title
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/.gitkeep: ""
+run: [list]
+exit: 1
+stderr_contains: ["workstream 'support'", list.rules must be a list of non-empty strings]
+unchanged: true
+---
+name: list.context written as a list stops the command and names the block
+scenario: "gemba-config: Malformed process block"
+config:
+  default_workstream: operations
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      list:
+        context: [one line, another line]
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/.gitkeep: ""
+run: [list]
+exit: 1
+stderr_contains: ["workstream 'support'", list.context must be a string]
+unchanged: true

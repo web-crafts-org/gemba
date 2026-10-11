@@ -1,0 +1,36 @@
+name: after a push that sets the upstream, list shows it and no unpushed commit
+scenario: "harness-worktrees: Upstream shown after a push"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  organization: nakatomi
+  repos_dir: repos
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+repos:
+  nakatomi-web:
+    branches:
+      main: { README.md: "Nakatomi web\n" }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+  - [worktree, add, nakatomi-web]
+git_after_setup:
+  - [harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web, commit, --quiet, --allow-empty, -m, fix login]
+  - [harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web, push, --quiet, -u, origin, "HEAD:feature/login-fix"]
+run: [worktree, list]
+exit: 0
+stdout_contains: ["branch: gemba/nakatomi/SUP-1\n", "upstream: origin/feature/login-fix\n", "unpushed: 0\n"]
+git_branches:
+  remotes/nakatomi-web.git: [feature/login-fix, main]

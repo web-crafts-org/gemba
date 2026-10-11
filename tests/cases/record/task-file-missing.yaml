@@ -1,0 +1,22 @@
+name: a harness whose task file no longer exists is refused and names the path
+scenario: "task-recording: Task file missing"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  harnesses/support/2026-09-30-SUP-1-login-fails/harness.yaml: |
+    task: tasks/support/2026-09-30-SUP-1-gone.md
+    ref: SUP-1
+    workstream: support
+    agent_providers: [claude]
+    launched_at: 2026-09-30
+    gemba_version: "0.1.0"
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: |
+    - Reproduced the failure on Safari 17.
+run: [record, update.md, --date, 2026-10-01, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 1
+stderr_contains: [tasks/support/2026-09-30-SUP-1-gone.md, was not found]
+unchanged: true

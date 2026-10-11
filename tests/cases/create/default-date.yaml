@@ -1,0 +1,19 @@
+name: creation date defaults to today
+scenario: "task-file-format: Filename with a valid slug"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-certificates]
+exit: 0
+stdout_contains: ["tasks/operations/{today}-OPS-1-renew-certificates.md"]
+files:
+  "tasks/operations/{today}-OPS-1-renew-certificates.md": |
+    ---
+    status: open
+    ref: OPS-1
+    updated_at: {today}
+    metadata: {}
+    ---
+
+    ## Updates

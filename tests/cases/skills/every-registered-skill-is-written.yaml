@@ -1,0 +1,52 @@
+name: every registered skill is written under the provider's skills folder
+scenario: "built-in-skills: Every registered skill is written"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [skills, update]
+exit: 0
+files_contain:
+  .claude/skills/gemba-create/SKILL.md: ["---\nname: gemba-create\n"]
+  .claude/skills/gemba-list/SKILL.md: ["---\nname: gemba-list\n"]
+  .claude/skills/gemba-harness/SKILL.md: ["---\nname: gemba-harness\n"]
+  .claude/skills/gemba-report/SKILL.md: ["---\nname: gemba-report\n"]
+  .claude/skills/gemba-mark/SKILL.md: ["---\nname: gemba-mark\n"]
+  .claude/skills/gemba-archive/SKILL.md: ["---\nname: gemba-archive\n"]
+  .claude/skills/gemba-set/SKILL.md: ["---\nname: gemba-set\n"]
+  .claude/skills/gemba-init/SKILL.md: ["---\nname: gemba-init\n"]
+  .claude/skills/gemba-config/SKILL.md: ["---\nname: gemba-config\n"]
+---
+name: the skills are written by a verb of the skills group
+scenario: "process-naming: Skills subcommands are grouped"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [skills, update]
+exit: 0
+stdout: |
+  written .claude/skills/gemba-create/SKILL.md
+  written .claude/skills/gemba-list/SKILL.md
+  written .claude/skills/gemba-harness/SKILL.md
+  written .claude/skills/gemba-report/SKILL.md
+  written .claude/skills/gemba-mark/SKILL.md
+  written .claude/skills/gemba-archive/SKILL.md
+  written .claude/skills/gemba-set/SKILL.md
+  written .claude/skills/gemba-init/SKILL.md
+  written .claude/skills/gemba-config/SKILL.md
+---
+name: the skills group writes no skill of its own
+scenario: "process-naming: Maintenance group has no skill"
+config:
+  default_workstream: operations
+  agent_providers: [claude, agents]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [skills, update]
+exit: 0
+files_contain:
+  .claude/skills/gemba-create/SKILL.md: ["name: gemba-create\n"]
+absent: [.claude/skills/gemba-skills, .agents/skills/gemba-skills]

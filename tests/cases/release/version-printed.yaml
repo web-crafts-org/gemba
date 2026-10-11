@@ -1,0 +1,6 @@
+name: --version prints the version declared by the package
+scenario: "package-release: Version printed"
+cwd: .
+run: [--version]
+exit: 0
+stdout: "{version}\n"

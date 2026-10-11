@@ -1,0 +1,11 @@
+name: show of a config whose default names a missing workstream reports the problem as check does
+scenario: "config-maintenance: Show refuses an invalid config"
+config:
+  default_workstream: billing
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [config, show]
+exit: 1
+stderr_contains: [invalid gemba config, gemba.yaml, "default_workstream 'billing' is not in the workstream catalogue"]
+unchanged: true

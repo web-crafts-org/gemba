@@ -1,0 +1,40 @@
+name: a top-level list.rules written as a string stops the command and names the top level
+scenario: "gemba-config: Malformed base block"
+config:
+  default_workstream: operations
+  list:
+    rules: mention the client of every task
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/operations/.gitkeep: ""
+run: [list]
+exit: 1
+stderr_contains: [invalid gemba config, top level, list.rules must be a list of non-empty strings]
+unchanged: true
+---
+name: a top-level harness.guide written as a list stops the command and names the top level
+scenario: "gemba-config: Malformed base block"
+config:
+  default_workstream: operations
+  harness:
+    guide: [one line, another line]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, rotate-keys, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, top level, harness.guide must be a non-empty string]
+unchanged: true
+---
+name: a key inside the top-level harness that is neither guide nor a verb stops the command and names it
+scenario: "gemba-config: Malformed base block"
+config:
+  default_workstream: operations
+  harness:
+    rules: [name the client in every note]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, rotate-keys, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, top level, "harness.rules", "allowed: guide, launch, note, resolve"]
+unchanged: true

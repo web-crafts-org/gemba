@@ -1,0 +1,74 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gemba-cli"
+version = "0.1.0"
+description = "Gemba: a task-based system for working with AI agents"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "Manuel Robles" }]
+requires-python = ">=3.11"
+dependencies = ["pyyaml>=6"]
+keywords = [
+  "ai-agents",
+  "harness",
+  "agent-harness",
+  "context-engineering",
+  "agentic-development",
+  "agent-skills",
+  "task-management",
+  "claude-code",
+  "codex",
+  "cli",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Operating System :: POSIX",
+  "Operating System :: MacOS",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Software Development",
+  "Topic :: Office/Business",
+]
+
+[project.urls]
+Repository = "https://github.com/web-crafts-org/gemba"
+Changelog = "https://github.com/web-crafts-org/gemba/blob/main/CHANGELOG.md"
+Issues = "https://github.com/web-crafts-org/gemba/issues"
+
+[project.scripts]
+gemba = "gemba.cli:main"
+
+[dependency-groups]
+dev = ["ruff>=0.14", "pyright>=1.1", "pre-commit>=4"]
+
+[tool.hatch.build.targets.sdist]
+# The source distribution ships the package, its tests and its documents, not the
+# specification, the planning or the editor and workflow files of the repository.
+only-include = ["src", "tests", "README.md", "CHANGELOG.md", "LICENSE", "pyproject.toml", "uv.lock"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gemba"]
+
+[tool.uv]
+# Quarantine: a release must be at least this old before it can be resolved.
+exclude-newer = "30d"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.pyright]
+include = ["src", "tests"]
+pythonVersion = "3.11"
+typeCheckingMode = "standard"

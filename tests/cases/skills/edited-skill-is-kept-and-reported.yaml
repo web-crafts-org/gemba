@@ -1,0 +1,65 @@
+name: a skill without a contentHash is kept and reported
+scenario: "built-in-skills: Edited skill is kept and reported"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  .claude/skills/gemba-create/SKILL.md: |
+    ---
+    name: gemba-create
+    description: Written by hand.
+    ---
+
+    My own steps.
+run: [skills, update]
+exit: 0
+stdout_contains: ["kept .claude/skills/gemba-create/SKILL.md (edited by hand; --force overwrites it)\n"]
+files:
+  .claude/skills/gemba-create/SKILL.md: |
+    ---
+    name: gemba-create
+    description: Written by hand.
+    ---
+
+    My own steps.
+---
+# The contentHash is the one of outdated-skill-is-refreshed.yaml, whose body said
+# "Old steps."; the body was edited afterwards, so the hash no longer matches.
+name: a skill whose contentHash does not match its content is kept and reported
+scenario: "built-in-skills: Edited skill is kept and reported"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  .claude/skills/gemba-create/SKILL.md: |
+    ---
+    name: gemba-create
+    description: An older generation of the skill.
+    metadata:
+      generatedBy: "0.0.1"
+      contentHash: "b05c4b67d44614d41d4a220c073fb95a3621484cca529c76dcced573e651fe39"
+    ---
+
+    # Create a task
+
+    My own steps.
+run: [skills, update]
+exit: 0
+stdout_contains: ["kept .claude/skills/gemba-create/SKILL.md (edited by hand; --force overwrites it)\n"]
+files:
+  .claude/skills/gemba-create/SKILL.md: |
+    ---
+    name: gemba-create
+    description: An older generation of the skill.
+    metadata:
+      generatedBy: "0.0.1"
+      contentHash: "b05c4b67d44614d41d4a220c073fb95a3621484cca529c76dcced573e651fe39"
+    ---
+
+    # Create a task
+
+    My own steps.

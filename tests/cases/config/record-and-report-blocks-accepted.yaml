@@ -1,0 +1,25 @@
+name: record and report blocks with rules and context do not stop the create process
+scenario: "gemba-config: Record and report blocks accepted"
+config:
+  default_workstream: operations
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      record:
+        rules: [name the client in every bullet]
+      report:
+        context: Support tasks are reported to the client success team.
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, support, --slug, login-fails, --date, 2026-09-30]
+exit: 0
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates

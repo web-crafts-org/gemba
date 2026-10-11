@@ -1,0 +1,21 @@
+name: values that do not convert to their type are reported together and nothing is written
+scenario: "task-creation: Values of the wrong type reported together"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: hours, type: number }
+    - { name: due, type: date }
+    - { name: billed, type: boolean }
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30, --set, hours=three, --set, due=2026-13-01, --set, billed=yes]
+exit: 1
+stderr_contains:
+  - task not created
+  - "metadata value of 'hours' must be a number"
+  - "'three'"
+  - "metadata value of 'due' must be a date"
+  - "'2026-13-01'"
+  - "metadata value of 'billed' must be a boolean"
+  - "'yes'"
+unchanged: true

@@ -1,0 +1,11 @@
+name: a provider listed twice is refused naming it
+scenario: "gemba-config: Repeated provider refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude, claude]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, agent_providers, "'claude'", more than once, "known providers: claude, agents"]
+unchanged: true

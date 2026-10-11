@@ -1,0 +1,104 @@
+# Spec scenarios that have no black-box case, each with the reason. This map is the
+# only exemption from the rule that every scenario is covered by a case, so an entry
+# is added or removed by the same change that adds or removes the scenario, or by the
+# change that brings the command the scenario is waiting for.
+
+"built-in-skills: New process ships its skill": the rule constrains how a future change adds a skill
+"gemba-config: Base and workstream blocks followed together": the agent reads the effective create block from gemba config show and follows both rules through the gemba-create skill
+"gemba-config: Default names an existing workstream": >-
+  Choosing the default workstream is the agent's step in the gemba-create skill; the
+  command only checks that the default exists, which test_config covers.
+"gemba-config: List rules applied": the agent follows the rule through the gemba-list skill
+"gemba-config: Workstream rule wins over a base rule": the agent reads both rules of worktree.add from gemba config show and resolves their contradiction through the gemba-worktree skill
+"harness-guide: Guide free of organization values": a property of the guide asset text, not of a command
+"harness-launch: Agent launches a task": the agent runs the command and relays its output by following the gemba-harness skill
+"harness-launch: Agent reads the task through the link": the agent reads task.md by following the guide of the harness
+"harness-launch: Harnesses ignored by the tasks repo": a property of this repository's .gitignore, not of a command
+"harness-notes: Agent acts on an approved note": the agent acts, writes the outcome and resolves by following the gemba-harness skill
+"harness-notes: Agent files a note": the agent drafts, saves the assets and files by following the gemba-harness skill
+"harness-notes: Agent follows the verb's rules": the agent follows harness.note.rules through the gemba-harness skill
+"harness-notes: Approval is set by the user in the file": the user is the subject; the command only reads what the user wrote
+"metadata-setting: Agent sets a value": the agent maps the user's words to declared fields and operators and runs gemba set by following the gemba-set skill
+"metadata-setting: Spelling in use reused": the agent looks up the values in use with gemba report --by and reuses their spelling by following the gemba-set skill
+"metadata-setting: Agent follows the verb's rules": the agent follows set.rules through the gemba-set skill
+"metadata-setting: Config change without skill change": a property of the gemba-set skill text, not of the command
+"process-naming: Task subcommands take no noun": the rule constrains how a future change names its subcommand
+"process-naming: Harness initialization is plain": a property of how the CLI names its subcommands, met by gemba init and the gemba-init skill
+"process-naming: Harness subcommands are grouped": a property of how the CLI names its subcommands, met by the harness group and its verbs
+"process-naming: Config subcommands are grouped": a property of how the CLI names its subcommands, met by the config group and its verbs
+"process-naming: Existing skills follow the rule": a property of the skill files, not of a command
+"process-naming: Grouped process is one skill": the rule constrains how a future change names its skill
+"process-naming: Skill-only process": the rule constrains how a future change names a process with no deterministic step; no process is skill-only at this change
+"process-naming: Skill-only process gains its subcommand": a property of the skill registry and of the CLI subcommands, met by the gemba-report skill and the gemba report command
+"task-creation: Clear match": the agent chooses the workstream by following the gemba-create skill
+"task-creation: No match": the agent chooses the workstream by following the gemba-create skill
+"task-creation: Ambiguous match": the agent asks the user by following the gemba-create skill
+"task-creation: Required field missing": the agent asks the user by following the gemba-create skill
+"task-creation: Optional field not mentioned": the agent decides what to pass by following the gemba-create skill
+"task-creation: Optional field mentioned": the agent decides what to pass by following the gemba-create skill
+"task-creation: Successful creation reported": the agent reports to the user by following the gemba-create skill
+"task-creation: Config change without skill change": a property of the gemba-create skill text, not of the command
+"task-creation: Text value in use reused": the agent looks up the values in use with gemba report --by and reuses their spelling by following the gemba-create skill
+"task-file-format: Agent records progress": the agent drafts and gemba record writes, by the gemba-record skill
+"task-file-format: Workstream customization consumes its own field": no launch customization exists yet
+"task-recording: Agent records the day": the agent reads the notes, drafts and runs the command by following the gemba-record skill
+"task-recording: Nothing to record": the agent decides there is nothing to record by following the gemba-record skill; no command runs
+"task-recording: Agent follows the verb's rules": the agent follows record.rules through the gemba-record skill
+"task-recording: Config change without skill change": a property of the gemba-record skill text, not of the command
+"task-reporting: Candidates listed by the command": the agent runs gemba list with the report filters by following the gemba-report skill
+"task-reporting: Candidates of a month": the agent runs gemba list with the filters of the period by following the gemba-report skill
+"task-reporting: Task created after the date is not a candidate": the agent relies on the listing filters by following the gemba-report skill; the filters are covered by the list cases
+"task-reporting: Subsection read from the file": the agent reads the day's subsection by following the gemba-report skill
+"task-reporting: Subsections of a period": the agent reads the subsections dated in the period by following the gemba-report skill
+"task-reporting: Created or finished on the date": the agent reads date and done_at by following the gemba-report skill
+"task-reporting: Report grouped by workstream": the agent composes the report by following the gemba-report skill
+"task-reporting: Gaps listed, not filled": the agent lists the candidates with nothing recorded by following the gemba-report skill
+"task-reporting: Day without activity": the agent says nothing was recorded by following the gemba-report skill
+"task-reporting: Problems relayed": the agent reports each problem of the listing by following the gemba-report skill
+"task-reporting: Amount of a period": the agent chooses the selection, runs gemba report and states its numbers by following the gemba-report skill; the command is covered by the report cases
+"task-reporting: No arithmetic by the agent": the agent runs gemba report again instead of adding numbers by following the gemba-report skill
+"task-reporting: Report rules applied": the agent follows report.rules through the gemba-report skill
+"task-reporting: Config change without skill change": a property of the gemba-report skill text, not of a command
+"task-listing: Conversational open": the agent maps the phrase to statuses by following the gemba-list skill
+"task-listing: Detail beyond the record": the agent opens the task file by following the gemba-list skill
+"task-listing: Problems relayed": the agent reports each problem by following the gemba-list skill
+"task-listing: Span of a field asked in words": the agent maps the span to --where-from and --where-to by following the gemba-list skill; the bounds are covered by the list cases
+"task-listing: Rendering adapts to the question": a property of the gemba-list skill text, not of the command
+"task-listing: Config change without skill change": a property of the gemba-list skill text, not of the command
+"task-marking: Agent marks a task": the agent maps the user's words to a status and runs gemba mark by following the gemba-mark skill
+"task-marking: Reopen defaults to open": the agent chooses open or in-progress from the user's words by following the gemba-mark skill
+"task-marking: Record before done": the agent checks the day's record and offers gemba-record by following the gemba-mark skill
+"task-marking: Agent follows the verb's rules": the agent follows mark.rules through the gemba-mark skill
+"task-marking: Config change without skill change": a property of the gemba-mark skill text, not of the command
+"task-archiving: Agent archives cold tasks": the agent finds candidates with gemba list, asks and runs gemba archive by following the gemba-archive skill
+"task-archiving: Agent follows the verb's rules": the agent follows archive.rules through the gemba-archive skill
+"task-archiving: Config change without skill change": a property of the gemba-archive skill text, not of the command
+"harness-removal: Agent removes a harness": the agent shows the manifest, asks and runs remove --yes by following the gemba-harness skill
+"harness-removal: Agent names uncommitted paths before confirming": the agent names the uncommitted paths of the manifest, says they are deleted and how each could be kept by following the gemba-harness skill
+"harness-removal: Agent follows the verb's rules": the agent follows harness.remove.rules through the gemba-harness skill
+"harness-removal: Agent forces only after confirming the pending list": the agent relays the pending list and passes --force only after the user confirms it by following the gemba-harness skill
+"harness-worktrees: Agent adds the repositories of the task": the agent names the repositories, chooses --from and runs gemba worktree add by following the gemba-worktree skill
+"harness-worktrees: Agent never runs git against the base repository": a property of the gemba-worktree skill and of the guide text, not of a command
+"harness-worktrees: Agent pushes only to the branch a note names": the agent pushes after an approved external-action note by following the guide of the harness
+"harness-worktrees: Agent never forces first": the agent runs without --force and asks before forcing by following the gemba-worktree skill
+"harness-worktrees: Agent follows the verb's rules": the agent follows worktree.add.rules through the gemba-worktree skill
+"harness-worktrees: Config change without skill change": a property of the gemba-worktree skill text, not of the command
+"repo-initialization: Agent configures a new tasks repo": the agent interviews the user, edits gemba.yaml and checks it by following the gemba-init and gemba-config skills
+"repo-initialization: Agent does not ask what has a default": a property of the gemba-init skill text, not of a command
+"repo-initialization: Guided configuration is used once": the agent chooses the gemba-config skill over the gemba-init skill for a later edit
+"config-maintenance: Agent edits the config by hand": the agent reads gemba config show, asks and edits gemba.yaml by following the gemba-config skill
+"config-maintenance: Edit verified by check": the agent runs gemba config check until it exits 0 by following the gemba-config skill; the command is covered by the config cases
+"config-maintenance: Providers change refreshes the skills": the agent runs gemba skills update and names the folder left behind by following the gemba-config skill
+"config-maintenance: Reference free of organization values": a property of the gemba-config skill text, not of a command
+"built-in-skills: Command missing": the agent stops and names the install command by following the prerequisite of every skill
+"package-release: Package built": verified by the build step of the CI and release workflows and by uv build before a release
+"package-release: Installed from the index": needs the published index; checked by hand after each release
+"package-release: Changelog carries the version": a step of the release procedure in CONTRIBUTING.md, done by a maintainer
+"package-release: Tag matches the version": the subject is the release workflow under .github/workflows, run by GitHub Actions
+"package-release: Tag does not match the version": the subject is the release workflow under .github/workflows, run by GitHub Actions
+"package-release: TestPyPI failure stops the release": the subject is the release workflow under .github/workflows, run by GitHub Actions
+"package-release: Nothing else publishes": the subject is the release workflow under .github/workflows, which only tags trigger
+"package-release: Pull request checked": the subject is the CI workflow under .github/workflows, run by GitHub Actions
+"package-release: Push checked": the subject is the CI workflow under .github/workflows, run by GitHub Actions
+"built-in-skills: No development path in a skill": covered by a unit test over every registered asset in test_skills.py
+"package-release: Metadata declared": covered by a unit test over pyproject.toml in test_package.py

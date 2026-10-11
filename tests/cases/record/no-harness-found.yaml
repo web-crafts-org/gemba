@@ -1,0 +1,29 @@
+name: record run outside any harness without --harness is refused
+scenario: "task-recording: No harness found"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: |
+    - Reproduced the failure on Safari 17.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+cwd: tasks/support
+run: [record, update.md, --date, 2026-10-01]
+exit: 1
+stderr_contains: [no harness found]
+unchanged: true

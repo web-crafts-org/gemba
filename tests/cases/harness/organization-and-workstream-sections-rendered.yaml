@@ -1,0 +1,29 @@
+name: the top-level guide text comes before the workstream's, which closes every guide
+scenario: "harness-guide: Organization and workstream sections rendered"
+config:
+  default_workstream: operations
+  agent_providers: [claude, agents]
+  harness:
+    guide: Open the harness through its workspace.
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      harness:
+        guide: Write for the client.
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [harness, launch, SUP-1, --no-open]
+exit: 0
+files_contain:
+  harnesses/support/2026-09-30-SUP-1-login-fails/CLAUDE.md: &sections ["## Your organization\n\nOpen the harness through its workspace.\n\n## Your workstream\n\nWrite for the client.\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/AGENTS.md: *sections

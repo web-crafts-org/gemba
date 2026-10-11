@@ -1,0 +1,61 @@
+name: recording keeps the status, the metadata and every other line of the body
+scenario: "task-recording: Only the section and updated_at change"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - name: project
+          type: text
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: blocked
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      project: [checkout, landing]
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    Ticket: https://example.invalid/tickets/4821
+
+    ## Updates
+
+    ### 2026-09-30
+
+    - Reproduced the failure on Safari 17.
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: |
+    - Asked the client for the browser console log.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [record, update.md, --date, 2026-10-01, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 0
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: blocked
+    ref: SUP-1
+    updated_at: 2026-10-01
+    metadata:
+      project: [checkout, landing]
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    Ticket: https://example.invalid/tickets/4821
+
+    ## Updates
+
+    ### 2026-09-30
+
+    - Reproduced the failure on Safari 17.
+
+    ### 2026-10-01
+
+    - Asked the client for the browser console log.

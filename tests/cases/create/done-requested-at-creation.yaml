@@ -1,0 +1,29 @@
+name: done is refused at creation
+scenario: "task-creation: Done requested at creation"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30, --status, done]
+exit: 1
+stderr_contains: ["status 'done' is not allowed at creation"]
+unchanged: true
+---
+name: in-progress is allowed at creation
+scenario: "task-creation: Done requested at creation"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30, --status, in-progress]
+exit: 0
+files:
+  tasks/operations/2026-09-30-OPS-1-renew-domain.md: |
+    ---
+    status: in-progress
+    ref: OPS-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates

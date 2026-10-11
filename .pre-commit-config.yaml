@@ -1,0 +1,34 @@
+# Hooks run through the project environment so their versions come from uv.lock.
+# Install once with: uv run pre-commit install --hook-type pre-commit --hook-type pre-push
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check --fix
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format
+        language: system
+        types: [python]
+      # Type checking needs the whole program, so pyright checks the package and the
+      # tests as they are in the index, exported to a temporary folder: untracked files
+      # and unstaged edits never make a commit pass or fail. Reported paths point into
+      # that folder.
+      - id: pyright
+        name: pyright
+        entry: >-
+          bash -c 'staged=$(mktemp -d) && trap "rm -rf \"$staged\"" EXIT &&
+          git ls-files -z -- src tests pyproject.toml | xargs -0 git checkout-index --prefix="$staged/" -- &&
+          uv run pyright --project "$staged"'
+        language: system
+        pass_filenames: false
+        files: ^(src|tests)/|^pyproject\.toml$
+      - id: tests
+        name: test suite
+        entry: uv run python -m unittest discover -s tests
+        language: system
+        pass_filenames: false
+        stages: [pre-push]

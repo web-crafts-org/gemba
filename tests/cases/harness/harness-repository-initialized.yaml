@@ -1,0 +1,39 @@
+name: the harness is a git repository on main with one commit holding everything launch wrote
+scenario: "harness-launch: Harness repository initialized"
+config:
+  default_workstream: operations
+  agent_providers: [claude, agents]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [harness, launch, SUP-1, --no-open]
+exit: 0
+files_contain:
+  harnesses/support/2026-09-30-SUP-1-login-fails/.git/HEAD: ["ref: refs/heads/main\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/harness.yaml: ["ref: SUP-1\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/CLAUDE.md: ["`task.md`"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/AGENTS.md: ["`task.md`"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-harness/SKILL.md: ["name: gemba-harness\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-harness/SKILL.md: ["name: gemba-harness\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-record/SKILL.md: ["name: gemba-record\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-mark/SKILL.md: ["name: gemba-mark\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-set/SKILL.md: ["name: gemba-set\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-record/SKILL.md: ["name: gemba-record\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-mark/SKILL.md: ["name: gemba-mark\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-set/SKILL.md: ["name: gemba-set\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/.gitignore: ["worktrees/\n"]
+links:
+  harnesses/support/2026-09-30-SUP-1-login-fails/task.md: ../../../tasks/support/2026-09-30-SUP-1-login-fails.md
+git_log:
+  harnesses/support/2026-09-30-SUP-1-login-fails: [launch SUP-1]
+git_clean: [harnesses/support/2026-09-30-SUP-1-login-fails]

@@ -1,0 +1,22 @@
+name: a false metadata value changes nothing in the creation
+scenario: "task-file-format: Built-in process ignores meaning"
+config:
+  default_workstream: operations
+  metadata:
+    - name: billed
+      type: boolean
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30, --status, blocked, --set, billed=false]
+exit: 0
+files:
+  tasks/operations/2026-09-30-OPS-1-renew-domain.md: |
+    ---
+    status: blocked
+    ref: OPS-1
+    updated_at: 2026-09-30
+    metadata:
+      billed: false
+    ---
+
+    ## Updates

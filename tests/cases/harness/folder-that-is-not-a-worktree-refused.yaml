@@ -1,0 +1,27 @@
+name: remove --yes refuses a harness with a plain folder under worktrees, naming it
+scenario: "harness-removal: Folder that is not a worktree refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+setup:
+  - [harness, launch, SUP-1, --no-open]
+tree_after_setup:
+  harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/stray/notes.txt: "Copied by hand.\n"
+run: [harness, remove, SUP-1, --yes]
+exit: 1
+stdout_contains: ["harnesses/support/2026-09-30-SUP-1-login-fails\n", "worktrees: 0\n"]
+stderr_contains: ["harness not removed:\n", "- worktrees/stray is not a worktree"]
+unchanged: true

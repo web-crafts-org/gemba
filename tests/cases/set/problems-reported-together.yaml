@@ -1,0 +1,34 @@
+name: an undeclared key, a value of the wrong type, += on a date and a repeated boolean are reported together
+scenario: "metadata-setting: Problems reported together"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: hours, type: number }
+    - { name: invoiced, type: date }
+    - { name: billed, type: boolean }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      hours: 1
+      invoiced: null
+      billed: null
+    ---
+
+    ## Updates
+run: [set, SUP-1, ticket=PROD-1, hours=two, invoiced+=1, billed=true, billed=true]
+exit: 1
+stderr_contains:
+  - metadata not set
+  - "undeclared metadata keys for 'support': ticket"
+  - "metadata value of 'hours' must be a number"
+  - "'two'"
+  - "metadata key 'invoiced' is a date field: += adds to a number field only"
+  - "metadata key 'billed' is given more than once, but only a text field holds a list"
+unchanged: true

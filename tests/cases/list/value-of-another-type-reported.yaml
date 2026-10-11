@@ -1,0 +1,55 @@
+name: every scanned value of another type is reported, whatever the filters, and the matching task is still listed
+scenario: "task-listing: Value of another type reported"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: hours, type: number }
+    - { name: billed, type: boolean }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-20-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-20
+    metadata:
+      hours: "3"
+      billed: null
+    ---
+
+    ## Updates
+  tasks/support/2026-09-21-SUP-2-export-broken.md: |
+    ---
+    status: done
+    ref: SUP-2
+    updated_at: 2026-09-21
+    done_at: 2026-09-21
+    metadata:
+      hours: 2
+      billed: "yes"
+    ---
+
+    ## Updates
+run: [list, --status, open]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-09-20-SUP-1-login-fails.md
+      workstream: support
+      archived: false
+      ref: SUP-1
+      date: 2026-09-20
+      title: Login fails
+      status: open
+      updated_at: 2026-09-20
+      done_at: null
+      metadata: { hours: "3", billed: null }
+      description: null
+  problems:
+    - path: tasks/support/2026-09-20-SUP-1-login-fails.md
+      problem: metadata value of 'hours' must be a number, not '3'
+    - path: tasks/support/2026-09-21-SUP-2-export-broken.md
+      problem: metadata value of 'billed' must be a boolean, not 'yes'
+unchanged: true

@@ -1,0 +1,38 @@
+name: ref of a task moved to another workstream is never reused
+scenario: "task-file-format: Moved task keeps its ref"
+config:
+  default_workstream: operations
+  workstreams:
+    code-reviews: { prefix: CR, description: Review a merge request before it is merged }
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-01-CR-7-review-hotfix.md: "---\nstatus: open\nref: CR-7\nupdated_at: 2026-09-01\nmetadata: {}\n---\n\n## Updates\n"
+run: [create, --workstream, code-reviews, --slug, review-checkout, --date, 2026-09-30]
+exit: 0
+stdout_contains: [CR-8]
+files:
+  tasks/support/2026-09-01-CR-7-review-hotfix.md: "---\nstatus: open\nref: CR-7\nupdated_at: 2026-09-01\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/code-reviews/2026-09-30-CR-8-review-checkout.md: |
+    ---
+    status: open
+    ref: CR-8
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+---
+name: ref of a task moved into another archive is never reused
+scenario: "task-file-format: Moved task keeps its ref"
+config:
+  default_workstream: operations
+  workstreams:
+    code-reviews: { prefix: CR, description: Review a merge request before it is merged }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/operations/archive/2026-09-01-CR-7-review-hotfix.md: "---\nstatus: done\nref: CR-7\nupdated_at: 2026-09-02\ndone_at: 2026-09-02\nmetadata: {}\n---\n\n## Updates\n"
+run: [create, --workstream, code-reviews, --slug, review-checkout, --date, 2026-09-30]
+exit: 0
+stdout_contains: [CR-8]
+absent: [tasks/code-reviews/2026-09-30-CR-7-review-checkout.md]

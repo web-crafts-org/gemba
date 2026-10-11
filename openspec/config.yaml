@@ -1,0 +1,36 @@
+schema: spec-driven
+
+context: |
+  The CLI under src/gemba separates domain modules from command adapters. Domain modules
+  hold the rules and have no side effects beyond reading files. Adapters own the
+  command-line interface, filesystem writes, the clock and the process output, and
+  stay thin. New logic goes into a domain module. Every public function is fully
+  type-annotated.
+  The black-box cases under tests/cases are the executable specification: one
+  case per spec scenario, run against the real command. Unit tests cover module
+  logic only where a case would be awkward.
+
+rules:
+  specs:
+    - Every scenario in a delta spec names the cases it adds, modifies or removes
+      under tests/cases, matched by the case's scenario field, or the entry it
+      adds or removes in tests/not-automated.yaml
+  design:
+    - State which module owns each new rule, domain or adapter, and name any new
+      seam the change introduces, such as filesystem, clock or output
+  tasks:
+    - The first task of each scenario writes its black-box case; the implementation
+      task comes after it
+    - Include one final task that runs the formatter, the linter, the type checker
+      and the full test suite
+
+operations:
+  apply:
+    guidance:
+      - Before implementing a scenario, run its case and confirm it fails
+      - Mark a task done only after the formatter, linter, type checker and the
+        affected cases pass
+      - Never edit a case to make it pass; if the spec is wrong, stop and say so
+      - Touch a case or an entry of not-automated.yaml only when the change's delta
+        spec adds, modifies or removes the scenario it names; otherwise both are
+        read-only

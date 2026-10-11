@@ -1,0 +1,40 @@
+name: a required field must be supplied
+scenario: "gemba-config: Required field with description"
+config:
+  default_workstream: operations
+  workstreams:
+    code-reviews:
+      prefix: CR
+      description: Review a merge request before it is merged
+      metadata:
+        - { name: merge_url, type: text, required: true, description: "Link to the merge request, any provider" }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, code-reviews, --slug, review-checkout, --date, 2026-09-30]
+exit: 1
+stderr_contains: [merge_url]
+unchanged: true
+---
+name: a required field supplied lets the task be created
+scenario: "gemba-config: Required field with description"
+config:
+  default_workstream: operations
+  workstreams:
+    code-reviews:
+      prefix: CR
+      description: Review a merge request before it is merged
+      metadata:
+        - { name: merge_url, type: text, required: true, description: "Link to the merge request, any provider" }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, code-reviews, --slug, review-checkout, --date, 2026-09-30, --set, "merge_url=https://gitlab.com/acme/checkout/-/merge_requests/42"]
+exit: 0
+files:
+  tasks/code-reviews/2026-09-30-CR-1-review-checkout.md: |
+    ---
+    status: open
+    ref: CR-1
+    updated_at: 2026-09-30
+    metadata:
+      merge_url: https://gitlab.com/acme/checkout/-/merge_requests/42
+    ---
+
+    ## Updates

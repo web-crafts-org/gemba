@@ -1,0 +1,27 @@
+name: remove --yes run from a folder inside the harness is refused and deletes nothing
+scenario: "harness-removal: Working directory inside the harness refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails/notes
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [harness, remove, SUP-1, --yes]
+exit: 1
+stderr_contains: [harness not removed, working directory is inside the harness]
+folders: [harnesses/support/2026-09-30-SUP-1-login-fails/notes]
+files_contain:
+  harnesses/support/2026-09-30-SUP-1-login-fails/harness.yaml: ["ref: SUP-1\n"]

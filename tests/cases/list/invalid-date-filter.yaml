@@ -1,0 +1,43 @@
+name: an impossible creation date lists nothing and names the value
+scenario: "task-listing: Invalid date filter"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list, --from, "2026-13-01"]
+exit: 1
+stderr_contains: ["invalid date '2026-13-01' for --from", YYYY-MM-DD]
+unchanged: true
+---
+name: a completion date that is not ISO lists nothing and names the value
+scenario: "task-listing: Invalid date filter"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list, --done-to, 30/09/2026]
+exit: 1
+stderr_contains: ["invalid date '30/09/2026' for --done-to", YYYY-MM-DD]
+unchanged: true

@@ -1,0 +1,27 @@
+name: marking a launched task done from the tasks repo leaves its harness repository as launch left it
+scenario: "task-marking: Harness untouched"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [mark, SUP-1, done]
+exit: 0
+git_log:
+  harnesses/support/2026-09-30-SUP-1-login-fails: [launch SUP-1]
+git_clean: [harnesses/support/2026-09-30-SUP-1-login-fails]
+files_contain:
+  harnesses/support/2026-09-30-SUP-1-login-fails/task.md: ["\nstatus: done\n", "\ndone_at: {today}\n"]

@@ -1,0 +1,30 @@
+name: recording commits nothing in the harness and leaves the task modified on disk
+scenario: "task-recording: Nothing is committed"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: |
+    - Reproduced the failure on Safari 17.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [record, update.md, --date, 2026-10-01, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 0
+git_log:
+  harnesses/support/2026-09-30-SUP-1-login-fails: [launch SUP-1]
+files_contain:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: ["## Updates\n\n### 2026-10-01\n\n- Reproduced the failure on Safari 17.\n"]

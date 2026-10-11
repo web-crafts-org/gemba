@@ -1,0 +1,44 @@
+name: init with a path creates the folder and writes the tasks repo there only
+scenario: "repo-initialization: Tasks repo scaffolded at a given path"
+cwd: .
+run: [init, acme-tasks]
+exit: 0
+stdout_contains:
+  - "written gemba.yaml\nwritten .gitignore\nwritten tasks/.gitkeep\nwritten .claude/skills/gemba-create/SKILL.md\n"
+  - "written .agents/skills/gemba-config/SKILL.md\nnext step: "
+files:
+  acme-tasks/gemba.yaml: |
+    # The gemba config of this tasks repo, edited by hand: no gemba command rewrites it.
+    # Ask your agent to configure gemba for the first time (the gemba-init skill) and to
+    # change it later (the gemba-config skill, which holds the reference of every key).
+
+    default_workstream: default
+
+    agent_providers: [claude, agents]
+
+    workstreams:
+      default:
+        prefix: TASK
+        description: Work that fits no other workstream
+  acme-tasks/.gitignore: "harnesses/\n"
+  acme-tasks/tasks/.gitkeep: ""
+files_contain:
+  acme-tasks/.claude/skills/gemba-create/SKILL.md: &create ["---\nname: gemba-create\n"]
+  acme-tasks/.claude/skills/gemba-list/SKILL.md: &list ["---\nname: gemba-list\n"]
+  acme-tasks/.claude/skills/gemba-harness/SKILL.md: &harness ["---\nname: gemba-harness\n"]
+  acme-tasks/.claude/skills/gemba-report/SKILL.md: &report ["---\nname: gemba-report\n"]
+  acme-tasks/.claude/skills/gemba-mark/SKILL.md: &mark ["---\nname: gemba-mark\n"]
+  acme-tasks/.claude/skills/gemba-archive/SKILL.md: &archive ["---\nname: gemba-archive\n"]
+  acme-tasks/.claude/skills/gemba-set/SKILL.md: &set ["---\nname: gemba-set\n"]
+  acme-tasks/.claude/skills/gemba-init/SKILL.md: &init ["---\nname: gemba-init\n"]
+  acme-tasks/.claude/skills/gemba-config/SKILL.md: &config ["---\nname: gemba-config\n"]
+  acme-tasks/.agents/skills/gemba-create/SKILL.md: *create
+  acme-tasks/.agents/skills/gemba-list/SKILL.md: *list
+  acme-tasks/.agents/skills/gemba-harness/SKILL.md: *harness
+  acme-tasks/.agents/skills/gemba-report/SKILL.md: *report
+  acme-tasks/.agents/skills/gemba-mark/SKILL.md: *mark
+  acme-tasks/.agents/skills/gemba-archive/SKILL.md: *archive
+  acme-tasks/.agents/skills/gemba-set/SKILL.md: *set
+  acme-tasks/.agents/skills/gemba-init/SKILL.md: *init
+  acme-tasks/.agents/skills/gemba-config/SKILL.md: *config
+absent: [gemba.yaml, .gitignore, tasks, .claude, .agents]

@@ -1,0 +1,45 @@
+name: an invalid file is reported and the valid tasks are still listed
+scenario: "task-listing: Invalid file does not stop the listing"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-2-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-2
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-09-29-SUP-1-export-broken.md: |
+    ---
+    status: closed
+    ref: SUP-1
+    updated_at: 2026-09-29
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-09-30-SUP-2-login-fails.md
+      workstream: support
+      archived: false
+      ref: SUP-2
+      date: 2026-09-30
+      title: Login fails
+      status: open
+      updated_at: 2026-09-30
+      done_at: null
+      metadata: {}
+      description: null
+  problems:
+    - path: tasks/support/2026-09-29-SUP-1-export-broken.md
+      problem: "invalid status 'closed' (allowed: open, in-progress, blocked, done)"
+unchanged: true

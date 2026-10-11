@@ -1,0 +1,53 @@
+name: without a grouping one group with an empty key holds every selected task
+scenario: "task-reporting: No grouping"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: hours, type: number }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-20-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-20
+    metadata:
+      hours: 1
+    ---
+
+    ## Updates
+  tasks/support/2026-09-21-SUP-2-export-broken.md: |
+    ---
+    status: open
+    ref: SUP-2
+    updated_at: 2026-09-21
+    metadata:
+      hours: 2.5
+    ---
+
+    ## Updates
+  tasks/operations/2026-09-22-OPS-1-renew-domain.md: |
+    ---
+    status: open
+    ref: OPS-1
+    updated_at: 2026-09-22
+    metadata:
+      hours: 3
+    ---
+
+    ## Updates
+run: [report, --sum, hours]
+exit: 0
+stdout_json:
+  by: []
+  sum: [hours]
+  groups:
+    - key: {}
+      tasks: 3
+      refs: [SUP-1, SUP-2, OPS-1]
+      sums: { hours: { total: 6.5, missing: 0 } }
+  total: { tasks: 3, sums: { hours: { total: 6.5, missing: 0 } } }
+  problems: []
+unchanged: true

@@ -1,0 +1,26 @@
+name: with --no-open nothing is started and no IDE line is printed
+scenario: "harness-launch: Open skipped"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  ide: code -n
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [harness, launch, SUP-1, --no-open]
+exit: 0
+stdout: |
+  harnesses/support/2026-09-30-SUP-1-login-fails
+  status: open -> in-progress
+files_contain:
+  harnesses/support/2026-09-30-SUP-1-login-fails/harness.yaml: ["ref: SUP-1\n"]

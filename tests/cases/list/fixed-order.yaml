@@ -1,0 +1,74 @@
+name: records are ordered by date, then workstream, then filename
+scenario: "task-listing: Fixed order"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-10-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-10
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/operations/2026-09-05-OPS-1-renew-domain.md: |
+    ---
+    status: open
+    ref: OPS-1
+    updated_at: 2026-09-05
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/operations/2026-09-10-OPS-2-rotate-keys.md: |
+    ---
+    status: open
+    ref: OPS-2
+    updated_at: 2026-09-10
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/operations/2026-09-05-OPS-1-renew-domain.md
+      workstream: operations
+      archived: false
+      ref: OPS-1
+      date: 2026-09-05
+      title: Renew domain
+      status: open
+      updated_at: 2026-09-05
+      done_at: null
+      metadata: {}
+      description: null
+    - path: tasks/operations/2026-09-10-OPS-2-rotate-keys.md
+      workstream: operations
+      archived: false
+      ref: OPS-2
+      date: 2026-09-10
+      title: Rotate keys
+      status: open
+      updated_at: 2026-09-10
+      done_at: null
+      metadata: {}
+      description: null
+    - path: tasks/support/2026-09-10-SUP-1-login-fails.md
+      workstream: support
+      archived: false
+      ref: SUP-1
+      date: 2026-09-10
+      title: Login fails
+      status: open
+      updated_at: 2026-09-10
+      done_at: null
+      metadata: {}
+      description: null
+  problems: []
+unchanged: true

@@ -1,0 +1,37 @@
+name: a done task carries its status and done_at
+scenario: "task-listing: Done task record"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-15-SUP-4-refund-not-applied.md: |
+    ---
+    status: done
+    ref: SUP-4
+    updated_at: 2026-09-20
+    done_at: 2026-09-20
+    metadata: {}
+    ---
+
+    Refund not applied to the last invoice
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-09-15-SUP-4-refund-not-applied.md
+      workstream: support
+      archived: false
+      ref: SUP-4
+      date: 2026-09-15
+      title: Refund not applied
+      status: done
+      updated_at: 2026-09-20
+      done_at: 2026-09-20
+      metadata: {}
+      description: Refund not applied to the last invoice
+  problems: []
+unchanged: true

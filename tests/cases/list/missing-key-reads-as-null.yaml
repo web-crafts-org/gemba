@@ -1,0 +1,60 @@
+name: a declared key the task lacks reads as null, and a workstream that does not declare it never matches
+scenario: "task-listing: Missing key reads as null"
+config:
+  default_workstream: operations
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - { name: invoiced, type: date }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-20-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-09-20
+    done_at: 2026-09-20
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-09-21-SUP-2-export-broken.md: |
+    ---
+    status: done
+    ref: SUP-2
+    updated_at: 2026-09-21
+    done_at: 2026-09-21
+    metadata:
+      invoiced: 2026-09-30
+    ---
+
+    ## Updates
+  tasks/operations/2026-09-22-OPS-1-renew-domain.md: |
+    ---
+    status: done
+    ref: OPS-1
+    updated_at: 2026-09-22
+    done_at: 2026-09-22
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list, --where, invoiced=null]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-09-20-SUP-1-login-fails.md
+      workstream: support
+      archived: false
+      ref: SUP-1
+      date: 2026-09-20
+      title: Login fails
+      status: done
+      updated_at: 2026-09-20
+      done_at: 2026-09-20
+      metadata: {}
+      description: null
+  problems: []
+unchanged: true

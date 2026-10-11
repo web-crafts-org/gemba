@@ -1,0 +1,74 @@
+name: the creation range compares the filename date, both ends included
+scenario: "task-listing: Creation date range"
+config:
+  default_workstream: operations
+  workstreams:
+    code-reviews: { prefix: CR, description: Review a merge request before it is merged }
+    deployments: { prefix: DEP, description: Deploy one or more projects }
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-07-SUP-1-created-on-the-7th.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-07
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-09-08-SUP-2-created-on-the-8th.md: |
+    ---
+    status: open
+    ref: SUP-2
+    updated_at: 2026-09-08
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-09-12-SUP-3-created-on-the-12th.md: |
+    ---
+    status: open
+    ref: SUP-3
+    updated_at: 2026-09-12
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-09-13-SUP-4-created-on-the-13th.md: |
+    ---
+    status: open
+    ref: SUP-4
+    updated_at: 2026-09-13
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list, --from, 2026-09-08, --to, 2026-09-12]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-09-08-SUP-2-created-on-the-8th.md
+      workstream: support
+      archived: false
+      ref: SUP-2
+      date: 2026-09-08
+      title: Created on the 8th
+      status: open
+      updated_at: 2026-09-08
+      done_at: null
+      metadata: {}
+      description: null
+    - path: tasks/support/2026-09-12-SUP-3-created-on-the-12th.md
+      workstream: support
+      archived: false
+      ref: SUP-3
+      date: 2026-09-12
+      title: Created on the 12th
+      status: open
+      updated_at: 2026-09-12
+      done_at: null
+      metadata: {}
+      description: null
+  problems: []
+unchanged: true

@@ -1,0 +1,24 @@
+name: a ref that no task holds is refused
+scenario: "metadata-setting: Unknown ref refused"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: client, type: text }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      client: null
+    ---
+
+    ## Updates
+run: [set, SUP-9, client=acme]
+exit: 1
+stderr_contains: [metadata not set, "no task has ref 'SUP-9' under tasks/, archives included"]
+unchanged: true

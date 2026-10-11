@@ -1,0 +1,37 @@
+name: an empty repos_dir is refused naming repos_dir
+scenario: "gemba-config: Malformed repositories folder refused"
+config:
+  default_workstream: operations
+  repos_dir: ""
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, repos_dir must be a non-empty string]
+unchanged: true
+---
+name: a repos_dir written as a list is refused naming repos_dir
+scenario: "gemba-config: Malformed repositories folder refused"
+config:
+  default_workstream: operations
+  repos_dir: [~/projects]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, repos_dir must be a non-empty string]
+unchanged: true
+---
+name: a repos_dir written as a map is refused naming repos_dir
+scenario: "gemba-config: Malformed repositories folder refused"
+config:
+  default_workstream: operations
+  repos_dir: { path: ~/projects }
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/operations/.gitkeep: ""
+run: [list]
+exit: 1
+stderr_contains: [invalid gemba config, repos_dir must be a non-empty string]
+unchanged: true

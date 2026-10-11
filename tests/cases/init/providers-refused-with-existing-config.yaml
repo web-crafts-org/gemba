@@ -1,0 +1,12 @@
+name: init with providers in a folder that holds gemba.yaml is refused, since the config is edited by hand
+scenario: "repo-initialization: Providers flag refused with an existing config"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+cwd: .
+run: [init, --providers, agents]
+exit: 1
+stderr_contains: [--providers, already declares the agent providers, edited by hand]
+unchanged: true

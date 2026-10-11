@@ -1,0 +1,24 @@
+name: a folder at the harness path without harness.yaml is not deleted, even with --yes
+scenario: "harness-removal: Folder without harness config refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/notes/x.md: |
+    Kept as it is.
+run: [harness, remove, SUP-1, --yes]
+exit: 1
+stderr_contains: [harness not removed, harnesses/support/2026-09-30-SUP-1-login-fails is not a harness, harness.yaml]
+unchanged: true

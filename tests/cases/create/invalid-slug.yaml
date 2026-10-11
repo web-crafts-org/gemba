@@ -1,0 +1,76 @@
+name: slug with uppercase letters is refused
+scenario: "task-file-format: Invalid slug"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, "--slug=Login-Fails", --date, 2026-09-30]
+exit: 1
+stderr_contains: ["invalid slug 'Login-Fails'"]
+unchanged: true
+---
+name: slug with spaces is refused
+scenario: "task-file-format: Invalid slug"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, "--slug=login fails", --date, 2026-09-30]
+exit: 1
+stderr_contains: ["invalid slug 'login fails'"]
+unchanged: true
+---
+name: slug with accented characters is refused
+scenario: "task-file-format: Invalid slug"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, "--slug=facturación", --date, 2026-09-30]
+exit: 1
+stderr_contains: ["invalid slug 'facturación'"]
+unchanged: true
+---
+name: slug with consecutive hyphens is refused
+scenario: "task-file-format: Invalid slug"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, "--slug=login--fails", --date, 2026-09-30]
+exit: 1
+stderr_contains: ["invalid slug 'login--fails'"]
+unchanged: true
+---
+name: slug with leading hyphen is refused
+scenario: "task-file-format: Invalid slug"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, "--slug=-login-fails", --date, 2026-09-30]
+exit: 1
+stderr_contains: ["invalid slug '-login-fails'"]
+unchanged: true
+---
+name: slug with trailing hyphen is refused
+scenario: "task-file-format: Invalid slug"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, "--slug=login-fails-", --date, 2026-09-30]
+exit: 1
+stderr_contains: ["invalid slug 'login-fails-'"]
+unchanged: true
+---
+name: slug with underscore is refused
+scenario: "task-file-format: Invalid slug"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, "--slug=login_fails", --date, 2026-09-30]
+exit: 1
+stderr_contains: ["invalid slug 'login_fails'"]
+unchanged: true

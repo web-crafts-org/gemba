@@ -1,0 +1,44 @@
+name: a workstream redeclaring a base field makes it required there
+scenario: "gemba-config: Workstream overrides a base field"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: client, type: text }
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - { name: client, type: text, required: true }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, support, --slug, login-fails, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["missing required metadata keys for 'support': client"]
+unchanged: true
+---
+name: the base field stays optional where it is not redeclared
+scenario: "gemba-config: Workstream overrides a base field"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: client, type: text }
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - { name: client, type: text, required: true }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 0
+files:
+  tasks/operations/2026-09-30-OPS-1-renew-domain.md: |
+    ---
+    status: open
+    ref: OPS-1
+    updated_at: 2026-09-30
+    metadata:
+      client: null
+    ---
+
+    ## Updates

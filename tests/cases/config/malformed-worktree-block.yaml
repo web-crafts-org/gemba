@@ -1,0 +1,50 @@
+name: worktree.add.rules written as a string stops the command and names the key
+scenario: "gemba-config: Malformed worktree block"
+config:
+  default_workstream: operations
+  workstreams:
+    code-reviews:
+      prefix: CR
+      description: Review a merge request before it is merged
+      worktree:
+        add:
+          rules: pass --from with the source branch of each merge request of the task
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, code-reviews, --slug, review-checkout, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, "workstream 'code-reviews'", worktree.add.rules must be a list of non-empty strings]
+unchanged: true
+---
+name: a guide inside worktree stops the command, since only the harness renders a guide
+scenario: "gemba-config: Malformed worktree block"
+config:
+  default_workstream: operations
+  workstreams:
+    code-reviews:
+      prefix: CR
+      description: Review a merge request before it is merged
+      worktree:
+        guide: Check out the source branch of the merge request.
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/code-reviews/.gitkeep: ""
+run: [list]
+exit: 1
+stderr_contains: [invalid gemba config, "workstream 'code-reviews'", "worktree.guide", "allowed: add, list, remove"]
+unchanged: true
+---
+name: a key inside worktree that is not a verb stops the command and names it
+scenario: "gemba-config: Malformed worktree block"
+config:
+  default_workstream: operations
+  workstreams:
+    code-reviews:
+      prefix: CR
+      description: Review a merge request before it is merged
+      worktree:
+        rules: [pass --from with the source branch of each merge request of the task]
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, code-reviews, --slug, review-checkout, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, "workstream 'code-reviews'", "worktree.rules", "allowed: add, list, remove"]
+unchanged: true

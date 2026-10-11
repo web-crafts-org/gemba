@@ -1,0 +1,38 @@
+name: a missing gemba.yaml stops the listing
+scenario: "task-listing: Invalid config stops the listing"
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list]
+exit: 1
+stderr_contains: [no gemba config found]
+unchanged: true
+---
+name: an invalid gemba.yaml stops the listing
+scenario: "task-listing: Invalid config stops the listing"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: SUP, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list]
+exit: 1
+stderr_contains: [invalid gemba config, "declare the same prefix 'SUP'"]
+unchanged: true

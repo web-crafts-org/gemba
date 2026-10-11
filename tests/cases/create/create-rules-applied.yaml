@@ -1,0 +1,34 @@
+# Command side of the scenario: a create block with rules and context is valid config.
+# Following the rules is the agent's job and is described by the gemba-create skill.
+name: a create block with rules and context is accepted
+scenario: "gemba-config: Create rules applied"
+config:
+  default_workstream: operations
+  workstreams:
+    deployments:
+      prefix: DEP
+      description: Deploy one or more projects
+      create:
+        rules:
+          - "environment is production or staging; ask if not stated"
+        context: Deploys go through the client's CI whenever one exists.
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, deployments, --slug, release-october, --date, 2026-09-30]
+exit: 0
+stdout_contains: [DEP-1]
+---
+name: a create block with malformed rules is refused
+scenario: "gemba-config: Create rules applied"
+config:
+  default_workstream: operations
+  workstreams:
+    deployments:
+      prefix: DEP
+      description: Deploy one or more projects
+      create:
+        rules: environment is production or staging
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, deployments, --slug, release-october, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["workstream 'deployments'", create.rules]
+unchanged: true

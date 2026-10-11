@@ -1,0 +1,28 @@
+name: a workstream added only in the config accepts tasks
+scenario: "gemba-config: Workstream added by editing the config only"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+    trainings: { prefix: TRN, description: Workshops and trainings delivered to clients }
+tree:
+  tasks/support/.gitkeep: ""
+  tasks/support/archive/.gitkeep: ""
+  tasks/operations/.gitkeep: ""
+  tasks/operations/archive/.gitkeep: ""
+run: [create, --workstream, trainings, --slug, git-workshop, --date, 2026-09-30]
+exit: 0
+stdout_contains: [tasks/trainings/2026-09-30-TRN-1-git-workshop.md, TRN-1]
+files:
+  tasks/trainings/.gitkeep: ""
+  tasks/trainings/archive/.gitkeep: ""
+  tasks/trainings/2026-09-30-TRN-1-git-workshop.md: |
+    ---
+    status: open
+    ref: TRN-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates

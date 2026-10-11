@@ -1,0 +1,55 @@
+name: show from inside the harness of a task prints the same document as from the root
+scenario: "config-maintenance: Show from inside a harness"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  create:
+    rules: [ask who requested the work if not stated]
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - { name: client, type: text, required: true }
+      harness:
+        resolve:
+          rules: [name the client in the outcome]
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [create, --workstream, support, --slug, login-fails, --date, "2026-09-30", --set, client=acme]
+  - [harness, launch, SUP-1, --no-open]
+run: [config, show, --workstream, support]
+exit: 0
+stdout_json:
+  organization: null
+  branch_prefix: gemba
+  repos_dir: null
+  ide: null
+  agent_providers: [claude]
+  default_workstream: operations
+  workstreams:
+    - id: support
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - { name: client, type: text, required: true, description: null }
+      processes:
+        create: { context: null, rules: [ask who requested the work if not stated] }
+        list: &empty { context: null, rules: [] }
+        record: *empty
+        report: *empty
+        mark: *empty
+        archive: *empty
+        set: *empty
+        harness:
+          guide: { organization: null, workstream: null }
+          launch: *empty
+          note: *empty
+          resolve: { context: null, rules: [name the client in the outcome] }
+          remove: *empty
+        worktree:
+          add: *empty
+          list: *empty
+          remove: *empty
+unchanged: true

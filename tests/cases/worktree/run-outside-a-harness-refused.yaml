@@ -1,0 +1,20 @@
+name: add outside any harness and without --harness is refused and creates nothing
+scenario: "harness-worktrees: Run outside a harness refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  organization: nakatomi
+  repos_dir: repos
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+repos:
+  nakatomi-web:
+    branches:
+      main: { README.md: "Nakatomi web\n" }
+run: [worktree, add, nakatomi-web]
+exit: 1
+stderr_contains: ["gemba worktree add:", "no harness found"]
+absent: [worktrees]
+git_branches:
+  repos/nakatomi-web: [main]
+unchanged: true

@@ -1,0 +1,47 @@
+name: an in-progress task marked done gets done_at and updated_at at the date, before metadata
+scenario: "task-marking: Task marked done"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-10-01
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2026-10-01
+
+    - Reproduced the failure on Safari 17.
+run: [mark, SUP-1, done, --date, 2026-10-03]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  status: in-progress -> done
+  done_at: 2026-10-03
+  updated_at: 2026-10-01 -> 2026-10-03
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-03
+    done_at: 2026-10-03
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2026-10-01
+
+    - Reproduced the failure on Safari 17.

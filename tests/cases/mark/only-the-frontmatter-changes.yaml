@@ -1,0 +1,59 @@
+name: marking a blocked task changes status, updated_at and done_at only, metadata and body as they were
+scenario: "task-file-format: Status changed by a command"
+config:
+  default_workstream: operations
+  metadata:
+    - name: project
+      type: text
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: blocked
+    ref: SUP-1
+    updated_at: 2026-10-01
+    metadata:
+      project: [checkout, landing]
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    Ticket: https://support.example.invalid/tickets/4211
+
+    ## Updates
+
+    ### 2026-09-30
+
+    - Reproduced the failure on Safari 17.
+
+    ### 2026-10-01
+
+    - Waiting on the client for a HAR file.
+run: [mark, SUP-1, done, --date, 2026-10-03]
+exit: 0
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-03
+    done_at: 2026-10-03
+    metadata:
+      project: [checkout, landing]
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    Ticket: https://support.example.invalid/tickets/4211
+
+    ## Updates
+
+    ### 2026-09-30
+
+    - Reproduced the failure on Safari 17.
+
+    ### 2026-10-01
+
+    - Waiting on the client for a HAR file.

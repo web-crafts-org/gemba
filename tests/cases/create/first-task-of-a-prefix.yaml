@@ -1,0 +1,46 @@
+name: first ref of a prefix is 1
+scenario: "task-file-format: First task of a prefix"
+config:
+  default_workstream: operations
+  workstreams:
+    estimates: { prefix: EST, description: Estimates and proposals }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/operations/2026-09-01-OPS-3-renew-domain.md: "---\nstatus: open\nref: OPS-3\nupdated_at: 2026-09-01\nmetadata: {}\n---\n\n## Updates\n"
+run: [create, --workstream, estimates, --slug, new-store, --date, 2026-09-30]
+exit: 0
+stdout_contains: [EST-1]
+files:
+  tasks/estimates/2026-09-30-EST-1-new-store.md: |
+    ---
+    status: open
+    ref: EST-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+---
+name: a shorter prefix is not counted as a longer one
+scenario: "task-file-format: First task of a prefix"
+config:
+  default_workstream: operations
+  workstreams:
+    design: { prefix: DE, description: Visual design work }
+    development: { prefix: DEV, description: New features or projects }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/development/2026-09-01-DEV-4-checkout-api.md: "---\nstatus: open\nref: DEV-4\nupdated_at: 2026-09-01\nmetadata: {}\n---\n\n## Updates\n"
+run: [create, --workstream, design, --slug, new-logo, --date, 2026-09-30]
+exit: 0
+stdout_contains: [DE-1]
+files:
+  tasks/design/2026-09-30-DE-1-new-logo.md: |
+    ---
+    status: open
+    ref: DE-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates

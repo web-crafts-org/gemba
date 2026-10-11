@@ -1,0 +1,22 @@
+name: without --date the transition is dated today
+scenario: "task-marking: Default date is today"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [mark, SUP-1, done]
+exit: 0
+files_contain:
+  tasks/support/2026-09-30-SUP-1-login-fails.md:
+    - "\nstatus: done\nref: SUP-1\nupdated_at: {today}\ndone_at: {today}\nmetadata: {}\n"

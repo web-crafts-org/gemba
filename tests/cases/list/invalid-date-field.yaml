@@ -1,0 +1,50 @@
+name: a missing updated_at is reported naming the field
+scenario: "task-file-format: Invalid date field"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks: []
+  problems:
+    - path: tasks/support/2026-09-30-SUP-1-login-fails.md
+      problem: updated_at is missing
+unchanged: true
+---
+name: an updated_at that is not an ISO date is reported naming the field
+scenario: "task-file-format: Invalid date field"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: yesterday
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks: []
+  problems:
+    - path: tasks/support/2026-09-30-SUP-1-login-fails.md
+      problem: updated_at must be an ISO date (YYYY-MM-DD), not 'yesterday'
+unchanged: true

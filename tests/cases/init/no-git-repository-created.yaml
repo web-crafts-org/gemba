@@ -1,0 +1,7 @@
+name: init creates no git repository
+scenario: "repo-initialization: No repository created"
+cwd: .
+run: [init]
+exit: 0
+folders: [tasks]
+absent: [.git]

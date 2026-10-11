@@ -1,0 +1,65 @@
+name: a map value and a list holding a list are reported naming the key, and the valid task is listed
+scenario: "task-file-format: Nested value"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: client, type: text }
+    - { name: project, type: text }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      client: { name: acme }
+      project: null
+    ---
+
+    ## Updates
+  tasks/support/2026-09-30-SUP-2-refund-fails.md: |
+    ---
+    status: open
+    ref: SUP-2
+    updated_at: 2026-09-30
+    metadata:
+      client: acme
+      project: [checkout, [landing]]
+    ---
+
+    ## Updates
+  tasks/support/2026-09-30-SUP-3-checkout-slow.md: |
+    ---
+    status: open
+    ref: SUP-3
+    updated_at: 2026-09-30
+    metadata:
+      client: acme
+      project: checkout
+    ---
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-09-30-SUP-3-checkout-slow.md
+      workstream: support
+      archived: false
+      ref: SUP-3
+      date: 2026-09-30
+      title: Checkout slow
+      status: open
+      updated_at: 2026-09-30
+      done_at: null
+      metadata: { client: acme, project: checkout }
+      description: null
+  problems:
+    - path: tasks/support/2026-09-30-SUP-1-login-fails.md
+      problem: metadata value of 'client' must be a scalar or a list of scalars
+    - path: tasks/support/2026-09-30-SUP-2-refund-fails.md
+      problem: metadata value of 'project' must be a scalar or a list of scalars
+unchanged: true

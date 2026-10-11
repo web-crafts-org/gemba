@@ -1,0 +1,22 @@
+name: a task already under archive/ is refused and nothing is written
+scenario: "task-archiving: Already archived refused"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/archive/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-01
+    done_at: 2026-10-01
+    metadata: {}
+    ---
+
+    ## Updates
+run: [archive, SUP-1]
+exit: 1
+stdout_contains: ["not archived: SUP-1 is already archived", tasks/support/archive/2026-09-30-SUP-1-login-fails.md]
+unchanged: true

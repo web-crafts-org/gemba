@@ -1,0 +1,26 @@
+# Reading side of the scenario; the creation side is create/invalid-status-value.yaml.
+name: a file with an unknown status is reported instead of read
+scenario: "task-file-format: Invalid status value"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: closed
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks: []
+  problems:
+    - path: tasks/support/2026-09-30-SUP-1-login-fails.md
+      problem: "invalid status 'closed' (allowed: open, in-progress, blocked, done)"
+unchanged: true

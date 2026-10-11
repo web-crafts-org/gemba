@@ -1,0 +1,64 @@
+# The contentHash below is the SHA-256 of the gemba-list skill with its metadata map removed:
+#   ---
+#   name: gemba-list
+#   description: An older generation of the skill.
+#   ---
+#
+#   # List tasks
+#
+#   Old steps.
+name: init keeps a skill edited by hand and one written by an older version, byte for byte
+scenario: "repo-initialization: Existing skill kept whatever its state"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  .gitignore: "harnesses/\n"
+  tasks/.gitkeep: ""
+  .claude/skills/gemba-create/SKILL.md: |
+    ---
+    name: gemba-create
+    description: Written by hand.
+    ---
+
+    My own steps.
+  .claude/skills/gemba-list/SKILL.md: |
+    ---
+    name: gemba-list
+    description: An older generation of the skill.
+    metadata:
+      generatedBy: "0.0.1"
+      contentHash: "05d810554ca0e0d8122309b174bfa8eda51639b0a624a2c28a93a7143235e3a1"
+    ---
+
+    # List tasks
+
+    Old steps.
+cwd: .
+run: [init]
+exit: 0
+stdout_contains:
+  - "kept .claude/skills/gemba-create/SKILL.md\n"
+  - "kept .claude/skills/gemba-list/SKILL.md\n"
+files:
+  .claude/skills/gemba-create/SKILL.md: |
+    ---
+    name: gemba-create
+    description: Written by hand.
+    ---
+
+    My own steps.
+  .claude/skills/gemba-list/SKILL.md: |
+    ---
+    name: gemba-list
+    description: An older generation of the skill.
+    metadata:
+      generatedBy: "0.0.1"
+      contentHash: "05d810554ca0e0d8122309b174bfa8eda51639b0a624a2c28a93a7143235e3a1"
+    ---
+
+    # List tasks
+
+    Old steps.

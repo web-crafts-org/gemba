@@ -1,0 +1,12 @@
+# Creation side of the scenario: a status outside the allowed values is refused.
+# Reporting invalid files already on disk belongs to the commands that read tasks.
+name: unknown status is refused at creation
+scenario: "task-file-format: Invalid status value"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30, --status, closed]
+exit: 1
+stderr_contains: ["invalid status 'closed'", open, in-progress, blocked]
+unchanged: true

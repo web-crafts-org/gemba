@@ -1,0 +1,170 @@
+name: the listing returns the acme tasks done in September
+scenario: "task-reporting: Selection as in the listing"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: client, type: text }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-08-20-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-08-28
+    done_at: 2026-08-28
+    metadata:
+      client: acme
+    ---
+
+    ## Updates
+  tasks/support/2026-08-21-SUP-2-export-broken.md: |
+    ---
+    status: done
+    ref: SUP-2
+    updated_at: 2026-09-05
+    done_at: 2026-09-05
+    metadata:
+      client: acme
+    ---
+
+    ## Updates
+  tasks/support/2026-08-22-SUP-3-refund-fails.md: |
+    ---
+    status: done
+    ref: SUP-3
+    updated_at: 2026-09-10
+    done_at: 2026-09-10
+    metadata:
+      client: globex
+    ---
+
+    ## Updates
+  tasks/support/2026-09-01-SUP-4-invoice-missing.md: |
+    ---
+    status: done
+    ref: SUP-4
+    updated_at: 2026-09-30
+    done_at: 2026-09-30
+    metadata:
+      client: acme
+    ---
+
+    ## Updates
+  tasks/support/2026-09-02-SUP-5-checkout-slow.md: |
+    ---
+    status: open
+    ref: SUP-5
+    updated_at: 2026-09-15
+    metadata:
+      client: acme
+    ---
+
+    ## Updates
+run: [list, --done-from, 2026-09-01, --done-to, 2026-09-30, --where, client=acme]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-08-21-SUP-2-export-broken.md
+      workstream: support
+      archived: false
+      ref: SUP-2
+      date: 2026-08-21
+      title: Export broken
+      status: done
+      updated_at: 2026-09-05
+      done_at: 2026-09-05
+      metadata: { client: acme }
+      description: null
+    - path: tasks/support/2026-09-01-SUP-4-invoice-missing.md
+      workstream: support
+      archived: false
+      ref: SUP-4
+      date: 2026-09-01
+      title: Invoice missing
+      status: done
+      updated_at: 2026-09-30
+      done_at: 2026-09-30
+      metadata: { client: acme }
+      description: null
+  problems: []
+unchanged: true
+---
+name: the report with the same filters counts exactly the tasks the listing returns
+scenario: "task-reporting: Selection as in the listing"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: client, type: text }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-08-20-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-08-28
+    done_at: 2026-08-28
+    metadata:
+      client: acme
+    ---
+
+    ## Updates
+  tasks/support/2026-08-21-SUP-2-export-broken.md: |
+    ---
+    status: done
+    ref: SUP-2
+    updated_at: 2026-09-05
+    done_at: 2026-09-05
+    metadata:
+      client: acme
+    ---
+
+    ## Updates
+  tasks/support/2026-08-22-SUP-3-refund-fails.md: |
+    ---
+    status: done
+    ref: SUP-3
+    updated_at: 2026-09-10
+    done_at: 2026-09-10
+    metadata:
+      client: globex
+    ---
+
+    ## Updates
+  tasks/support/2026-09-01-SUP-4-invoice-missing.md: |
+    ---
+    status: done
+    ref: SUP-4
+    updated_at: 2026-09-30
+    done_at: 2026-09-30
+    metadata:
+      client: acme
+    ---
+
+    ## Updates
+  tasks/support/2026-09-02-SUP-5-checkout-slow.md: |
+    ---
+    status: open
+    ref: SUP-5
+    updated_at: 2026-09-15
+    metadata:
+      client: acme
+    ---
+
+    ## Updates
+run: [report, --done-from, 2026-09-01, --done-to, 2026-09-30, --where, client=acme]
+exit: 0
+stdout_json:
+  by: []
+  sum: []
+  groups:
+    - key: {}
+      tasks: 2
+      refs: [SUP-2, SUP-4]
+      sums: {}
+  total: { tasks: 2, sums: {} }
+  problems: []
+unchanged: true

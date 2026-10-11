@@ -1,0 +1,23 @@
+name: check of a config with a duplicate prefix names the file and the problem
+scenario: "config-maintenance: Invalid config reported"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: SUP, description: Anything that does not fit another workstream }
+run: [config, check]
+exit: 1
+stderr_contains: [invalid gemba config, gemba.yaml, "workstreams 'support' and 'operations' declare the same prefix 'SUP'"]
+unchanged: true
+---
+name: check of a config that is not valid YAML names the file and the parse error
+scenario: "config-maintenance: Invalid config reported"
+config: |
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: [unclosed
+run: [config, check]
+exit: 1
+stderr_contains: [gemba.yaml, malformed YAML]
+unchanged: true

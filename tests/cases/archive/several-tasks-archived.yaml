@@ -1,0 +1,38 @@
+name: a done task and a blocked task of two workstreams each move into their own archive folder
+scenario: "task-archiving: Several tasks archived"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-01
+    done_at: 2026-10-01
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/operations/2026-09-30-OPS-2-renew-domain.md: |
+    ---
+    status: blocked
+    ref: OPS-2
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [archive, SUP-1, OPS-2]
+exit: 0
+stdout: |
+  archived: tasks/support/archive/2026-09-30-SUP-1-login-fails.md
+  archived: tasks/operations/archive/2026-09-30-OPS-2-renew-domain.md
+files_contain:
+  tasks/support/archive/2026-09-30-SUP-1-login-fails.md: ["\nstatus: done\n"]
+  tasks/operations/archive/2026-09-30-OPS-2-renew-domain.md: ["\nstatus: blocked\n"]
+absent:
+  - tasks/support/2026-09-30-SUP-1-login-fails.md
+  - tasks/operations/2026-09-30-OPS-2-renew-domain.md

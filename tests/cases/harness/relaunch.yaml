@@ -1,0 +1,27 @@
+name: a second launch reports the existing harness and the status left as it was, and writes nothing
+scenario: "harness-launch: Relaunch"
+config:
+  default_workstream: operations
+  agent_providers: [claude, agents]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [harness, launch, SUP-1, --no-open]
+exit: 0
+stdout: |
+  harnesses/support/2026-09-30-SUP-1-login-fails
+  already launched, harness unchanged
+  status: in-progress, left as it was
+unchanged: true

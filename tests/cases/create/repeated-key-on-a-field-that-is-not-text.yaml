@@ -1,0 +1,12 @@
+name: a key repeated for a number field is refused, since only a text field holds a list
+scenario: "task-creation: Repeated key on a field that is not text"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: hours, type: number }
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30, --set, hours=1, --set, hours=2]
+exit: 1
+stderr_contains: [task not created, "'hours'", only a text field holds a list]
+unchanged: true

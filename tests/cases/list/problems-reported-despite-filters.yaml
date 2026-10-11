@@ -1,0 +1,38 @@
+name: a file that cannot be read is reported whatever the status filter
+scenario: "task-listing: Problems reported despite filters"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-2-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-2
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-09-29-SUP-1-export-broken.md: |
+    The export is broken, notes written without a frontmatter.
+run: [list, --status, open]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-09-30-SUP-2-login-fails.md
+      workstream: support
+      archived: false
+      ref: SUP-2
+      date: 2026-09-30
+      title: Login fails
+      status: open
+      updated_at: 2026-09-30
+      done_at: null
+      metadata: {}
+      description: null
+  problems:
+    - path: tasks/support/2026-09-29-SUP-1-export-broken.md
+      problem: "no frontmatter: the file does not start with a --- line"
+unchanged: true

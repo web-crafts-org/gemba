@@ -1,0 +1,12 @@
+name: a task is created in the default workstream right after init
+scenario: "repo-initialization: Scaffolded config accepted by every command"
+cwd: .
+setup:
+  - [init]
+run: [create, --workstream, default, --slug, first]
+exit: 0
+stdout: |
+  tasks/default/{today}-TASK-1-first.md
+  TASK-1
+files_contain:
+  tasks/default/{today}-TASK-1-first.md: ["ref: TASK-1\n", "status: open\n"]

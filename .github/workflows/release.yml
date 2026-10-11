@@ -1,0 +1,72 @@
+name: Release
+
+# A tag v<version> builds the package once and publishes it to TestPyPI, then to PyPI,
+# through trusted publishing: no token is stored. The tag must name the version that
+# pyproject.toml declares, or nothing is built.
+on:
+  push:
+    tags: ["v*"]
+
+jobs:
+  check:
+    name: The tag names the declared version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: |
+          declared="$(uv version --short)"
+          tagged="${GITHUB_REF_NAME#v}"
+          if [ "$declared" != "$tagged" ]; then
+            echo "tag v$tagged does not match the version $declared declared in pyproject.toml" >&2
+            exit 1
+          fi
+          echo "releasing $declared"
+
+  build:
+    name: Build the distributions
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: distributions
+          path: dist/
+          if-no-files-found: error
+
+  testpypi:
+    name: Publish to TestPyPI
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/project/gemba-cli/
+    permissions:
+      id-token: write
+    steps:
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/download-artifact@v4
+        with:
+          name: distributions
+          path: dist/
+      - run: uv publish --trusted-publishing always --publish-url https://test.pypi.org/legacy/
+
+  pypi:
+    name: Publish to PyPI
+    needs: testpypi
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/gemba-cli/
+    permissions:
+      id-token: write
+    steps:
+      - uses: astral-sh/setup-uv@v6
+      - uses: actions/download-artifact@v4
+        with:
+          name: distributions
+          path: dist/
+      - run: uv publish --trusted-publishing always

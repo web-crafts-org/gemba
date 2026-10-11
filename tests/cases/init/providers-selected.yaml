@@ -1,0 +1,10 @@
+name: init with one provider declares it alone and writes the skills of that provider only
+scenario: "repo-initialization: Providers selected"
+cwd: .
+run: [init, --providers, claude]
+exit: 0
+files_contain:
+  gemba.yaml: ["\nagent_providers: [claude]\n"]
+  .claude/skills/gemba-create/SKILL.md: ["---\nname: gemba-create\n"]
+  .claude/skills/gemba-config/SKILL.md: ["---\nname: gemba-config\n"]
+absent: [.agents]

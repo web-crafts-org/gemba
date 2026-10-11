@@ -1,0 +1,20 @@
+name: a provider the config does not declare gets no folder
+scenario: "built-in-skills: Undeclared provider gets nothing"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [skills, update]
+exit: 0
+files_contain:
+  .claude/skills/gemba-create/SKILL.md: ["name: gemba-create\n"]
+  .claude/skills/gemba-list/SKILL.md: ["name: gemba-list\n"]
+  .claude/skills/gemba-harness/SKILL.md: ["name: gemba-harness\n"]
+  .claude/skills/gemba-report/SKILL.md: ["name: gemba-report\n"]
+  .claude/skills/gemba-mark/SKILL.md: ["name: gemba-mark\n"]
+  .claude/skills/gemba-archive/SKILL.md: ["name: gemba-archive\n"]
+  .claude/skills/gemba-set/SKILL.md: ["name: gemba-set\n"]
+  .claude/skills/gemba-init/SKILL.md: ["name: gemba-init\n"]
+  .claude/skills/gemba-config/SKILL.md: ["name: gemba-config\n"]
+absent: [.agents]

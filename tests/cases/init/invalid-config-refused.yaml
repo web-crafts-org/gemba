@@ -1,0 +1,27 @@
+name: init in a folder whose config declares one prefix twice is refused and writes nothing
+scenario: "repo-initialization: Invalid existing config refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: OPS, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+cwd: .
+run: [init]
+exit: 1
+stderr_contains: [invalid gemba config, "workstreams 'support' and 'operations' declare the same prefix 'OPS'"]
+absent: [tasks, .gitignore, .claude]
+unchanged: true
+---
+name: init in a folder whose config declares no agent providers is refused and writes nothing
+scenario: "repo-initialization: Invalid existing config refused"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+cwd: .
+run: [init]
+exit: 1
+stderr_contains: ["no agent providers declared: add agent_providers to gemba.yaml (known providers: claude, agents)"]
+absent: [tasks, .gitignore, .claude, .agents]
+unchanged: true

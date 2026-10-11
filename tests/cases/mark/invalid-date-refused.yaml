@@ -1,0 +1,65 @@
+name: a date that is not a valid ISO date is refused
+scenario: "task-marking: Invalid date refused"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [mark, SUP-1, done, --date, "2026-13-01"]
+exit: 1
+stderr_contains: [task not marked, "invalid date '2026-13-01': use YYYY-MM-DD"]
+unchanged: true
+---
+name: a date after today is refused
+scenario: "task-marking: Invalid date refused"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [mark, SUP-1, done, --date, "2999-01-01"]
+exit: 1
+stderr_contains: [task not marked, date 2999-01-01 is after today]
+unchanged: true
+---
+name: a date before the creation date of the task is refused
+scenario: "task-marking: Invalid date refused"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [mark, SUP-1, done, --date, "2026-09-01"]
+exit: 1
+stderr_contains: [task not marked, "date 2026-09-01 is before 2026-09-30, the creation date of the task"]
+unchanged: true

@@ -1,0 +1,32 @@
+name: a value of the wrong type, a bound on a text field and a repeated bound are reported together
+scenario: "task-listing: Invalid metadata conditions reported together"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: client, type: text }
+    - { name: hours, type: number }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-20-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-20
+    metadata:
+      client: acme
+      hours: 3
+    ---
+
+    ## Updates
+run: [list, --where, hours=three, --where-from, client=a, --where-from, hours=1, --where-from, hours=1]
+exit: 1
+stdout: ""
+stderr_contains:
+  - nothing listed
+  - "metadata value of 'hours' must be a number"
+  - "'three'"
+  - "a bound takes a number or date field, and 'client' is a text field"
+  - "'hours' takes one lower bound at most"
+unchanged: true

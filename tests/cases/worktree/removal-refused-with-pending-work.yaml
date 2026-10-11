@@ -1,0 +1,84 @@
+name: remove --yes refuses a worktree holding an uncommitted file and keeps it and its branch
+scenario: "harness-worktrees: Removal refused with pending work"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  organization: nakatomi
+  repos_dir: repos
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+repos:
+  nakatomi-web:
+    branches:
+      main: { README.md: "Nakatomi web\n" }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+  - [worktree, add, nakatomi-web]
+tree_after_setup:
+  harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web/draft.txt: "Work in progress.\n"
+run: [worktree, remove, nakatomi-web, --yes]
+exit: 1
+stdout: |
+  worktrees/nakatomi-web
+  branch: gemba/nakatomi/SUP-1
+  upstream: none
+  uncommitted: 1
+  unpushed: 0
+stderr_contains: ["worktree not removed:", "worktrees/nakatomi-web has 1 uncommitted path: draft.txt"]
+files:
+  harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web/draft.txt: "Work in progress.\n"
+git_branches:
+  repos/nakatomi-web: [gemba/nakatomi/SUP-1, main]
+unchanged: true
+---
+name: remove --yes refuses a worktree holding a commit not on any remote branch and keeps it and its branch
+scenario: "harness-worktrees: Removal refused with pending work"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  organization: nakatomi
+  repos_dir: repos
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+repos:
+  nakatomi-web:
+    branches:
+      main: { README.md: "Nakatomi web\n" }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+  - [worktree, add, nakatomi-web]
+git_after_setup:
+  - [harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web, commit, --quiet, --allow-empty, -m, local work]
+run: [worktree, remove, nakatomi-web, --yes]
+exit: 1
+stdout_contains: ["worktrees/nakatomi-web\n", "unpushed: 1\n"]
+stderr_contains: ["worktree not removed:", "worktrees/nakatomi-web has 1 commit not on any remote branch"]
+git_log:
+  harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web: [local work, add main]
+git_branches:
+  repos/nakatomi-web: [gemba/nakatomi/SUP-1, main]
+unchanged: true

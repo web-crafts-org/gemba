@@ -1,0 +1,59 @@
+name: show prints the resolved top level and the effective schema and blocks of every workstream
+scenario: "config-maintenance: Effective config shown"
+config:
+  default_workstream: operations
+  organization: acme
+  repos_dir: ~/projects
+  ide: code -n
+  agent_providers: [claude, agents]
+  metadata:
+    - { name: client, type: text, description: Who the work is for }
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - { name: client, type: text, required: true }
+        - { name: project, type: text, description: The project of the client }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [config, show]
+exit: 0
+stdout_json:
+  organization: acme
+  branch_prefix: gemba
+  repos_dir: ~/projects
+  ide: code -n
+  agent_providers: [claude, agents]
+  default_workstream: operations
+  workstreams:
+    - id: support
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - { name: client, type: text, required: true, description: null }
+        - { name: project, type: text, required: false, description: The project of the client }
+      processes: &processes
+        create: &empty { context: null, rules: [] }
+        list: *empty
+        record: *empty
+        report: *empty
+        mark: *empty
+        archive: *empty
+        set: *empty
+        harness:
+          guide: { organization: null, workstream: null }
+          launch: *empty
+          note: *empty
+          resolve: *empty
+          remove: *empty
+        worktree:
+          add: *empty
+          list: *empty
+          remove: *empty
+    - id: operations
+      prefix: OPS
+      description: Anything that does not fit another workstream
+      metadata:
+        - { name: client, type: text, required: false, description: Who the work is for }
+      processes: *processes
+unchanged: true

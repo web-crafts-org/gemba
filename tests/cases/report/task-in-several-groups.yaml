@@ -1,0 +1,65 @@
+name: a text list puts the task in the group of each item and once in the total, and an empty list under null
+scenario: "task-reporting: Task in several groups"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: project, type: text }
+    - { name: hours, type: number }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-20-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-20
+    metadata:
+      project: [checkout, landing]
+      hours: 2
+    ---
+
+    ## Updates
+  tasks/support/2026-09-21-SUP-2-export-broken.md: |
+    ---
+    status: open
+    ref: SUP-2
+    updated_at: 2026-09-21
+    metadata:
+      project: landing
+      hours: 3
+    ---
+
+    ## Updates
+  tasks/support/2026-09-22-SUP-3-refund-fails.md: |
+    ---
+    status: open
+    ref: SUP-3
+    updated_at: 2026-09-22
+    metadata:
+      project: []
+      hours: 1
+    ---
+
+    ## Updates
+run: [report, --by, project, --sum, hours]
+exit: 0
+stdout_json:
+  by: [project]
+  sum: [hours]
+  groups:
+    - key: { project: checkout }
+      tasks: 1
+      refs: [SUP-1]
+      sums: { hours: { total: 2, missing: 0 } }
+    - key: { project: landing }
+      tasks: 2
+      refs: [SUP-1, SUP-2]
+      sums: { hours: { total: 5, missing: 0 } }
+    - key: { project: null }
+      tasks: 1
+      refs: [SUP-3]
+      sums: { hours: { total: 1, missing: 0 } }
+  total: { tasks: 3, sums: { hours: { total: 6, missing: 0 } } }
+  problems: []
+unchanged: true

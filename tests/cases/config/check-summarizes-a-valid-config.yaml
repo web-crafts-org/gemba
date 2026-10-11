@@ -1,0 +1,16 @@
+name: check of a valid config prints the summary and writes nothing
+scenario: "config-maintenance: Valid config summarized"
+config:
+  default_workstream: operations
+  agent_providers: [claude, agents]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [config, check]
+exit: 0
+stdout: |
+  gemba.yaml is valid
+  workstreams: support (SUP), operations (OPS)
+  default workstream: operations
+  agent providers: claude, agents
+unchanged: true

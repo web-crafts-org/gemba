@@ -1,0 +1,69 @@
+name: backfilling a day before updated_at leaves updated_at where it was
+scenario: "task-recording: updated_at never moves backwards"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-10-02
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2026-10-02
+
+    - Deployed the fix to staging.
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: |
+    - Reproduced the failure on Safari 17.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [record, update.md, --date, 2026-09-30, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  updated_at: 2026-10-02 (unchanged)
+files_contain:
+  tasks/support/2026-09-30-SUP-1-login-fails.md:
+    - "\nupdated_at: 2026-10-02\n"
+    - "## Updates\n\n### 2026-09-30\n\n- Reproduced the failure on Safari 17.\n\n### 2026-10-02\n"
+---
+name: recording a day after updated_at moves updated_at to that day
+scenario: "task-recording: updated_at never moves backwards"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: |
+    - Deployed the fix to staging.
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [record, update.md, --date, 2026-10-02, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  updated_at: 2026-09-30 -> 2026-10-02
+files_contain:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: ["\nupdated_at: 2026-10-02\n"]

@@ -1,0 +1,45 @@
+name: add --from on an attached worktree with nothing pending moves its branch to the new base
+scenario: "harness-worktrees: Base changed on the same worktree"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  organization: nakatomi
+  repos_dir: repos
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+repos:
+  nakatomi-web:
+    branches:
+      main: { README.md: "Nakatomi web\n", app.txt: "main\n" }
+      feature/a: { README.md: "Nakatomi web, feature a\n", feature.txt: "a\n" }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+  - [worktree, add, nakatomi-web]
+run: [worktree, add, nakatomi-web, --from, feature/a]
+exit: 0
+stdout: |
+  worktrees/nakatomi-web
+  branch: gemba/nakatomi/SUP-1
+  from: origin/feature/a
+  moved
+files:
+  harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web/README.md: "Nakatomi web, feature a\n"
+  harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web/feature.txt: "a\n"
+absent:
+  - harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/nakatomi-web/app.txt
+files_contain:
+  repos/nakatomi-web/.git/worktrees/nakatomi-web/HEAD: ["ref: refs/heads/gemba/nakatomi/SUP-1\n"]
+git_branches:
+  repos/nakatomi-web: [gemba/nakatomi/SUP-1, main]

@@ -1,0 +1,14 @@
+name: check of a config without agent providers says none are declared
+scenario: "config-maintenance: Providers absent summarized"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [config, check]
+exit: 0
+stdout: |
+  gemba.yaml is valid
+  workstreams: operations (OPS)
+  default workstream: operations
+  agent providers: none declared
+unchanged: true
