@@ -7,6 +7,11 @@ All notable changes to the gemba CLI are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- The release workflow creates the GitHub Release page of each version with the
+  notes of its changelog section, and refuses a tag whose version has no section.
+
 ## [0.1.0] - 2026-10-11
 
 The first release: the whole cycle of a task, from a tasks repo that `gemba init`

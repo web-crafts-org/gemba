@@ -288,7 +288,9 @@ Gemba is young, at version 0.x, and built from daily use: the whole cycle above
 works, and the shape of the commands may still change between minor versions, with
 the changelog saying so. Ideas, questions and reports of what got in your way are the
 most useful contribution right now: see [CONTRIBUTING.md](CONTRIBUTING.md), which also
-describes how the product is developed, by specification, one case per scenario.
+describes how the product is developed, by specification, one case per scenario. What
+each version changed is in [CHANGELOG.md](CHANGELOG.md), and every version has its
+page under [Releases](https://github.com/web-crafts-org/gemba/releases).
 
 ## License
 

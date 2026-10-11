@@ -1,8 +1,10 @@
 name: Release
 
-# A tag v<version> builds the package once and publishes it to TestPyPI, then to PyPI,
-# through trusted publishing: no token is stored. The tag must name the version that
-# pyproject.toml declares, or nothing is built.
+# A tag v<version> builds the package once, publishes it to TestPyPI, then to PyPI,
+# through trusted publishing, and creates the GitHub Release with the notes of that
+# version's section of CHANGELOG.md. No token is stored. The tag must name the version
+# that pyproject.toml declares, and the changelog must hold that version, or nothing
+# is built.
 on:
   push:
     tags: ["v*"]
@@ -22,6 +24,23 @@ jobs:
             exit 1
           fi
           echo "releasing $declared"
+      - name: The changelog holds the version
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="$version" '
+            $0 ~ "^## \\[" v "\\]" { p = 1; next }
+            /^## \[/ || /^\[/ { if (p) exit }
+            p' CHANGELOG.md | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' > notes.md
+          if [ ! -s notes.md ]; then
+            echo "CHANGELOG.md has no section for version $version" >&2
+            exit 1
+          fi
+          echo "release notes:" && cat notes.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-notes
+          path: notes.md
+          if-no-files-found: error
 
   build:
     name: Build the distributions
@@ -70,3 +89,18 @@ jobs:
           name: distributions
           path: dist/
       - run: uv publish --trusted-publishing always
+
+  github:
+    name: Create the GitHub Release
+    needs: pypi
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-notes
+      - run: gh release create "$GITHUB_REF_NAME" --title "Gemba ${GITHUB_REF_NAME#v}" --notes-file notes.md --verify-tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}

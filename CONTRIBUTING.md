@@ -55,9 +55,11 @@ pull request is merged when the workflow is green and the review is done.
 ## Releasing (maintainers)
 
 1. Set the new version in `pyproject.toml` and move the `Unreleased` entries of
-   `CHANGELOG.md` into a section named after it, with the date.
+   `CHANGELOG.md` into a section named after it, with the date. That section becomes
+   the notes of the release page, and a version without one is refused.
 2. Commit as `Release <version>` and tag it `v<version>`.
-3. Push the tag. The release workflow checks that the tag names the declared version,
-   builds the distributions, publishes them to TestPyPI and then to PyPI through
-   trusted publishing. Nothing else publishes.
+3. Push the tag. The release workflow checks that the tag names the declared version
+   and that the changelog holds it, builds the distributions, publishes them to
+   TestPyPI and then to PyPI through trusted publishing, and creates the GitHub
+   Release with the notes of that section. Nothing else publishes.
 4. Check `uv tool install gemba-cli==<version>` from a clean folder.

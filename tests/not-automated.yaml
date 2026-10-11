@@ -102,3 +102,5 @@
 "package-release: Push checked": the subject is the CI workflow under .github/workflows, run by GitHub Actions
 "built-in-skills: No development path in a skill": covered by a unit test over every registered asset in test_skills.py
 "package-release: Metadata declared": covered by a unit test over pyproject.toml in test_package.py
+"package-release: Changelog section missing": the subject is the release workflow under .github/workflows, run by GitHub Actions
+"package-release: Release page created": the subject is the release workflow under .github/workflows, run by GitHub Actions
