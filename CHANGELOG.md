@@ -7,6 +7,8 @@ All notable changes to the gemba CLI are recorded here. The format follows
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-11
+
 ### Added
 
 - The release workflow creates the GitHub Release page of each version with the
@@ -42,5 +44,6 @@ creates to the report of a period.
   tasks repo and into each harness for every agent provider declared, with their
   provenance, so an upgrade refreshes them and a hand edit is kept.
 
-[Unreleased]: https://github.com/web-crafts-org/gemba/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/web-crafts-org/gemba/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/web-crafts-org/gemba/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/web-crafts-org/gemba/releases/tag/v0.1.0
