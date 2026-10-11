@@ -7,7 +7,7 @@ All notable changes to the gemba CLI are recorded here. The format follows
 
 ## [Unreleased]
 
-## [0.1.0] - 2026-10-09
+## [0.1.0] - 2026-10-11
 
 The first release: the whole cycle of a task, from a tasks repo that `gemba init`
 creates to the report of a period.
