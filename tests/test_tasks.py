@@ -128,8 +128,12 @@ class ReadTest(ReadTestCase):
         self.assertRefused(text, "frontmatter is not valid YAML (line 3): mapping values are not allowed here")
 
     def test_frontmatter_impossible_date(self):
+        # The message quotes the ValueError of the standard library, whose wording
+        # differs between Python versions, so the test raises the same error itself.
         text = VALID.replace("updated_at: 2026-09-30", "updated_at: 2026-13-01")
-        self.assertRefused(text, "frontmatter is not valid YAML: month must be in 1..12")
+        with self.assertRaises(ValueError) as impossible:
+            datetime.date(2026, 13, 1)
+        self.assertRefused(text, f"frontmatter is not valid YAML: {impossible.exception}")
 
     def test_frontmatter_not_a_map(self):
         for block in ("- open\n- SUP-1\n", "just text\n", ""):
