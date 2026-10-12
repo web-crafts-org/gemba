@@ -1,0 +1,24 @@
+# Dependabot keeps the lock file and the actions of the workflows current, in one
+# pull request per ecosystem and week, so that CI validates each bump. The cooldown
+# matches the 30-day release quarantine of pyproject.toml (exclude-newer): without
+# it Dependabot proposes versions that uv refuses to lock, and the update fails.
+version: 2
+updates:
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 30
+    groups:
+      dependencies:
+        patterns: ["*"]
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 30
+    groups:
+      actions:
+        patterns: ["*"]
