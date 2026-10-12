@@ -2,6 +2,11 @@
 # pull request per ecosystem and week, so that CI validates each bump. The cooldown
 # matches the 30-day release quarantine of pyproject.toml (exclude-newer): without
 # it Dependabot proposes versions that uv refuses to lock, and the update fails.
+# The cooldown covers version updates only. Security updates ignore it and would
+# ask uv for a release still in quarantine, so they are disabled in the repository
+# settings; the alerts stay on, and the weekly update picks the patched release
+# once it leaves the quarantine. To take a patch earlier, exempt that package with
+# exclude-newer-package in pyproject.toml.
 version: 2
 updates:
   - package-ecosystem: "uv"
