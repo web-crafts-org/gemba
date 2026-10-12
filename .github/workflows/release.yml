@@ -9,6 +9,11 @@ on:
   push:
     tags: ["v*"]
 
+# Read-only by default; the jobs that publish or create the release grant themselves
+# the one permission they need.
+permissions:
+  contents: read
+
 jobs:
   check:
     name: The tag names the declared version

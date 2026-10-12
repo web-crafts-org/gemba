@@ -96,6 +96,13 @@ VERSION = importlib.metadata.version("gemba-cli")
 GIT_ENVIRONMENT = {
     "GIT_CONFIG_GLOBAL": os.devnull,
     "GIT_CONFIG_NOSYSTEM": "1",
+    # No background maintenance: a detached gc would rewrite .git/objects between the
+    # snapshots of a case, under no control of the command under test.
+    "GIT_CONFIG_COUNT": "2",
+    "GIT_CONFIG_KEY_0": "gc.auto",
+    "GIT_CONFIG_VALUE_0": "0",
+    "GIT_CONFIG_KEY_1": "maintenance.auto",
+    "GIT_CONFIG_VALUE_1": "false",
     "GIT_AUTHOR_NAME": "Gemba Cases",
     "GIT_AUTHOR_EMAIL": "cases@gemba.invalid",
     "GIT_COMMITTER_NAME": "Gemba Cases",
