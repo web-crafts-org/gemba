@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
 
+# Every job only reads the repository; none writes to it.
+permissions:
+  contents: read
+
 jobs:
   checks:
     name: Format, lint, types, build
