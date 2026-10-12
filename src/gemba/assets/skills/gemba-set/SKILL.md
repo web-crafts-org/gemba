@@ -60,7 +60,9 @@ folder that holds `harness.yaml` is the harness root.
    | `text` | several values | `<field>=<one> <field>=<two>`, the whole list |
    | any | remove, clear, unset | `<field>=null` |
 
-   - Resolve "today", "yesterday" or a weekday against `date +%F`.
+   - Resolve "today", "yesterday" or a weekday against today's date, read from the
+     environment (`date +%F` in a POSIX shell, `Get-Date -Format yyyy-MM-dd` in
+     PowerShell).
    - Use `+=` whenever the user adds to an amount instead of stating the new total, and
      never add, subtract or convert numbers yourself. When the user gives an amount in
      another unit than the one the field's name or description implies, ask for it in

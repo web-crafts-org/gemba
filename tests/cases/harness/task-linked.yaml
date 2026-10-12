@@ -1,4 +1,4 @@
-name: task.md is a relative link to the task file and reads as the task
+name: where the system lets the command create links, task.md is a relative link to the task file and reads as the task
 scenario: "harness-launch: Task linked"
 config:
   default_workstream: operations

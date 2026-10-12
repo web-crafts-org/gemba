@@ -20,8 +20,8 @@ tree:
 run: [harness, launch, SUP-1]
 exit: 0
 stdout_contains:
-  - "harnesses/support/2026-09-30-SUP-1-login-fails\nstatus: open -> in-progress\nopening: code -n /"
-  - "/harnesses/support/2026-09-30-SUP-1-login-fails\n"
+  - "harnesses/support/2026-09-30-SUP-1-login-fails\nstatus: open -> in-progress\nopening: code -n {root}"
+  - "2026-09-30-SUP-1-login-fails\n"
 ---
 name: launch accepts an IDE command with arguments and starts it
 scenario: "gemba-config: IDE command accepted"
@@ -44,7 +44,7 @@ tree:
     ## Updates
 run: [harness, launch, SUP-1]
 exit: 0
-stdout_contains: ["\nopening: code -n /", "/harnesses/support/2026-09-30-SUP-1-login-fails\n"]
+stdout_contains: ["\nopening: code -n {root}", "2026-09-30-SUP-1-login-fails\n"]
 ---
 name: the create process accepts an IDE command
 scenario: "gemba-config: IDE command accepted"

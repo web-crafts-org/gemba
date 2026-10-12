@@ -31,9 +31,10 @@ candidates by reading the task folders yourself, and do not compute a number you
    That folder is the tasks repo root. If there is none, stop and tell the user that no
    gemba config was found.
 2. **Choose the period**, from F to T, both included. Today, unless the user names
-   another day or period. Read today's date with `date +%F` and resolve "yesterday", a
-   weekday, "this week", "last week", a month or "this month" against it; a week starts
-   on Monday, and a period never ends after today. A day is F equal to T. Several
+   another day or period. Read today's date from the environment (`date +%F` in a
+   POSIX shell, `Get-Date -Format yyyy-MM-dd` in PowerShell) and resolve "yesterday",
+   a weekday, "this week", "last week", a month or "this month" against it; a week
+   starts on Monday, and a period never ends after today. A day is F equal to T. Several
    periods give one report each, oldest first, and steps 3 to 9 run once per period.
 3. **List the candidates** of the period with exactly this command, from anywhere
    inside the tasks repo:

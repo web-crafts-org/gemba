@@ -1,0 +1,37 @@
+name: the Updates section of a task file with CRLF line endings is found and the update inserted
+scenario: "platform-support: Task file with CRLF recorded"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: "---\r\nstatus: in-progress\r\nref: SUP-1\r\nupdated_at: 2026-10-01\r\nmetadata: {}\r\n---\r\n\r\nLogin fails on Safari for the checkout app.\r\n\r\n## Updates\r\n\r\n### 2026-10-01\r\n\r\n- Reproduced the failure on Safari 17.\r\n"
+  harnesses/support/2026-09-30-SUP-1-login-fails/update.md: "- Traced the failure to the session cookie.\r\n- Asked the client for the browser console log.\r\n"
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [record, update.md, --date, 2026-10-01, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  updated_at: 2026-10-01 (unchanged)
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-10-01
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2026-10-01
+
+    - Reproduced the failure on Safari 17.
+    - Traced the failure to the session cookie.
+    - Asked the client for the browser console log.
+absent: [harnesses/support/2026-09-30-SUP-1-login-fails/update.md]

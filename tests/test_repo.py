@@ -1,4 +1,4 @@
-"""Unit tests for the layout gemba init writes: the rendered config, the .gitignore line and the refusals."""
+"""Unit tests for the layout gemba init writes: the config, the .gitignore and .gitattributes lines and the refusals."""
 
 import tempfile
 import unittest
@@ -56,6 +56,34 @@ class GitignoreTest(unittest.TestCase):
 
     def test_similar_lines_do_not_count(self):
         self.assertEqual(repo.gitignore_text("harnesses/old/\n"), "harnesses/old/\nharnesses/\n")
+
+
+class GitattributesTest(unittest.TestCase):
+    BOTH = "*.md text eol=lf\n*.yaml text eol=lf\n"
+
+    def test_no_file(self):
+        self.assertEqual(repo.gitattributes_text(None), self.BOTH)
+
+    def test_empty_file(self):
+        self.assertEqual(repo.gitattributes_text(""), self.BOTH)
+
+    def test_file_without_the_lines(self):
+        self.assertEqual(repo.gitattributes_text("*.png binary\n"), "*.png binary\n" + self.BOTH)
+        self.assertEqual(repo.gitattributes_text("*.png binary"), "*.png binary\n" + self.BOTH)
+
+    def test_file_with_one_line(self):
+        self.assertEqual(repo.gitattributes_text("*.md text eol=lf\n"), self.BOTH)
+        self.assertEqual(repo.gitattributes_text("*.yaml text eol=lf\n"), "*.yaml text eol=lf\n*.md text eol=lf\n")
+
+    def test_file_with_both_lines(self):
+        self.assertIsNone(repo.gitattributes_text(self.BOTH))
+        self.assertIsNone(repo.gitattributes_text("*.yaml text eol=lf\r\n*.png binary\r\n*.md text eol=lf"))
+
+    def test_similar_lines_do_not_count(self):
+        self.assertEqual(
+            repo.gitattributes_text("*.md text\n*.yaml text eol=lf\n"),
+            "*.md text\n*.yaml text eol=lf\n*.md text eol=lf\n",
+        )
 
 
 class ProblemsTest(unittest.TestCase):

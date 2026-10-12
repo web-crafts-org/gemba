@@ -1,0 +1,30 @@
+name: launching an open task whose file has CRLF line endings moves it to in-progress and keeps the body
+scenario: "platform-support: Task file with CRLF started"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: "---\r\nstatus: open\r\nref: SUP-1\r\nupdated_at: 2026-09-30\r\nmetadata: {}\r\n---\r\n\r\nLogin fails on Safari for the checkout app\r\n\r\nReported in https://support.example.com/tickets/4521\r\n\r\n## Updates\r\n"
+run: [harness, launch, SUP-1, --no-open]
+exit: 0
+stdout: |
+  harnesses/support/2026-09-30-SUP-1-login-fails
+  status: open -> in-progress
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: {today}
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app
+
+    Reported in https://support.example.com/tickets/4521
+
+    ## Updates
+lf_only: [tasks/support/2026-09-30-SUP-1-login-fails.md]

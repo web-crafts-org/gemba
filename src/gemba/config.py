@@ -1,13 +1,14 @@
 """Gemba config: discovery, loading and validation; field declarations are delegated to `metadata`."""
 
 import re
+import shlex
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import yaml
 
-from gemba import metadata, skills
+from gemba import metadata, platform, skills
 from gemba.metadata import Field
 from gemba.worktree import DEFAULT_BRANCH_PREFIX
 
@@ -64,13 +65,27 @@ class Guide:
 
 
 @dataclass(frozen=True)
+class Ide:
+    """The command that opens a folder in the IDE: the executable, its arguments, and the declaration as written."""
+
+    command: str
+    args: tuple[str, ...]
+    declared: str | dict[str, object]
+
+    @property
+    def line(self) -> str:
+        """The command line as declared, before the harness path: what launch prints and names."""
+        return " ".join([self.command, *self.args])
+
+
+@dataclass(frozen=True)
 class Config:
     root: Path
     default_workstream: str
     workstreams: dict[str, Workstream]
     metadata: tuple[Field, ...]
     agent_providers: tuple[str, ...] | None = None
-    ide: str | None = None
+    ide: Ide | None = None
     organization: str | None = None
     repos_dir: str | None = None
     branch_prefix: str = DEFAULT_BRANCH_PREFIX
@@ -256,13 +271,33 @@ def _parse_repos_dir(declaration: object) -> str | None:
     return declaration
 
 
-def _parse_ide(declaration: object) -> str | None:
-    """The command that opens a folder in the IDE, or None when the config declares none."""
+def _parse_ide(declaration: object) -> Ide | None:
+    """The command that opens a folder in the IDE, or None when the config declares none.
+
+    A string is split as a POSIX shell would, on every platform, so a path holding spaces or
+    backslashes goes between quotes; a map holds `command` and optionally `args`.
+    """
     if declaration is None:
         return None
-    if not isinstance(declaration, str) or not declaration.strip():
-        raise ConfigError("ide must be a non-empty string holding the command that opens a folder in the IDE")
-    return declaration
+    shape = "ide must be a non-empty string, the command that opens a folder in the IDE, or a map with command and args"
+    if isinstance(declaration, str):
+        try:
+            parts = shlex.split(declaration, posix=True)
+        except ValueError as exc:
+            raise ConfigError(f"{shape} (cannot split {declaration!r}: {exc})") from None
+        if not parts or not parts[0]:
+            raise ConfigError(shape)
+        return Ide(command=parts[0], args=tuple(parts[1:]), declared=declaration)
+    if not isinstance(declaration, dict):
+        raise ConfigError(shape)
+    command = declaration.get("command")
+    if not isinstance(command, str) or not command.strip():
+        raise ConfigError("ide.command must be a non-empty string naming the executable that opens a folder in the IDE")
+    args = declaration.get("args", [])
+    if not isinstance(args, list) or not all(isinstance(arg, str) for arg in args):
+        raise ConfigError("ide.args must be a list of strings, the arguments given before the harness path")
+    declared = {str(key): value for key, value in declaration.items()}
+    return Ide(command=command, args=tuple(args), declared=declared)
 
 
 def _parse_providers(declaration: object) -> tuple[str, ...] | None:
@@ -286,6 +321,8 @@ def _parse_workstream(workstream_id: object, block: object) -> Workstream:
     where = f"workstream '{workstream_id}'"
     if not isinstance(workstream_id, str) or not WORKSTREAM_ID_PATTERN.match(workstream_id):
         raise ConfigError(f"{where}: identifier must be kebab-case (lowercase letters, digits and single hyphens)")
+    if platform.is_reserved_name(workstream_id):
+        raise ConfigError(f"{where}: identifier is reserved on Windows, where it could not be a folder name")
     if not isinstance(block, dict):
         raise ConfigError(f"{where}: must be a map with prefix and description")
 

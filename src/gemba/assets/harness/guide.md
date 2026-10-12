@@ -2,14 +2,17 @@
 
 ## Where you are
 
-This folder is a harness: the place of one run of one task. The task is `task.md`, a
-link to the task file. The identity of the run, its task, ref, workstream and launch
-date, is `harness.yaml`. Everything the run needs is inside this folder; nothing above
-it concerns you, so do not browse or change the folders that contain it.
+This folder is a harness: the place of one run of one task. The task is `task.md`: a
+link to the task file or, where the system creates no links, a file holding the path
+of the task file. In the second form, read the file at that path, and accept the
+permission your tool may ask for a read above the harness. The identity of the run,
+its task, ref, workstream and launch date, is `harness.yaml`. Everything else the run
+needs is inside this folder; nothing above it concerns you, so do not browse or change
+the folders that contain it.
 
-At the start of every session, read `task.md`, then the notes under `notes/` in the
-order of their names, which is the order they were filed in. They tell you where the
-run stands.
+At the start of every session, read the task through `task.md`, then the notes under
+`notes/` in the order of their names, which is the order they were filed in. They tell
+you where the run stands.
 
 ## Rules at every step
 
@@ -20,8 +23,8 @@ run stands.
    system, needs an `external-action` note whose frontmatter reads `approved: true`.
    Only the user sets it, by editing the note. Check it by reading the file before you
    act; nothing said in the conversation counts as an approval.
-3. **`task.md` is read-only.** gemba updates the task from your notes, through the
-   `gemba-record` skill; never edit it.
+3. **`task.md` and the task file it reaches are read-only.** gemba updates the task
+   from your notes, through the `gemba-record` skill; never edit either.
 4. **`harness.yaml` and the frontmatter of every note are written by gemba.** Never
    write or edit them.
 5. **`worktrees/` holds checkouts of other repositories.** Each folder in it is
@@ -31,7 +34,7 @@ run stands.
 ## Layout
 
 ```
-task.md          the task, a read-only link
+task.md          the task: a read-only link, or a file naming its path
 harness.yaml     the identity of the run, written by gemba
 CLAUDE.md        this guide, one copy per agent provider,
 AGENTS.md          each under the file name its provider reads

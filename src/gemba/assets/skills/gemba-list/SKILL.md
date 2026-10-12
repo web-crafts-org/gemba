@@ -40,8 +40,9 @@ Python files directly and do not build the list by reading the task folders your
    background and follow every entry of its `rules`, in order, when you run the command
    and present the result; when two rules contradict, follow the later one. A rule
    shared by every workstream appears in every entry: follow it once.
-4. **Map the request to filters.** Resolve relative dates against today's date (run
-   `date +%F` if you are not sure of it); a week starts on Monday.
+4. **Map the request to filters.** Resolve relative dates against today's date (read
+   it from the environment if you are not sure of it: `date +%F` in a POSIX shell,
+   `Get-Date -Format yyyy-MM-dd` in PowerShell); a week starts on Monday.
 
    | The user says | Filters |
    |---|---|

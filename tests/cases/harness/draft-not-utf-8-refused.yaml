@@ -1,0 +1,27 @@
+name: a draft encoded in UTF-16 is refused as not UTF-8 text and nothing changes
+scenario: "harness-notes: Draft that is not UTF-8 refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  # "The login request returns 500.\n" encoded in UTF-16, byte-order mark first.
+  harnesses/support/2026-09-30-SUP-1-login-fails/notes/login-trace.md: !!binary |
+    //5UAGgAZQAgAGwAbwBnAGkAbgAgAHIAZQBxAHUAZQBzAHQAIAByAGUAdAB1AHIAbgBzACAANQAwADAALgAKAA==
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [harness, note, notes/login-trace.md, --type, finding, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 1
+stderr_contains: ["note not filed: notes/login-trace.md is not UTF-8 text"]
+unchanged: true

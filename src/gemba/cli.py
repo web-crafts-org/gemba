@@ -22,6 +22,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
 
 def main(argv: Sequence[str] | None = None) -> int:
+    utf8_streams()
     parser = ArgumentParser(prog="gemba", description="Task-based system for working with AI agents.")
     parser.add_argument("--version", action="version", version=version("gemba-cli"))
     subparsers = parser.add_subparsers(dest="command", metavar="<command>")
@@ -33,3 +34,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.print_help(sys.stderr)
         return 1
     return args.handler(args)
+
+
+def utf8_streams() -> None:
+    """Make the standard output and the standard error UTF-8, whatever the console or the locale says.
+
+    Until Python 3.15 makes UTF-8 the default, the encoding of a pipe follows the console code page on
+    Windows and the locale elsewhere, and a title with any character would fail on its way to the agent.
+    A stream without `reconfigure`, such as one replaced in a test, is left as it is.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8")

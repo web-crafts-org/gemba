@@ -1,0 +1,11 @@
+name: an unknown workstream named with accented letters is named character for character on the standard error
+scenario: "platform-support: Non-ASCII error reported"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, atención-al-cliente, --slug, new-lead, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["unknown workstream 'atención-al-cliente'", "support, operations"]
+unchanged: true

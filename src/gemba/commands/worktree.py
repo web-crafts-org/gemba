@@ -6,9 +6,10 @@ import argparse
 import os
 import sys
 import textwrap
+import time
 from pathlib import Path
 
-from gemba import config, harness, skills, worktree
+from gemba import config, harness, platform, skills, worktree
 from gemba.commands import harness as harness_command
 
 
@@ -151,7 +152,7 @@ def run_add(args: argparse.Namespace) -> int:
     if problem := harness_command.git(
         repository, "worktree", "add", "--quiet", "--no-track", "-b", branch, str(target), start
     ):
-        return fail("add", refusal(header, [problem]))
+        return fail("add", refusal(header, [harness_command.hinted(problem)]))
     print(worktree.render_outcome(path, branch, base, worktree.CREATED))
     return 0
 
@@ -168,7 +169,7 @@ def move(folder: Path, repo: str, base: str, force: bool) -> int:
     if problem := harness_command.git(target, "reset", "--quiet", "--hard", start) or harness_command.git(
         target, "clean", "--quiet", "-d", "--force"
     ):
-        return fail("add", refusal(worktree.NOT_MOVED_REFUSAL, [problem]))
+        return fail("add", refusal(worktree.NOT_MOVED_REFUSAL, [harness_command.hinted(problem)]))
     print(worktree.render_outcome(state.path, state.branch or "detached", base, worktree.MOVED))
     return 0
 
@@ -206,22 +207,34 @@ def run_remove(args: argparse.Namespace) -> int:
     if not args.yes:
         print(worktree.NOT_REMOVED)
         return 0
-    if problem := delete(worktree.worktree_path(folder, args.repo), path, state.branch, args.force):
+    again = f"gemba worktree remove {args.repo} --yes"
+    if problem := delete(worktree.worktree_path(folder, args.repo), path, state.branch, args.force, again):
         return fail("remove", problem)
     print(worktree.REMOVED)
     return 0
 
 
-def delete(target: Path, path: str, branch: str | None, force: bool) -> str | None:
+def delete(target: Path, path: str, branch: str | None, force: bool, again: str) -> str | None:
     """Remove the worktree at `target`, named `path` in messages, and delete `branch` from its repository.
 
-    None when both succeed, what was left and why otherwise.
+    None when both succeed, what was left and why otherwise. A path another program holds is retried on the
+    schedule of the platform rules and, when it stays held, reported with the command, `again`, that finishes.
     """
     repository = common_repository(target)
     if repository is None:
         return f"{path} was not removed: the repository it belongs to could not be read"
-    if problem := harness_command.git(repository, "worktree", "remove", *(["--force"] if force else []), str(target)):
-        return f"{path} was not removed: {problem}"
+    problem = None
+    for delay in (None, *platform.HELD_RETRY_DELAYS):
+        if delay is not None:
+            time.sleep(delay)
+        arguments = ["worktree", "remove", *(["--force"] if force else []), str(target)]
+        problem = harness_command.git(repository, *arguments)
+        if problem is None or not harness.is_held(problem):
+            break
+    if problem is not None:
+        if harness.is_held(problem):
+            return harness.not_removed(path, problem, again)
+        return f"{path} was not removed: {harness_command.hinted(problem)}"
     if branch is not None and (problem := harness_command.git(repository, "branch", "--quiet", "-D", branch)):
         return f"{path} was removed but its branch {branch} was not deleted from {repository}: {problem}"
     return None

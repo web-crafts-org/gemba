@@ -52,7 +52,11 @@ fill a value the user did not give or confirm.
    `agent_providers`. Ask which agents the person uses and propose the list trimmed to
    them.
 6. **The IDE.** Ask for the command that opens a folder in their editor, such as
-   `code -n`; it becomes `ide`, run on every harness at launch.
+   `code -n`; it becomes `ide`, run on every harness at launch. Write it as a string
+   when it is a bare command with its arguments; when the path holds spaces or
+   backslashes, as on Windows, either put it between double quotes inside the string
+   or use the map form, `{ command: 'C:\Program Files\Code\code.cmd', args: [-n] }`,
+   where the path is written as YAML writes any string, with no quoting rule of its own.
 7. **The repositories folder.** Only when the work involves code: ask for the folder
    that holds the repositories the runs check out as worktrees; it becomes `repos_dir`,
    absolute, starting with `~`, or relative to the tasks repo root.

@@ -8,7 +8,7 @@ import sys
 import textwrap
 from pathlib import Path, PurePosixPath
 
-from gemba import config, harness, skills, tasks, values
+from gemba import config, harness, platform, skills, tasks, values
 from gemba.commands import harness as harness_command
 
 
@@ -59,7 +59,7 @@ def run(args: argparse.Namespace) -> int:
         task = tasks.read(task_file, root, identity.workstream, archived)
     except tasks.TaskError as exc:
         return fail(f"record not done: {identity.task} is not a valid task: {exc}")
-    text = task_file.read_bytes().decode("utf-8")
+    text = platform.decode(task_file.read_bytes())
 
     today = datetime.date.today()
     errors = []
@@ -102,7 +102,7 @@ def read_draft(folder: Path, given: str) -> tuple[list[str], list[str]]:
     if not path.is_file():
         return [], ["is not a file" if path.exists() else "does not exist"]
     try:
-        text = path.read_bytes().decode("utf-8")
+        text = platform.decode(path.read_bytes())
     except UnicodeDecodeError:
         return [], ["is not UTF-8 text"]
     return tasks.parse_bullets(text)

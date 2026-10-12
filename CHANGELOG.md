@@ -7,6 +7,37 @@ All notable changes to the gemba CLI are recorded here. The format follows
 
 ## [Unreleased]
 
+### Added
+
+- Windows is a supported platform, beside Linux and macOS: Windows 10 or later with
+  Git for Windows at its defaults, no administrator rights and no Developer Mode, with
+  the suite run on it by the CI on every push and pull request.
+- The `ide` command of `gemba.yaml` takes a structured form, `{ command, args }`,
+  beside the string, which is split as a POSIX shell splits it; the command is
+  resolved on PATH the way the platform does, so `code` finds `code.cmd` on Windows,
+  and an `ide` command found nowhere on PATH is reported with its name.
+- `gemba init` writes a `.gitattributes` that keeps LF line endings in the files
+  Gemba owns, and completes an existing one like the `.gitignore`.
+- Workstream identifiers and note slugs refuse the device names Windows reserves
+  (`con`, `nul`, `aux`, `com1`...) on every platform; a git failure on a path too long
+  for Windows gets a hint naming `core.longpaths`.
+
+### Changed
+
+- Every file Gemba writes ends its lines with LF, every file it reads accepts CRLF,
+  and its output is UTF-8 whatever the console: a task file checked out with CRLF
+  records and launches like any other, and a draft filed as a note takes LF line
+  endings and loses a leading byte-order mark.
+- `task.md` in a harness is a symbolic link where the system lets Gemba create one
+  and otherwise a file holding the relative path of the task; the guide describes
+  both forms.
+- `gemba harness remove` and `gemba worktree remove` delete read-only files, retry a
+  path another program holds open, and when it stays held say what is left, that an
+  IDE window or a terminal on the folder is the likely cause, and that running the
+  removal again finishes it.
+- The skills read today's date from the environment, naming the command for a POSIX
+  shell and for PowerShell.
+
 ## [0.1.1] - 2026-10-11
 
 ### Added

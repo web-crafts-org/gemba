@@ -16,7 +16,9 @@ YAML documents, one case each. A case uses this vocabulary:
   the default branch and that branch is checked out; and it then pushes one commit per
   `unfetched` branch, subject `unfetched <branch>`, adding its files to the tip of the
   branch, so that the clone is behind its remote. A case declares `repos_dir: repos`.
-- `tree`: files to create before running, as `path: content`.
+- `tree`: files to create before running, as `path: content`. The content is written
+  as UTF-8 with its line endings as given, so `\r\n` escapes make a CRLF file; a
+  `!!binary` value is written as those bytes, for a file in another encoding.
 - `run`: command name followed by its arguments; the name is resolved through COMMANDS.
 - `cwd`: folder, relative to the root, to start the command from. When present,
   `--root` is not passed, so the command must discover the root by walking up.
@@ -38,10 +40,14 @@ YAML documents, one case each. A case uses this vocabulary:
 - `files_contain`: paths with the strings each file must contain, for files whose
   full content the case should not embed. A path may be a glob, for files named after
   the clock, and must then match exactly one file.
+- `lf_only`: paths whose bytes hold no CR, for a file that must end its lines with LF;
+  `files` cannot tell, since it reads with universal newlines. A path may be a glob,
+  for files named after the clock, and must then match exactly one file.
 - `absent`: paths that must not exist. A path may be a glob, which must match nothing,
   so `<folder>/*` checks that a folder is empty.
 - `folders`: paths that must be folders.
-- `links`: paths that must be symbolic links, each with its exact target.
+- `links`: paths that must be symbolic links, each with its exact target, compared as
+  POSIX paths whatever separator the system reports.
 - `git_log`: git repositories, each path relative to the root, with the subjects of
   their commits, newest first, as `git log --format=%s` prints them.
 - `git_clean`: git repositories whose working tree must have nothing to commit and no
@@ -50,15 +56,18 @@ YAML documents, one case each. A case uses this vocabulary:
   its local branches in sorted order.
 - `unchanged`: when true, the tree must be identical to the one before running.
 
-The token `{today}` in `files`, `files_contain`, `absent`, `folders` and `links` paths
-and contents, and in the expected output (`stdout_json` included), stands for the
-current date, so a case can check the default date. The token `{version}`, in the same
-places, stands for the version of the installed gemba CLI package.
+The token `{today}` in `files`, `files_contain`, `lf_only`, `absent`, `folders` and
+`links` paths and contents, and in the expected output (`stdout_json` included), stands
+for the current date, so a case can check the default date. The token `{version}`, in
+the same places, stands for the version of the installed gemba CLI package, and
+`{root}` for the absolute path of the root the case runs in, as the system spells it.
 
 Git must be on PATH: harness commands run it. Every command runs with the user's and
 the system's git config ignored and a fixed identity, so commits never depend on the
 machine running the suite. The IDE is never started: every command runs with a stub
-for each name in STUBS first on PATH, which exits 0 and does nothing.
+for each name in STUBS first on PATH, a shell script and a `.cmd` script side by side
+so that the stub resolves on every platform, each exiting 0 and doing nothing. The
+output of every command is decoded as UTF-8, the encoding gemba promises.
 """
 
 import datetime
@@ -114,8 +123,9 @@ STUBS = ("code",)
 _STUBS_DIR = tempfile.TemporaryDirectory(prefix="gemba-stubs-")
 for _stub in STUBS:
     _path = Path(_STUBS_DIR.name) / _stub
-    _path.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+    _path.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8", newline="\n")
     _path.chmod(0o755)
+    _path.with_suffix(".cmd").write_text("@exit /b 0\r\n", encoding="utf-8", newline="")
 
 
 def load_cases():
@@ -135,13 +145,15 @@ def snapshot(root):
     }
 
 
-def expand(text):
-    return str(text).replace("{today}", datetime.date.today().isoformat()).replace("{version}", VERSION)
+def expand(text, root=None):
+    """`text` with `{today}` and `{version}` expanded, and `{root}` when the root is given."""
+    expanded = str(text).replace("{today}", datetime.date.today().isoformat()).replace("{version}", VERSION)
+    return expanded if root is None else expanded.replace("{root}", str(root))
 
 
-def expand_json(expected):
-    """The expected document serialized to JSON, `{today}` expanded, and parsed back."""
-    return json.loads(expand(json.dumps(expected, default=lambda value: value.isoformat())))
+def expand_json(expected, root=None):
+    """The expected document serialized to JSON, the tokens expanded, and parsed back."""
+    return json.loads(expand(json.dumps(expected, default=lambda value: value.isoformat()), root))
 
 
 def canonical(document):
@@ -159,11 +171,11 @@ def environment():
 
 
 def write_tree(root, tree):
-    """Create every file of `tree`, a map of path to content, under `root`."""
+    """Create every file of `tree`, a map of path to content, under `root`, byte for byte as declared."""
     for relative, content in (tree or {}).items():
         path = root / relative
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(content or "", encoding="utf-8")
+        path.write_bytes(content if isinstance(content, bytes) else (content or "").encode("utf-8"))
 
 
 def git(root, relative, *args):
@@ -172,7 +184,7 @@ def git(root, relative, *args):
         ["git", "--no-optional-locks", "-C", str(root / expand(relative)), *args],
         env=environment(),
         capture_output=True,
-        text=True,
+        encoding="utf-8",
         timeout=60,
     )
 
@@ -206,7 +218,7 @@ class CaseRunner(unittest.TestCase):
             self.assertEqual(prepared.returncode, 0, f"{label} setup {run}\n{prepared.stdout}{prepared.stderr}")
         write_tree(root, case.get("tree_after_setup"))
         for relative, *args in case.get("git_after_setup") or []:
-            args = [expand(arg).replace("{root}", str(root)) for arg in args]
+            args = [expand(arg, root) for arg in args]
             self.run_git(root / expand(relative), *args, label=f"{label} git_after_setup")
 
     def materialize(self, root, case, label):
@@ -255,7 +267,7 @@ class CaseRunner(unittest.TestCase):
 
     def run_git(self, cwd, *args, label):
         result = subprocess.run(
-            ["git", "-C", str(cwd), *args], env=environment(), capture_output=True, text=True, timeout=60
+            ["git", "-C", str(cwd), *args], env=environment(), capture_output=True, encoding="utf-8", timeout=60
         )
         self.assertEqual(result.returncode, 0, f"{label}: git {' '.join(args)}\n{result.stdout}{result.stderr}")
         return result
@@ -273,7 +285,12 @@ class CaseRunner(unittest.TestCase):
             cwd = root
             args += ["--root", str(root)]
         return subprocess.run(
-            [executable, *command[1:], *args], cwd=cwd, env=environment(), capture_output=True, text=True, timeout=60
+            [executable, *command[1:], *args],
+            cwd=cwd,
+            env=environment(),
+            capture_output=True,
+            encoding="utf-8",
+            timeout=60,
         )
 
     def check(self, root, case, label, before, result):
@@ -281,34 +298,31 @@ class CaseRunner(unittest.TestCase):
         if "exit" in case:
             self.assertEqual(result.returncode, case["exit"], f"{label} exit{output}")
         if "stdout" in case:
-            self.assertEqual(result.stdout, expand(case["stdout"]), f"{label} stdout{output}")
+            self.assertEqual(result.stdout, expand(case["stdout"], root), f"{label} stdout{output}")
         for expected in case.get("stdout_contains") or []:
-            self.assertIn(expand(expected), result.stdout, f"{label} stdout_contains{output}")
+            self.assertIn(expand(expected, root), result.stdout, f"{label} stdout_contains{output}")
         for expected in case.get("stderr_contains") or []:
-            self.assertIn(expand(expected), result.stderr, f"{label} stderr_contains{output}")
+            self.assertIn(expand(expected, root), result.stderr, f"{label} stderr_contains{output}")
         if "stdout_json" in case:
             try:
                 actual = json.loads(result.stdout)
             except json.JSONDecodeError as exc:
                 self.fail(f"{label} stdout_json: standard output is not JSON: {exc}{output}")
-            expected = expand_json(case["stdout_json"])
+            expected = expand_json(case["stdout_json"], root)
             self.assertEqual(canonical(actual), canonical(expected), f"{label} stdout_json")
         for relative, expected in (case.get("files") or {}).items():
             path = root / expand(relative)
             self.assertTrue(path.is_file(), f"{label} files: {expand(relative)} does not exist{output}")
             actual = path.read_text(encoding="utf-8")
-            self.assertEqual(actual, expand(expected), f"{label} files: {expand(relative)}")
+            self.assertEqual(actual, expand(expected, root), f"{label} files: {expand(relative)}")
         for relative, fragments in (case.get("files_contain") or {}).items():
-            relative = expand(relative)
-            path = root / relative
-            if is_glob(relative):
-                matches = sorted(match.relative_to(root).as_posix() for match in root.glob(relative))
-                self.assertEqual(len(matches), 1, f"{label} files_contain: {relative} matches {matches}{output}")
-                path = root / matches[0]
-            self.assertTrue(path.is_file(), f"{label} files_contain: {relative} does not exist{output}")
+            path = self.one_file(root, relative, "files_contain", label, output)
             actual = path.read_text(encoding="utf-8")
             for fragment in fragments:
-                self.assertIn(expand(fragment), actual, f"{label} files_contain: {relative}")
+                self.assertIn(expand(fragment, root), actual, f"{label} files_contain: {expand(relative)}")
+        for relative in case.get("lf_only") or []:
+            path = self.one_file(root, relative, "lf_only", label, output)
+            self.assertNotIn(b"\r", path.read_bytes(), f"{label} lf_only: {expand(relative)} holds a CR byte")
         for relative in case.get("absent") or []:
             relative = expand(relative)
             if is_glob(relative):
@@ -321,7 +335,8 @@ class CaseRunner(unittest.TestCase):
         for relative, target in (case.get("links") or {}).items():
             path = root / expand(relative)
             self.assertTrue(path.is_symlink(), f"{label} links: {expand(relative)} is not a symbolic link{output}")
-            self.assertEqual(os.readlink(path), expand(target), f"{label} links: {expand(relative)}")
+            actual = os.readlink(path).replace("\\", "/")
+            self.assertEqual(actual, expand(target), f"{label} links: {expand(relative)}")
         for relative, subjects in (case.get("git_log") or {}).items():
             log = git(root, relative, "log", "--format=%s")
             self.assertEqual(log.returncode, 0, f"{label} git_log: {expand(relative)}\n{log.stderr}{output}")
@@ -336,6 +351,17 @@ class CaseRunner(unittest.TestCase):
             self.assertEqual(actual, [expand(name) for name in expected], f"{label} git_branches: {expand(relative)}")
         if case.get("unchanged"):
             self.assertEqual(snapshot(root), before, f"{label} unchanged: the tree was modified{output}")
+
+    def one_file(self, root, relative, key, label, output):
+        """The file at `relative`, a path or a glob matching exactly one file, which must exist."""
+        relative = expand(relative)
+        path = root / relative
+        if is_glob(relative):
+            matches = sorted(match.relative_to(root).as_posix() for match in root.glob(relative))
+            self.assertEqual(len(matches), 1, f"{label} {key}: {relative} matches {matches}{output}")
+            path = root / matches[0]
+        self.assertTrue(path.is_file(), f"{label} {key}: {relative} does not exist{output}")
+        return path
 
 
 class CaseTest(CaseRunner):
@@ -415,6 +441,20 @@ class RunnerTest(CaseRunner):
             self.prepare(root, case, "git_after_setup")
             self.assertEqual(git(root, "repos/nakatomi-web", "config", "gemba.root").stdout.strip(), str(root))
             self.check(root, case, "git_after_setup", snapshot(root), subprocess.CompletedProcess([], 0, "", ""))
+
+    def test_tree_is_written_byte_for_byte_and_lf_only_sees_a_cr(self):
+        case = yaml.safe_load(
+            'tree:\n  crlf.md: "one\\r\\ntwo\\r\\n"\n  lf.md: "one\\ntwo\\n"\n  utf16.md: !!binary "//5hAA=="\n'
+        )
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            self.prepare(root, case, "tree")
+            self.assertEqual((root / "crlf.md").read_bytes(), b"one\r\ntwo\r\n")
+            self.assertEqual((root / "utf16.md").read_bytes(), "a".encode("utf-16"))
+            passing = {"lf_only": ["lf.md", "l*.md"], "stdout_contains": ["{root}"]}
+            self.check(root, passing, "lf_only", snapshot(root), subprocess.CompletedProcess([], 0, str(root), ""))
+            with self.assertRaises(AssertionError):
+                self.check(root, {"lf_only": ["crlf.md"]}, "lf_only", {}, subprocess.CompletedProcess([], 0, "", ""))
 
     def test_new_command_names_resolve_to_the_binary(self):
         for name in ("mark", "archive", "report", "set", "worktree", "init", "config"):

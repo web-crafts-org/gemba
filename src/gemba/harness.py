@@ -9,7 +9,7 @@ from typing import Literal
 
 import yaml
 
-from gemba import tasks, worktree
+from gemba import platform, tasks, worktree
 
 HARNESSES_DIR = "harnesses"
 NOTES_DIR = "notes"
@@ -227,6 +227,11 @@ def task_link_target(task: str) -> str:
     return PurePosixPath(*[".."] * DEPTH, task).as_posix()
 
 
+def task_link_content(task: str) -> str:
+    """The content of `task.md` where the system creates no links: the same relative path, on one line."""
+    return f"{task_link_target(task)}\n"
+
+
 def find_root(start: Path | str) -> Path:
     """The nearest folder at or above `start` that holds a harness config."""
     start = Path(start).resolve()
@@ -336,6 +341,8 @@ def check_draft(path: Path, harness_root: Path) -> list[str]:
         problems.append(f"is not directly under {NOTES_DIR}/ of the harness (paths are relative to the harness root)")
     if path.suffix != ".md" or not tasks.is_valid_slug(path.stem):
         problems.append("is not a slug followed by .md (lowercase ASCII letters and digits joined by single hyphens)")
+    elif platform.is_reserved_name(path.stem):
+        problems.append("is named with a slug reserved on Windows, where it could not be a file name")
     if not path.is_file():
         problems.append("does not exist")
     elif _starts_with_frontmatter(path):
@@ -387,6 +394,48 @@ def check_resolvable(frontmatter: NoteFrontmatter) -> str | None:
 def _starts_with_frontmatter(path: Path) -> bool:
     with path.open(encoding="utf-8", errors="replace") as handle:
         return handle.readline().rstrip() == tasks.FRONTMATTER_DELIMITER
+
+
+IDENTITY_HINT = "set your git identity with git config --global user.name and user.email"
+LONG_PATH_HINT = "enable paths longer than Windows allows by default with git config --global core.longpaths true"
+HELD_CAUSE = "an IDE window or a terminal open on it is the likely cause"
+# What git says when it cannot delete a path another program holds open, on Windows above all.
+HELD_MESSAGES = ("permission denied", "failed to delete", "directory not empty", "unable to unlink", "resource busy")
+
+
+def git_hints(problem: str) -> list[str]:
+    """What to do about a git failure, read from git's message: none when the message names nothing known.
+
+    A missing identity and a path longer than Windows allows are the two failures a person fixes with one
+    git config, so the hint names it; a path git could not delete gets the cause a removal names; every
+    other message is relayed as it is.
+    """
+    hints = []
+    lowered = problem.lower()
+    if "user.email" in lowered or "identity" in lowered:
+        hints.append(IDENTITY_HINT)
+    if "filename too long" in lowered:
+        hints.append(LONG_PATH_HINT)
+    if is_held(problem):
+        hints.append(HELD_CAUSE)
+    return hints
+
+
+def is_held(problem: str) -> bool:
+    """Whether git's message says a path could not be deleted because another program holds it."""
+    lowered = problem.lower()
+    return any(message in lowered for message in HELD_MESSAGES)
+
+
+def not_removed_completely(path: str, left: str, again: str) -> str:
+    """What `harness remove` says when the system kept part of the harness at `path`: `left` names what, then
+    the likely cause and the command, `again`, that finishes the removal."""
+    return f"{path} was not removed completely: {left}; {HELD_CAUSE}; run {again} again to finish it"
+
+
+def not_removed(path: str, left: str, again: str) -> str:
+    """What a worktree removal says when git could not delete the worktree at `path`, worded like a harness."""
+    return f"{path} was not removed: {left}; {HELD_CAUSE}; run {again} again to finish it"
 
 
 def launch_message(ref: str) -> str:

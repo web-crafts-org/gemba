@@ -1,0 +1,36 @@
+name: a description with accented letters and an emoji reaches the JSON character for character through a pipe
+scenario: "platform-support: Non-ASCII text listed through a pipe"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    El inicio de sesión falla en Safari para la aplicación de pagos ✅
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-09-30-SUP-1-login-fails.md
+      workstream: support
+      archived: false
+      ref: SUP-1
+      date: 2026-09-30
+      title: Login fails
+      status: open
+      updated_at: 2026-09-30
+      done_at: null
+      metadata: {}
+      description: El inicio de sesión falla en Safari para la aplicación de pagos ✅
+  problems: []
+unchanged: true

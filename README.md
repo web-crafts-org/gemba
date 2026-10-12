@@ -63,7 +63,8 @@ Gemini CLI and others) are built in.
 
 ## Install and start
 
-The only prerequisite is [uv](https://docs.astral.sh/uv/).
+The prerequisites are [uv](https://docs.astral.sh/uv/) and `git` on PATH, on Linux,
+macOS or Windows.
 
 ```bash
 uv tool install gemba-cli
@@ -71,9 +72,10 @@ gemba --version
 gemba init ~/nakatomi-tasks       # a tasks repo for the organization you work with
 ```
 
-`gemba init` writes a minimal `gemba.yaml`, the `tasks/` folder, a `.gitignore` and
-the skills for every agent it knows (`--providers claude` keeps only one). It runs no
-git: make the folder a repository and commit it when you like.
+`gemba init` writes a minimal `gemba.yaml`, the `tasks/` folder, a `.gitignore`, a
+`.gitattributes` that keeps LF line endings in the files Gemba owns, and the skills for
+every agent it knows (`--providers claude` keeps only one). It runs no git: make the
+folder a repository and commit it when you like.
 
 Then open the folder with your agent and ask it to configure Gemba. The `gemba-init`
 skill asks, one question at a time, for your organization, the kinds of work you do,
@@ -135,7 +137,8 @@ gemba harness launch SUP-1
 
 creates `harnesses/support/2026-09-30-SUP-1-login-fails-on-safari/` as a git
 repository of its own, with `harness.yaml`, the run's identity; `task.md`, a link to
-the task; the guide of the agent (`CLAUDE.md`, `AGENTS.md`); the harness skills;
+the task, or a file naming its path where the system creates no links; the guide of
+the agent (`CLAUDE.md`, `AGENTS.md`); the harness skills;
 `notes/`, `assets/` and `worktrees/`. It moves an `open` task to `in-progress` and
 opens the folder with the `ide` command of `gemba.yaml` (`--no-open` skips it).
 Launching again only reopens it. `harnesses/` is ignored by the tasks repo: a run is
@@ -278,7 +281,8 @@ What you can customize, all of it here and never in a skill:
 - **Metadata fields**, shared or per workstream, each of one type: `text`, `number`,
   `boolean` or `date`. Gemba reads, filters, groups and adds values by their type and
   never interprets their meaning.
-- **Agent providers**, the IDE command, the organization and the repositories folder.
+- **Agent providers**, the IDE command (a string, or `{ command: code, args: [-n] }`),
+  the organization and the repositories folder.
 - **`context` and `rules` for every process**, at the top level and per workstream:
   what the agent should know and do when it creates, lists, launches, notes, records,
   marks, archives or checks out, with the workstream's rule winning a contradiction.
@@ -286,6 +290,37 @@ What you can customize, all of it here and never in a skill:
   the workstream.
 
 Changing any of it is a config edit: no skill and no code changes.
+
+## On Windows
+
+Gemba runs on Windows 10 or later with Git for Windows at its defaults, from
+PowerShell, the command prompt or Git Bash, with no administrator rights:
+
+```powershell
+uv tool install gemba-cli
+gemba init $HOME\nakatomi-tasks
+```
+
+- **The `ide` command.** A bare `code -n` works: the command is resolved on PATH the
+  way Windows does, so `code` finds `code.cmd`. A string is split as a POSIX shell
+  splits it, so a path with spaces or backslashes goes between double quotes, with
+  each backslash doubled, or takes the map form, which needs no quoting rule:
+
+  ```yaml
+  ide: '"C:\\Program Files\\Microsoft VS Code\\bin\\code.cmd" -n'
+  ide: { command: 'C:\Program Files\Microsoft VS Code\bin\code.cmd', args: [-n] }
+  ```
+- **`task.md` in a harness** is a symbolic link where Windows lets Gemba create one,
+  with Developer Mode on or a privileged account, and otherwise a file holding the
+  relative path of the task; the guide tells the agent to read the task either way, so
+  Developer Mode is optional.
+- **Long paths.** When git fails with `Filename too long`, run
+  `git config --global core.longpaths true`, which Gemba's message suggests.
+- **An existing tasks repo.** Running `gemba init` again on a tasks repo made before
+  this version adds the `.gitattributes`; on a checkout with `core.autocrlf=true`, run
+  `git add --renormalize .` once and commit, so that the task files and the config are
+  stored with LF.
+- **WSL** is an alternative: inside it, Gemba is the Linux install above.
 
 ## Status
 

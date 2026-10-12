@@ -82,7 +82,7 @@ def run(args: argparse.Namespace) -> int:
         path.mkdir(parents=True, exist_ok=True)
         (path / tasks.GITKEEP).touch(exist_ok=True)
     content = tasks.render(args.status, ref, created, task_metadata, args.description)
-    with target.open("x", encoding="utf-8") as handle:
+    with target.open("x", encoding="utf-8", newline="\n") as handle:
         handle.write(content)
 
     print(relative)

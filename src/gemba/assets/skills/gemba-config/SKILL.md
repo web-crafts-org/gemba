@@ -32,7 +32,7 @@ Every example below is only an example: the names of this tasks repo are in its 
 | `workstreams` | a non-empty map of workstreams, keyed by identifier; its order is the order reports group by | refused: it is required |
 | `metadata` | the list of field declarations shared by every workstream | no shared field |
 | `agent_providers` | a non-empty list of the agent providers whose skills folders gemba writes, each listed once: `claude` (`.claude/skills/`, guide `CLAUDE.md`) or `agents` (`.agents/skills/`, guide `AGENTS.md`) | `gemba skills update`, `gemba harness launch` and `gemba init` refuse to run |
-| `ide` | a non-empty string, the command that opens a folder in the IDE, arguments included, such as `code -n`; launch appends the harness path | launch opens nothing |
+| `ide` | the command that opens a folder in the IDE, as a string split the way a POSIX shell splits it, such as `code -n`, where a path holding spaces or backslashes goes between double quotes, or as a map `{ command: code, args: [-n] }`, which means the same and needs no quoting; the command is resolved on PATH and launch appends the harness path | launch opens nothing |
 | `organization` | a kebab-case name, the middle segment of the branch of a run, `<branch_prefix>/<organization>/<ref>` | `gemba worktree add` refuses to run |
 | `repos_dir` | the folder of the repositories a run may check out as worktrees: absolute, starting with `~`, or relative to the tasks repo root | `gemba worktree add` refuses to run |
 | `branch_prefix` | a kebab-case name, the first segment of the branch of a run | `gemba` |

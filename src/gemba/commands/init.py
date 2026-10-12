@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+from collections.abc import Callable
 from importlib.metadata import version
 from pathlib import Path
 
@@ -16,8 +17,9 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         help="make a folder a tasks repo",
         description=(
             f"Make the folder a tasks repo: {config.CONFIG_FILENAME} with the one workstream default, the "
-            f"{repo.GITKEEP} file, the {repo.IGNORED_LINE} line of {repo.GITIGNORE} and the tasks repo skills "
-            "under the skills folder of every agent provider. Only what is missing is written: an existing "
+            f"{repo.GITKEEP} file, the {repo.IGNORED_LINE} line of {repo.GITIGNORE}, the LF lines of "
+            f"{repo.GITATTRIBUTES} and the tasks repo skills under the skills folder of every agent provider. "
+            "Only what is missing is written: an existing "
             f"{config.CONFIG_FILENAME} is never rewritten and gives the providers, and a skill already on disk is "
             "kept. Nothing is asked and no git is run."
         ),
@@ -74,12 +76,8 @@ def run(args: argparse.Namespace) -> int:
         config_path.write_text(repo.render_config(providers), encoding="utf-8", newline="\n")
         report("written", config.CONFIG_FILENAME)
 
-    gitignore = target / repo.GITIGNORE
-    existing = gitignore.read_bytes().decode("utf-8", errors="surrogateescape") if gitignore.is_file() else None
-    text = repo.gitignore_text(existing)
-    if text is not None:
-        gitignore.write_bytes(text.encode("utf-8", errors="surrogateescape"))
-    report("kept" if text is None else "written" if existing is None else "updated", repo.GITIGNORE)
+    converge(target / repo.GITIGNORE, repo.gitignore_text)
+    converge(target / repo.GITATTRIBUTES, repo.gitattributes_text)
 
     gitkeep = target / repo.GITKEEP
     if gitkeep.is_file():
@@ -101,6 +99,18 @@ def run(args: argparse.Namespace) -> int:
 
     print(repo.NEXT_STEP)
     return 0
+
+
+def converge(path: Path, text_for: Callable[[str | None], str | None]) -> None:
+    """Write the file at `path` as `text_for` renders it from the one on disk, and report what happened.
+
+    The file is read and written with its bytes kept whatever they are, since a person edits it by hand.
+    """
+    existing = path.read_bytes().decode("utf-8", errors="surrogateescape") if path.is_file() else None
+    text = text_for(existing)
+    if text is not None:
+        path.write_bytes(text.encode("utf-8", errors="surrogateescape"))
+    report("kept" if text is None else "written" if existing is None else "updated", path.name)
 
 
 def report(outcome: str, path: str) -> None:

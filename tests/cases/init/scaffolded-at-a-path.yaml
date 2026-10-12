@@ -4,7 +4,7 @@ cwd: .
 run: [init, acme-tasks]
 exit: 0
 stdout_contains:
-  - "written gemba.yaml\nwritten .gitignore\nwritten tasks/.gitkeep\nwritten .claude/skills/gemba-create/SKILL.md\n"
+  - "written gemba.yaml\nwritten .gitignore\nwritten .gitattributes\nwritten tasks/.gitkeep\nwritten .claude/skills/gemba-create/SKILL.md\n"
   - "written .agents/skills/gemba-config/SKILL.md\nnext step: "
 files:
   acme-tasks/gemba.yaml: |
@@ -21,6 +21,7 @@ files:
         prefix: TASK
         description: Work that fits no other workstream
   acme-tasks/.gitignore: "harnesses/\n"
+  acme-tasks/.gitattributes: "*.md text eol=lf\n*.yaml text eol=lf\n"
   acme-tasks/tasks/.gitkeep: ""
 files_contain:
   acme-tasks/.claude/skills/gemba-create/SKILL.md: &create ["---\nname: gemba-create\n"]
@@ -41,4 +42,4 @@ files_contain:
   acme-tasks/.agents/skills/gemba-set/SKILL.md: *set
   acme-tasks/.agents/skills/gemba-init/SKILL.md: *init
   acme-tasks/.agents/skills/gemba-config/SKILL.md: *config
-absent: [gemba.yaml, .gitignore, tasks, .claude, .agents]
+absent: [gemba.yaml, .gitignore, .gitattributes, tasks, .claude, .agents]

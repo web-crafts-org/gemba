@@ -1,0 +1,90 @@
+name: show prints a structured ide command as declared
+scenario: "gemba-config: Structured IDE command accepted"
+config:
+  default_workstream: operations
+  ide: { command: code, args: [-n] }
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [config, show]
+exit: 0
+stdout_json:
+  organization: null
+  branch_prefix: gemba
+  repos_dir: null
+  ide: { command: code, args: [-n] }
+  agent_providers: null
+  default_workstream: operations
+  workstreams:
+    - id: operations
+      prefix: OPS
+      description: Anything that does not fit another workstream
+      metadata: []
+      processes:
+        create: &empty { context: null, rules: [] }
+        list: *empty
+        record: *empty
+        report: *empty
+        mark: *empty
+        archive: *empty
+        set: *empty
+        harness:
+          guide: { organization: null, workstream: null }
+          launch: *empty
+          note: *empty
+          resolve: *empty
+          remove: *empty
+        worktree:
+          add: *empty
+          list: *empty
+          remove: *empty
+unchanged: true
+---
+name: a structured ide command without args is accepted and shown as declared
+scenario: "gemba-config: Structured IDE command accepted"
+config:
+  default_workstream: operations
+  ide: { command: code }
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [config, check]
+exit: 0
+stdout_contains: ["gemba.yaml is valid\n"]
+unchanged: true
+---
+name: launch starts a structured ide command with the harness path and prints the command line as declared
+scenario: "gemba-config: Structured IDE command accepted"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  ide: { command: code, args: [-n] }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [harness, launch, SUP-1]
+exit: 0
+stdout_contains:
+  - "harnesses/support/2026-09-30-SUP-1-login-fails\nstatus: open -> in-progress\nopening: code -n {root}"
+  - "2026-09-30-SUP-1-login-fails\n"
+files_contain:
+  harnesses/support/2026-09-30-SUP-1-login-fails/harness.yaml: ["ref: SUP-1\n"]
+---
+name: the create process accepts a structured ide command
+scenario: "gemba-config: Structured IDE command accepted"
+config:
+  default_workstream: operations
+  ide: { command: code, args: [-n] }
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 0
+stdout_contains: [tasks/operations/2026-09-30-OPS-1-renew-domain.md]

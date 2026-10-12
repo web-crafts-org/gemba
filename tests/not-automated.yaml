@@ -12,7 +12,8 @@
 "gemba-config: Workstream rule wins over a base rule": the agent reads both rules of worktree.add from gemba config show and resolves their contradiction through the gemba-worktree skill
 "harness-guide: Guide free of organization values": a property of the guide asset text, not of a command
 "harness-launch: Agent launches a task": the agent runs the command and relays its output by following the gemba-harness skill
-"harness-launch: Agent reads the task through the link": the agent reads task.md by following the guide of the harness
+"harness-launch: Agent reads the task through the link": the agent reads task.md, or the file at the path task.md names, by following the guide of the harness
+"harness-launch: Task path written when the system refuses links": no runner of the suite refuses links, the CI runners on Windows included; covered by a unit test in tests/test_harness.py that makes the link creation fail
 "harness-launch: Harnesses ignored by the tasks repo": a property of this repository's .gitignore, not of a command
 "harness-notes: Agent acts on an approved note": the agent acts, writes the outcome and resolves by following the gemba-harness skill
 "harness-notes: Agent files a note": the agent drafts, saves the assets and files by following the gemba-harness skill
@@ -104,3 +105,11 @@
 "package-release: Metadata declared": covered by a unit test over pyproject.toml in test_package.py
 "package-release: Changelog section missing": the subject is the release workflow under .github/workflows, run by GitHub Actions
 "package-release: Release page created": the subject is the release workflow under .github/workflows, run by GitHub Actions
+"platform-support: Suite passes on every platform": the subject is the CI workflow under .github/workflows, run by GitHub Actions
+"platform-support: Tasks repo used across platforms": no runner of the suite spans two platforms; the paths the tasks repo stores are POSIX and relative, covered by the cases that read them on every platform of the CI
+"platform-support: Rule applied wherever a name is validated": "each name is covered by the case of the capability that validates it: gemba-config: Reserved device name refused and harness-notes: Reserved device name refused"
+"platform-support: Git failure on a long path hinted": covered by a unit test over the hint on git's message in tests/test_harness.py; no case can make git fail on a long path on every platform
+"harness-removal: Read-only files deleted": git marks its objects read-only on Windows only, where the Harness removed case exercises this deletion on the CI; on POSIX no file attribute blocks an unlink
+"harness-removal: Path held by another program reported": no case can hold a file open while the command runs; covered by a unit test of the deletion policy in tests/test_harness.py with a failure that persists
+"harness-worktrees: Worktree path held by another program reported": no case can hold a file open while the command runs; covered by the unit test of the deletion policy in tests/test_harness.py, which both removals share
+"package-release: Suite run per platform and interpreter": the subject is the CI workflow under .github/workflows, run by GitHub Actions

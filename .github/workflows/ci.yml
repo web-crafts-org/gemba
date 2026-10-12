@@ -25,6 +25,7 @@ jobs:
       - run: uv build
 
   tests:
+    # Linux on every supported Python: what differs by interpreter is covered here.
     name: Test suite on Python ${{ matrix.python }}
     runs-on: ubuntu-latest
     strategy:
@@ -39,16 +40,25 @@ jobs:
       - run: uv sync --locked
       - run: uv run python -m unittest discover -s tests
 
-  tests-macos:
-    # One run on macOS, on the oldest supported Python: what differs from Linux is
-    # the operating system (case-insensitive filesystem, BSD tools, symlinked /tmp),
-    # not the interpreter, so one version is enough.
-    name: Test suite on macOS
-    runs-on: macos-latest
+  tests-platforms:
+    # macOS and Windows on the two extremes of the supported Python versions: what
+    # differs by platform (case-insensitive filesystems, symbolic links, read-only git
+    # objects, CRLF checkouts, the console encoding) is covered on both, and the two
+    # Python behaviours that change between the extremes (the rmtree error handler of
+    # 3.12, the default output encoding on its way to 3.15) are covered on each. No
+    # step touches the git of the runner, so Windows runs with core.autocrlf=true and
+    # the CRLF cases prove the text contract under the defaults of a Windows install.
+    name: Test suite on ${{ matrix.os }} with Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+        python: ["3.11", "3.14"]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python }}
       - run: uv sync --locked
       - run: uv run python -m unittest discover -s tests

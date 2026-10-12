@@ -5,17 +5,23 @@ from __future__ import annotations
 import argparse
 import dataclasses
 import datetime
-import shlex
+import os
 import shutil
+import stat
 import subprocess
 import sys
 import textwrap
+import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from importlib.metadata import version
 from pathlib import Path, PurePosixPath
 
-from gemba import config, harness, skills, tasks, worktree
+from gemba import config, harness, platform, skills, tasks, worktree
 from gemba.commands import worktree as worktree_command
+
+# The keyword of the error handler of shutil.rmtree: onexc takes the exception from 3.12, onerror the exc_info.
+RMTREE_HANDLER = "onexc" if sys.version_info >= (3, 12) else "onerror"
 
 
 def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
@@ -52,9 +58,9 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         description=textwrap.fill(
             f"File the draft {harness.NOTES_DIR}/<slug>.md: rename it to "
             f"{harness.NOTES_DIR}/YYYY-MM-DD-HHMMSS-<slug>.md after the clock, write its frontmatter above the body, "
-            f"which is kept byte for byte, and commit {harness.NOTES_DIR}/ and {harness.ASSETS_DIR}/. Paths are "
-            "relative to the harness root. An external-action note always waits for the user's approval, a "
-            "decision note only with --approval.",
+            f"which keeps its characters but takes LF line endings, and commit {harness.NOTES_DIR}/ and "
+            f"{harness.ASSETS_DIR}/. Paths are relative to the harness root. An external-action note always waits "
+            "for the user's approval, a decision note only with --approval.",
             width=79,
         ),
         epilog=f"note types:\n{types}",
@@ -181,7 +187,7 @@ def run_launch(args: argparse.Namespace) -> int:
 def start_work(root: Path, task: tasks.Task, today: datetime.date) -> None:
     """Move an open task to in-progress through the status table, and say what happened to its status."""
     task_file = root / task.path
-    text, moved = tasks.start(task_file.read_bytes().decode("utf-8"), today)
+    text, moved = tasks.start(platform.decode(task_file.read_bytes()), today)
     if moved.changed:
         task_file.write_bytes(text.encode("utf-8"))
         print(f"status: {moved.old_status} -> {moved.new_status}")
@@ -210,7 +216,7 @@ def run_note(args: argparse.Namespace) -> int:
     if target.exists():
         return fail("note", f"note not filed: {relative} already exists; file the note again")
     try:
-        body = draft.read_bytes().decode("utf-8")
+        body = platform.decode(draft.read_bytes())
     except UnicodeDecodeError:
         return fail("note", f"note not filed: {args.file} is not UTF-8 text")
     frontmatter = harness.NoteFrontmatter(
@@ -241,7 +247,7 @@ def run_resolve(args: argparse.Namespace) -> int:
     if problems:
         return fail("resolve", "note not resolved:\n" + "\n".join(f"- {args.note} {problem}" for problem in problems))
     try:
-        block, rest = harness.split_note(path.read_bytes().decode("utf-8"))
+        block, rest = harness.split_note(platform.decode(path.read_bytes()))
         assert block is not None, "check_filed found the frontmatter"
         frontmatter = harness.parse_note_frontmatter(block)
     except (harness.HarnessError, UnicodeDecodeError) as exc:
@@ -310,15 +316,81 @@ def run_remove(args: argparse.Namespace) -> int:
         print(harness.NOT_REMOVED)
         return 0
 
-    if problem := delete_run(folder, relative, names, states, orphans, args.force):
-        again = f"run gemba harness remove {task.ref} --yes again to remove what is left"
-        return fail("remove", f"{relative} was not removed completely: {problem}; {again}")
-    try:
-        shutil.rmtree(folder)
-    except OSError as exc:
-        return fail("remove", f"{relative} was not removed completely: {exc}; delete what is left by hand")
+    again = f"gemba harness remove {task.ref} --yes"
+    if problem := delete_run(folder, relative, names, states, orphans, args.force, again):
+        return fail(
+            "remove", f"{relative} was not removed completely: {problem}; run {again} again to remove what is left"
+        )
+    if problem := delete_tree(folder):
+        return fail("remove", harness.not_removed_completely(relative, problem, again))
     print(harness.REMOVED)
     return 0
+
+
+def delete_tree(
+    folder: Path,
+    *,
+    rmtree: Callable[..., None] = shutil.rmtree,
+    sleep: Callable[[float], None] = time.sleep,
+) -> str | None:
+    """Delete `folder` and everything in it, finishing what the system allows.
+
+    A file the system marks read-only, as git marks its objects on Windows, gets its write bit set and its
+    deletion retried at once; a path another program holds open is retried on the schedule of the platform
+    rules. None when the folder is gone; otherwise the paths still held, relative to `folder`, or the error
+    that stopped the deletion. `rmtree` and `sleep` are the filesystem and the clock, injected by the unit test.
+    """
+    held: list[Path] = []
+    for delay in (None, *platform.HELD_RETRY_DELAYS):
+        if delay is not None:
+            sleep(delay)
+        held.clear()
+
+        def handle(function: Callable[..., object], path: str | os.PathLike[str], error: object) -> None:
+            exception = error[1] if isinstance(error, tuple) else error  # onerror passes sys.exc_info()
+            assert isinstance(exception, BaseException)
+            deletion_error(function, Path(path), exception, held)
+
+        try:
+            rmtree(folder, **{RMTREE_HANDLER: handle})
+        except OSError as exc:
+            return str(exc)
+        if not held:
+            return None
+    names = sorted(relative_to(path, folder) for path in held)
+    return f"{', '.join(names)} {'is' if len(names) == 1 else 'are'} held by another program"
+
+
+def deletion_error(function: Callable[..., object], path: Path, error: BaseException, held: list[Path]) -> None:
+    """The error handler of a resilient rmtree: clear a read-only bit and retry, record a held path, raise the rest.
+
+    A folder that cannot be removed because a path inside it is held is already accounted for by that path.
+    """
+    if any(kept.is_relative_to(path) for kept in held):
+        return
+    try:
+        mode = os.lstat(path).st_mode
+    except OSError:
+        return  # gone meanwhile: nothing is left to delete there
+    outcome = platform.classify_deletion_error(error, writable=bool(mode & stat.S_IWRITE))
+    if outcome == "read-only":
+        os.chmod(path, mode | stat.S_IWRITE)
+        try:
+            function(path)
+        except PermissionError:
+            held.append(path)
+    elif outcome == "held":
+        held.append(path)
+    else:
+        raise error
+
+
+def relative_to(path: Path, folder: Path) -> str:
+    """`path` relative to `folder` in POSIX form, or as it is when it lies outside."""
+    try:
+        return path.relative_to(folder).as_posix()
+    except ValueError:
+        return path.as_posix()
 
 
 def delete_run(
@@ -328,17 +400,19 @@ def delete_run(
     states: list[worktree.State],
     orphans: list[Orphan],
     force: bool,
+    again: str,
 ) -> str | None:
     """Remove every worktree of the harness, then delete every branch of the run left without one.
 
     None when everything is deleted; otherwise what failed, followed by what was deleted before it.
+    `again` is the command that finishes a removal the system interrupted.
     """
     done = []
     for name, state in zip(names, states, strict=True):
         if state.kind == "not a worktree":
             continue
         path = f"{relative}/{state.path}"
-        if problem := worktree_command.delete(worktree.worktree_path(folder, name), path, state.branch, force):
+        if problem := worktree_command.delete(worktree.worktree_path(folder, name), path, state.branch, force, again):
             return "; ".join([problem, *done])
         done.append(f"{path} was removed")
     for orphan in orphans:
@@ -429,15 +503,18 @@ def commit(folder: Path, message: str) -> str | None:
     )
 
 
-def write_layout(gemba_config: config.Config, task: tasks.Task, folder: Path) -> None:
-    """Every piece of the harness except its config, each written only when it is missing."""
+def write_layout(
+    gemba_config: config.Config, task: tasks.Task, folder: Path, link: Callable[[Path, str], None] = Path.symlink_to
+) -> None:
+    """Every piece of the harness except its config, each written only when it is missing.
+
+    `link` creates `task.md` as a symbolic link; when the system refuses, the file form holds the path instead.
+    """
     assert gemba_config.agent_providers is not None
     for name in (harness.NOTES_DIR, harness.ASSETS_DIR, harness.WORKTREES_DIR):
         (folder / name).mkdir(parents=True, exist_ok=True)
     write_new(folder / harness.GITIGNORE, harness.GITIGNORE_TEXT)
-    link = folder / harness.TASK_LINK
-    if not link.is_symlink() and not link.exists():
-        link.symlink_to(harness.task_link_target(task.path))
+    write_task_link(folder / harness.TASK_LINK, task.path, link)
     guide = harness.render_guide(
         skills.guide_asset(),
         config.guide(gemba_config.processes),
@@ -448,6 +525,17 @@ def write_layout(gemba_config: config.Config, task: tasks.Task, folder: Path) ->
     for action in skills.plan(folder, gemba_config.agent_providers, version("gemba-cli"), "harness"):
         if action.state == "missing":
             write_new(folder / action.path, action.content)
+
+
+def write_task_link(path: Path, task: str, link: Callable[[Path, str], None] = Path.symlink_to) -> None:
+    """`task.md` at `path`: a relative symbolic link where the system lets `link` create one, a file naming the path
+    otherwise; whatever is already there is kept."""
+    if path.is_symlink() or path.exists():
+        return
+    try:
+        link(path, harness.task_link_target(task))
+    except OSError:
+        write_new(path, harness.task_link_content(task))
 
 
 def write_new(path: Path, content: str) -> None:
@@ -495,30 +583,41 @@ def git_lines(folder: Path, *arguments: str) -> list[str] | None:
 
 
 def git_failure(problem: str, ref: str) -> str:
-    hint = ""
-    if "user.email" in problem or "identity" in problem.lower():
-        hint = "\nset your git identity with git config --global user.name and user.email"
-    return f"{problem}{hint}\nthe files written are kept; run gemba harness launch {ref} again to finish the harness"
+    """A git failure of launch: git's message, the hints it calls for, and how to finish the harness."""
+    again = f"the files written are kept; run gemba harness launch {ref} again to finish the harness"
+    return "\n".join([hinted(problem), again])
+
+
+def hinted(problem: str) -> str:
+    """A git failure with the hints its message calls for, one per line after it."""
+    return "\n".join([problem, *harness.git_hints(problem)])
 
 
 def open_ide(gemba_config: config.Config, folder: Path, no_open: bool) -> int:
-    """Start the IDE command of the config on the harness without waiting for it, and say so."""
+    """Start the IDE command of the config on the harness without waiting for it, and say so.
+
+    The command is resolved on PATH the way the platform does, so that `code` finds `code.cmd` on
+    Windows; the child gets no console and no standard stream of its own; the line printed is the
+    declaration followed by the path, never the resolved executable.
+    """
     if no_open or gemba_config.ide is None:
         return 0
+    ide = gemba_config.ide
+    not_started = f"the harness is ready but the IDE command '{ide.line}' could not be started"
+    executable = shutil.which(ide.command)
+    if executable is None:
+        return fail("launch", f"{not_started}: {ide.command} was not found on PATH")
     try:
-        command = [*shlex.split(gemba_config.ide), str(folder)]
         subprocess.Popen(
-            command,
+            [executable, *ide.args, str(folder)],
             stdin=subprocess.DEVNULL,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
-            start_new_session=True,
+            **platform.detached_start(),
         )
     except (OSError, ValueError) as exc:
-        return fail(
-            "launch", f"the harness is ready but the IDE command '{gemba_config.ide}' could not be started: {exc}"
-        )
-    print(f"opening: {' '.join(command)}")
+        return fail("launch", f"{not_started}: {exc}")
+    print(f"opening: {ide.line} {folder}")
     return 0
 
 
