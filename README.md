@@ -1,5 +1,10 @@
 # Gemba
 
+[![CI](https://github.com/web-crafts-org/gemba/actions/workflows/ci.yml/badge.svg)](https://github.com/web-crafts-org/gemba/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/gemba-cli)](https://pypi.org/project/gemba-cli/)
+[![Python](https://img.shields.io/pypi/pyversions/gemba-cli)](https://pypi.org/project/gemba-cli/)
+[![License](https://img.shields.io/pypi/l/gemba-cli)](https://github.com/web-crafts-org/gemba/blob/main/LICENSE)
+
 Gemba is a task-based system for working with AI agents. Every unit of work is one
 Markdown file in a repository of your own, your agent registers, launches, updates and
 closes those tasks through fixed processes, and each task is worked on inside a
