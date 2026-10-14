@@ -7,23 +7,39 @@ All notable changes to the gemba CLI are recorded here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-13
+
+Windows joins Linux and macOS as a supported platform, with the same behaviour and the
+same guarantees. One change refuses a `gemba.yaml` that 0.1 accepted: a workstream
+named after a device Windows reserves, listed under Changed.
+
 ### Added
 
 - Windows is a supported platform, beside Linux and macOS: Windows 10 or later with
-  Git for Windows at its defaults, no administrator rights and no Developer Mode, with
-  the suite run on it by the CI on every push and pull request.
+  Git for Windows at its defaults, no administrator rights and no Developer Mode, from
+  PowerShell, the command prompt or Git Bash. The README has a section on it.
+- Python 3.14 is supported. The CI runs the suite on every pull request and every push
+  to `main`: on Linux with every supported Python, 3.11 to 3.14, and on macOS and
+  Windows with 3.11 and 3.14.
 - The `ide` command of `gemba.yaml` takes a structured form, `{ command, args }`,
   beside the string, which is split as a POSIX shell splits it; the command is
   resolved on PATH the way the platform does, so `code` finds `code.cmd` on Windows,
   and an `ide` command found nowhere on PATH is reported with its name.
 - `gemba init` writes a `.gitattributes` that keeps LF line endings in the files
-  Gemba owns, and completes an existing one like the `.gitignore`.
-- Workstream identifiers and note slugs refuse the device names Windows reserves
-  (`con`, `nul`, `aux`, `com1`...) on every platform; a git failure on a path too long
-  for Windows gets a hint naming `core.longpaths`.
+  Gemba owns, and completes an existing one like the `.gitignore`: running it again on
+  a tasks repo made before this version adds it.
+- A git failure on a path too long for Windows gets a hint naming `core.longpaths`.
+- `SECURITY.md`: how to report a vulnerability privately, the threat model of the CLI,
+  what is in scope and what is not, and the automated checks of the repository. The
+  workflows that test, build and publish the package pin every action to a commit and
+  run with read-only permissions.
 
 ### Changed
 
+- Workstream identifiers and note slugs refuse the device names Windows reserves
+  (`con`, `nul`, `aux`, `com1`...) on every platform, so that a tasks repo moves
+  between platforms: a `gemba.yaml` that declares a workstream with one of those names,
+  accepted by 0.1, is refused, and the workstream has to be renamed.
 - Every file Gemba writes ends its lines with LF, every file it reads accepts CRLF,
   and its output is UTF-8 whatever the console: a task file checked out with CRLF
   records and launches like any other, and a draft filed as a note takes LF line
@@ -37,6 +53,12 @@ All notable changes to the gemba CLI are recorded here. The format follows
   removal again finishes it.
 - The skills read today's date from the environment, naming the command for a POSIX
   shell and for PowerShell.
+
+### Fixed
+
+- The help of `gemba harness remove` says that the uncommitted paths of the harness
+  repository are listed and deleted with it, as the command does, instead of saying
+  that they stop the removal.
 
 ## [0.1.1] - 2026-10-11
 
@@ -75,6 +97,7 @@ creates to the report of a period.
   tasks repo and into each harness for every agent provider declared, with their
   provenance, so an upgrade refreshes them and a hand edit is kept.
 
-[Unreleased]: https://github.com/web-crafts-org/gemba/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/web-crafts-org/gemba/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/web-crafts-org/gemba/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/web-crafts-org/gemba/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/web-crafts-org/gemba/releases/tag/v0.1.0

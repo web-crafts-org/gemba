@@ -101,8 +101,9 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
             "Show the manifest of the harness of the task with this ref: its path, the task, the launch date and "
             f"the number of notes, assets, commits and worktrees. With --yes, then remove every worktree under "
             f"{harness.WORKTREES_DIR}/, delete every branch of the run in the repositories of repos_dir, and delete "
-            "the harness folder. Nothing is deleted while the harness repository has uncommitted changes, the "
-            "working directory is inside the harness, a worktree or a branch of the run holds uncommitted paths or "
+            "the harness folder. The uncommitted paths of the harness repository are listed and deleted with it. "
+            "Nothing is deleted while the state of the harness repository cannot be read, the working directory is "
+            "inside the harness, a worktree or a branch of the run holds uncommitted paths or "
             f"commits on no remote branch, or a folder under {harness.WORKTREES_DIR}/ is not a worktree; --force "
             "discards those three, never the first two. The task file and the remotes are not touched."
         ),

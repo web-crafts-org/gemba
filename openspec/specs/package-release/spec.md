@@ -13,11 +13,12 @@ The package SHALL be built from `pyproject.toml` at the root of the repository w
 the distribution name `gemba-cli` and the command `gemba`, the repository's
 `README.md` as its long description, the MIT license with the repository's `LICENSE`
 file, authors, the URLs of the repository, the changelog and the issues, keywords and
-classifiers, and SHALL require Python 3.11 or later.
+classifiers that name the three supported platforms, POSIX, macOS and Microsoft
+Windows, and SHALL require Python 3.11 or later.
 
 #### Scenario: Metadata declared
 - **WHEN** `pyproject.toml` is read
-- **THEN** it declares `gemba-cli`, the `gemba` script, `readme`, `license` MIT with `license-files`, `authors`, `urls` with the repository, the changelog and the issues, `classifiers`, and `requires-python` of 3.11 or later
+- **THEN** it declares `gemba-cli`, the `gemba` script, `readme`, `license` MIT with `license-files`, `authors`, `urls` with the repository, the changelog and the issues, `classifiers` naming POSIX, macOS and Microsoft Windows, and `requires-python` of 3.11 or later
 
 #### Scenario: Package built
 - **WHEN** `uv build` runs at the root of the repository
@@ -79,6 +80,10 @@ are that section of the changelog.
 Every push and every pull request SHALL run the formatter check, the linter, the type
 checker and the full test suite, and SHALL report the result on the commit and on the
 pull request, so that a contribution is checked the same way the hooks check a commit.
+The suite SHALL run on Linux on every supported Python version, and on macOS and on
+Windows on the oldest and the newest supported Python versions, with the git of each
+runner at its defaults, so that what differs by platform and what differs by
+interpreter are both covered.
 
 #### Scenario: Pull request checked
 - **WHEN** a pull request is opened or updated
@@ -87,3 +92,7 @@ pull request, so that a contribution is checked the same way the hooks check a c
 #### Scenario: Push checked
 - **WHEN** a commit is pushed to any branch
 - **THEN** the same checks run and their result is shown on the commit
+
+#### Scenario: Suite run per platform and interpreter
+- **WHEN** the checks run
+- **THEN** the suite runs on Linux for Python 3.11, 3.12, 3.13 and 3.14, and on macOS and on Windows for Python 3.11 and 3.14, each job with the runner's git unchanged
