@@ -109,7 +109,7 @@ class ProblemsTest(unittest.TestCase):
 
     def test_nested_problem_names_both_folders(self):
         message = repo.nested_problem(Path("/srv/acme/notes"), Path("/srv/acme"))
-        self.assertIn("/srv/acme/notes is inside the tasks repo /srv/acme", message)
+        self.assertIn(f"{Path('/srv/acme/notes')} is inside the tasks repo {Path('/srv/acme')}", message)
 
 
 if __name__ == "__main__":

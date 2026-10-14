@@ -16,9 +16,10 @@ tree:
     ---
 
     ## Updates
-  harnesses/support/2026-09-30-SUP-1-login-fails/notes/aux.md: The login request returns 500.
 setup:
   - [harness, launch, SUP-1, --no-open]
+tree_after_setup:
+  harnesses/support/2026-09-30-SUP-1-login-fails/notes/aux.md: The login request returns 500.
 run: [harness, note, notes/aux.md, --type, finding, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
 exit: 1
 stderr_contains: ["note not filed:", "notes/aux.md", reserved on Windows]
@@ -42,9 +43,10 @@ tree:
     ---
 
     ## Updates
-  harnesses/support/2026-09-30-SUP-1-login-fails/notes/com1.md: The login request returns 500.
 setup:
   - [harness, launch, SUP-1, --no-open]
+tree_after_setup:
+  harnesses/support/2026-09-30-SUP-1-login-fails/notes/com1.md: The login request returns 500.
 run: [harness, note, notes/com1.md, --type, finding, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
 exit: 1
 stderr_contains: ["note not filed:", "notes/com1.md", reserved on Windows]

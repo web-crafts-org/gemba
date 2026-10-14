@@ -41,6 +41,9 @@ class BranchTest(unittest.TestCase):
 
 
 class ReposDirTest(unittest.TestCase):
+    # An absolute path is printed in the form of the system, so the expected messages build it the same way.
+    REPOS = Path("/r")
+
     def test_absolute(self):
         self.assertEqual(worktree.repos_dir(Path("/tasks"), "/srv/repos"), Path("/srv/repos"))
 
@@ -52,26 +55,29 @@ class ReposDirTest(unittest.TestCase):
         self.assertEqual(worktree.repos_dir(Path("/tasks"), "../projects"), Path("/tasks/../projects"))
 
     def test_repository_found(self):
-        self.assertIsNone(worktree.repo_problem(Path("/r"), "nakatomi-web", ["nakatomi-api", "nakatomi-web"]))
+        self.assertIsNone(worktree.repo_problem(self.REPOS, "nakatomi-web", ["nakatomi-api", "nakatomi-web"]))
 
     def test_repository_missing_names_the_ones_found(self):
         self.assertEqual(
-            worktree.repo_problem(Path("/r"), "other", ["nakatomi-web", "nakatomi-api"]),
-            "no repository named 'other' is at the root of /r (repositories there: nakatomi-api, nakatomi-web)",
+            worktree.repo_problem(self.REPOS, "other", ["nakatomi-web", "nakatomi-api"]),
+            f"no repository named 'other' is at the root of {self.REPOS} "
+            "(repositories there: nakatomi-api, nakatomi-web)",
         )
 
     def test_nested_name_is_not_at_the_root(self):
-        problem = worktree.repo_problem(Path("/r"), "group/other", ["x"])
+        problem = worktree.repo_problem(self.REPOS, "group/other", ["x"])
         self.assertIn("no repository named 'group/other'", problem or "")
 
     def test_no_repository_at_all(self):
         self.assertEqual(
-            worktree.repo_problem(Path("/r"), "nakatomi-web", []),
-            "no repository named 'nakatomi-web' is at the root of /r (no repository is there)",
+            worktree.repo_problem(self.REPOS, "nakatomi-web", []),
+            f"no repository named 'nakatomi-web' is at the root of {self.REPOS} (no repository is there)",
         )
 
     def test_folder_missing(self):
-        self.assertEqual(worktree.repo_problem(Path("/r"), "nakatomi-web", None), "repos_dir /r is not a folder")
+        self.assertEqual(
+            worktree.repo_problem(self.REPOS, "nakatomi-web", None), f"repos_dir {self.REPOS} is not a folder"
+        )
 
 
 class ParseWorktreesTest(unittest.TestCase):

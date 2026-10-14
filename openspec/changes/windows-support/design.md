@@ -5,8 +5,9 @@
 See proposal.md for the motivation. What shapes the approach:
 
 - The CLI is already close to portable: every read and write names UTF-8, the
-  config, the skills and the guide are written with `newline="\n"`, stored and
-  printed paths go through `PurePosixPath` and `as_posix()`, git runs from an
+  config, the skills and the guide are written with `newline="\n"`, stored paths
+  and paths printed relative to a root go through `PurePosixPath` and `as_posix()`
+  (an absolute path is printed in the form of the system), git runs from an
   argument list, never a shell, and the case runner already uses `os.pathsep` and
   `shutil.which`. The gaps are few and local: `task.md` is created with
   `symlink_to` (`commands/harness.py`), the harness is deleted with a bare
@@ -66,13 +67,15 @@ without a Windows machine.
 
 `harness.task_link_content(task)` (domain) renders the file form: the same relative
 POSIX path `task_link_target()` renders, plus a newline. The adapter `write_layout`
-tries `symlink_to` first and, on `OSError`, writes the file with `write_new`. No
-`os.name` check: a Windows user with developer mode gets the link, as git itself
-decides `core.symlinks` by probing. Alternative: the file form on Windows always.
-Rejected: it refuses the link to who can create it and names a platform in a rule.
-The link creation is a seam of the adapter, injectable in the unit test that makes
-it fail. `harness remove` treats `task.md` as any file: `rmtree` deletes a link
-without following it on both platforms, so nothing changes there beyond the wording.
+tries a symbolic link first, its target written with the separators of the system
+because Windows resolves no link whose target holds `/`, and, on `OSError`, writes
+the file with `write_new`. No `os.name` check: a Windows user with developer mode
+gets the link, as git itself decides `core.symlinks` by probing. Alternative: the
+file form on Windows always. Rejected: it refuses the link to who can create it and
+names a platform in a rule. The link creation is a seam of the adapter, injectable
+in the unit test that makes it fail. `harness remove` treats `task.md` as any file:
+`rmtree` deletes a link without following it on both platforms, so nothing changes
+there beyond the wording.
 
 ### D3. `ide` is parsed once into a command and its arguments
 
@@ -177,8 +180,9 @@ hash, as any skill edit.
   scenario is in `not-automated.yaml` with that reason.
 - [`os.readlink` on Windows may return the link target with backslashes or a prefix,
   failing the `links:` check of the case runner on the Windows job] → the runner
-  compares targets as POSIX paths after normalizing separators; confirmed by the first
-  Windows run of the suite.
+  compares targets as POSIX paths after normalizing separators. The first Windows
+  run of the suite showed the other side: a link created with a POSIX target exists
+  but resolves to nothing, so the adapter creates it with native separators (D2).
 - [The temporary folder of a Windows runner may be an 8.3 short name, and the
   worktree checks compare `resolve()`d paths with what git prints] → `resolve()`
   returns the long form on Windows since Python 3.8, as git does; if the first run

@@ -503,8 +503,14 @@ def commit(folder: Path, message: str) -> str | None:
     )
 
 
+def symlink(path: Path, target: str) -> None:
+    """Create `path` as a symbolic link to `target`, a relative POSIX path, written with the separators of the
+    system: Windows resolves no link whose target holds `/`."""
+    path.symlink_to(Path(target))
+
+
 def write_layout(
-    gemba_config: config.Config, task: tasks.Task, folder: Path, link: Callable[[Path, str], None] = Path.symlink_to
+    gemba_config: config.Config, task: tasks.Task, folder: Path, link: Callable[[Path, str], None] = symlink
 ) -> None:
     """Every piece of the harness except its config, each written only when it is missing.
 
@@ -527,7 +533,7 @@ def write_layout(
             write_new(folder / action.path, action.content)
 
 
-def write_task_link(path: Path, task: str, link: Callable[[Path, str], None] = Path.symlink_to) -> None:
+def write_task_link(path: Path, task: str, link: Callable[[Path, str], None] = symlink) -> None:
     """`task.md` at `path`: a relative symbolic link where the system lets `link` create one, a file naming the path
     otherwise; whatever is already there is kept."""
     if path.is_symlink() or path.exists():
