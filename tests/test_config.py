@@ -88,6 +88,12 @@ class ValidationTest(ConfigTestCase):
     def test_workstreams_missing(self):
         self.assertRefused("default_workstream: operations\n", "workstreams must be a non-empty map")
 
+    def test_identifier_reserved_on_windows(self):
+        for identifier in ("nul", "con", "aux", "prn", "com1", "lpt1"):
+            with self.subTest(identifier=identifier):
+                text = VALID.replace("  support:", f"  {identifier}:")
+                self.assertRefused(text, f"workstream '{identifier}'", "reserved on Windows")
+
     def test_identifier_not_kebab_case(self):
         for bad in ("Code_Reviews", "code--reviews", "-support", "support-"):
             with self.subTest(identifier=bad):
@@ -416,16 +422,49 @@ class WorktreeKeysTest(ConfigTestCase):
 
 
 class IdeTest(ConfigTestCase):
+    def ide(self, declaration):
+        ide = self.load(VALID + f"ide: {declaration}\n").ide
+        self.assertIsNotNone(ide)
+        assert ide is not None
+        return ide
+
     def test_absent(self):
         self.assertIsNone(self.load(VALID).ide)
 
     def test_command_with_arguments(self):
-        self.assertEqual(self.load(VALID + 'ide: "code -n"\n').ide, "code -n")
+        ide = self.ide('"code -n"')
+        self.assertEqual(ide, config.Ide(command="code", args=("-n",), declared="code -n"))
+        self.assertEqual(ide.line, "code -n")
 
-    def test_malformed(self):
-        for declaration in ('""', '"   "', "[code, -n]", "{command: code}", "3", "true"):
+    def test_string_split_as_a_posix_shell_would(self):
+        # Single-quoted in YAML, so the backslashes reach shlex doubled, as the README tells a Windows user.
+        ide = self.ide("'\"C:\\\\Program Files\\\\Code\\\\code.cmd\" -n --wait'")
+        self.assertEqual(ide.command, "C:\\Program Files\\Code\\code.cmd")
+        self.assertEqual(ide.args, ("-n", "--wait"))
+        self.assertEqual(ide.declared, '"C:\\\\Program Files\\\\Code\\\\code.cmd" -n --wait')
+        self.assertEqual(ide.line, "C:\\Program Files\\Code\\code.cmd -n --wait")
+
+    def test_map_means_the_same_as_the_string(self):
+        ide = self.ide("{command: code, args: [-n]}")
+        self.assertEqual((ide.command, ide.args, ide.line), ("code", ("-n",), "code -n"))
+        self.assertEqual(ide.declared, {"command": "code", "args": ["-n"]})
+
+    def test_map_without_args(self):
+        ide = self.ide("{command: code}")
+        self.assertEqual((ide.command, ide.args, ide.declared), ("code", (), {"command": "code"}))
+
+    def test_malformed_string_or_other_type(self):
+        for declaration in ('""', '"   "', "[code, -n]", "3", "true", '"\'"'):
             with self.subTest(declaration=declaration):
                 self.assertRefused(VALID + f"ide: {declaration}\n", "ide must be a non-empty string")
+
+    def test_malformed_map(self):
+        for declaration in ("{}", "{args: [-n]}", '{command: ""}', "{command: [code]}", "{command: 3}"):
+            with self.subTest(declaration=declaration):
+                self.assertRefused(VALID + f"ide: {declaration}\n", "ide.command must be a non-empty string")
+        for declaration in ("{command: code, args: -n}", "{command: code, args: [-n, 1]}", "{command: code, args: {}}"):
+            with self.subTest(declaration=declaration):
+                self.assertRefused(VALID + f"ide: {declaration}\n", "ide.args must be a list of strings")
 
 
 class AgentProvidersTest(ConfigTestCase):

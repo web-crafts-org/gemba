@@ -83,7 +83,7 @@ def run_show(args: argparse.Namespace) -> int:
         "organization": gemba_config.organization,
         "branch_prefix": gemba_config.branch_prefix,
         "repos_dir": gemba_config.repos_dir,
-        "ide": gemba_config.ide,
+        "ide": None if gemba_config.ide is None else gemba_config.ide.declared,
         "agent_providers": None if gemba_config.agent_providers is None else list(gemba_config.agent_providers),
         "default_workstream": gemba_config.default_workstream,
         "workstreams": [workstream(gemba_config, workstream_id) for workstream_id in shown],

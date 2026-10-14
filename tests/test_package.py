@@ -32,5 +32,10 @@ class MetadataTest(unittest.TestCase):
     def test_classifiers_and_python(self):
         self.assertTrue(self.project["classifiers"], "classifiers must not be empty")
         self.assertFalse([c for c in self.project["classifiers"] if c.startswith("License ::")])
+        platforms = [c for c in self.project["classifiers"] if c.startswith("Operating System ::")]
+        self.assertEqual(
+            platforms,
+            ["Operating System :: POSIX", "Operating System :: MacOS", "Operating System :: Microsoft :: Windows"],
+        )
         self.assertEqual(self.project["requires-python"], ">=3.11")
         self.assertTrue(self.project["keywords"], "keywords must not be empty")

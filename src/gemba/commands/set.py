@@ -6,7 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from gemba import config, metadata, tasks
+from gemba import config, metadata, platform, tasks
 
 
 def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
@@ -61,7 +61,7 @@ def run(args: argparse.Namespace) -> int:
     if assigned.changed:
         task_file = gemba_config.root / task.path
         try:
-            text = tasks.set_metadata(task_file.read_bytes().decode("utf-8"), assigned.values)
+            text = tasks.set_metadata(platform.decode(task_file.read_bytes()), assigned.values)
         except tasks.TaskError as exc:
             return fail(f"metadata not set: {task.path}: {exc}")
         task_file.write_bytes(text.encode("utf-8"))

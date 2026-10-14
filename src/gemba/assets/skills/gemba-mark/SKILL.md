@@ -46,7 +46,8 @@ folder that holds `harness.yaml` is the harness root.
    When the words fit none of these rows, or fit two, ask the user which status they
    mean.
 3. **Offer to record the day first.** Only inside a harness and only when the status is
-   `done`: read today's date with `date +%F`, then read `task.md`. When its
+   `done`: read today's date from the environment (`date +%F` in a POSIX shell,
+   `Get-Date -Format yyyy-MM-dd` in PowerShell), then read `task.md`. When its
    `## Updates` section has no `### <today>` subsection and `notes/` holds notes of
    today (`notes/<today>-*.md`), tell the user the day is not recorded yet and offer to
    record it with the `gemba-record` skill before marking. If they accept, record the
@@ -64,8 +65,9 @@ folder that holds `harness.yaml` is the harness root.
    ```
 
    - Pass `--date` only when the user says the change happened on a past day, such as
-     "I finished it yesterday"; resolve that day against `date +%F`. Without it the
-     change is dated today.
+     "I finished it yesterday"; resolve that day against today's date, read from the
+     environment (`date +%F` in a POSIX shell, `Get-Date -Format yyyy-MM-dd` in
+     PowerShell). Without it the change is dated today.
    - If the command refuses, its message lists every problem at once. Fix the call
      when the problem is yours (the ref, the status, the date) and run it again. When
      it says the task is archived, relay the message and stop: whether to move the

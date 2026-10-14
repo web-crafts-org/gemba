@@ -1,0 +1,71 @@
+name: the workstream identifier nul is refused as reserved on Windows
+scenario: "gemba-config: Reserved device name refused"
+config:
+  default_workstream: operations
+  workstreams:
+    nul: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, "workstream 'nul'", reserved on Windows]
+unchanged: true
+---
+name: the workstream identifier con is refused as reserved on Windows
+scenario: "gemba-config: Reserved device name refused"
+config:
+  default_workstream: operations
+  workstreams:
+    con: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, "workstream 'con'", reserved on Windows]
+unchanged: true
+---
+name: the workstream identifier aux is refused as reserved on Windows
+scenario: "gemba-config: Reserved device name refused"
+config:
+  default_workstream: operations
+  workstreams:
+    aux: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, "workstream 'aux'", reserved on Windows]
+unchanged: true
+---
+name: the workstream identifier prn is refused as reserved on Windows
+scenario: "gemba-config: Reserved device name refused"
+config:
+  default_workstream: operations
+  workstreams:
+    prn: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, "workstream 'prn'", reserved on Windows]
+unchanged: true
+---
+name: the workstream identifier com1 is refused as reserved on Windows
+scenario: "gemba-config: Reserved device name refused"
+config:
+  default_workstream: operations
+  workstreams:
+    com1: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, "workstream 'com1'", reserved on Windows]
+unchanged: true
+---
+name: the workstream identifier lpt1 is refused as reserved on Windows
+scenario: "gemba-config: Reserved device name refused"
+config:
+  default_workstream: operations
+  workstreams:
+    lpt1: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, "workstream 'lpt1'", reserved on Windows]
+unchanged: true

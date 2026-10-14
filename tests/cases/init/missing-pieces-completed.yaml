@@ -1,4 +1,4 @@
-name: init in a half-made tasks repo keeps the config, appends the ignore line and writes what is missing
+name: init in a half-made tasks repo keeps the config, appends the ignore line and the missing attribute line, and writes what is missing
 scenario: "repo-initialization: Missing pieces completed"
 config: |
   # Edited by hand.
@@ -8,12 +8,14 @@ config: |
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
 tree:
   .gitignore: "cli/.venv/\n"
+  .gitattributes: "*.md text eol=lf\n"
 cwd: .
 run: [init]
 exit: 0
 stdout: |
   kept gemba.yaml
   updated .gitignore
+  updated .gitattributes
   written tasks/.gitkeep
   written .claude/skills/gemba-create/SKILL.md
   written .claude/skills/gemba-list/SKILL.md
@@ -33,6 +35,7 @@ files:
     workstreams:
       operations: { prefix: OPS, description: Anything that does not fit another workstream }
   .gitignore: "cli/.venv/\nharnesses/\n"
+  .gitattributes: "*.md text eol=lf\n*.yaml text eol=lf\n"
   tasks/.gitkeep: ""
 files_contain:
   .claude/skills/gemba-create/SKILL.md: ["---\nname: gemba-create\n"]

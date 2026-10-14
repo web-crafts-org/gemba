@@ -1,0 +1,27 @@
+name: the written guide says task.md is a link or a file naming the path, read there with the permission the tool asks, read-only in both forms
+scenario: "harness-guide: Guide describes both forms of the task link"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [harness, launch, SUP-1, --no-open]
+exit: 0
+files_contain:
+  harnesses/support/2026-09-30-SUP-1-login-fails/CLAUDE.md:
+    - "The task is `task.md`: a\nlink to the task file or, where the system creates no links, a file holding the path\nof the task file."
+    - "read the file at that path"
+    - "accept the\npermission your tool may ask for a read above the harness"
+    - "**`task.md` and the task file it reaches are read-only.**"
+    - "task.md          the task: a read-only link, or a file naming its path"

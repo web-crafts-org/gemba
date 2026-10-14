@@ -32,8 +32,10 @@ From anywhere inside the tasks repo.
    refs with the `gemba-list` skill.
 2. **Find the candidates** when the user asks to archive what went cold. Settle the
    date first: tasks not updated since that date are cold. Use the date the user
-   names; when they name none, propose one, such as a month before today (read today
-   with `date +%F`), and wait for them to confirm or change it. Then run:
+   names; when they name none, propose one, such as a month before today (read
+   today's date from the environment: `date +%F` in a POSIX shell,
+   `Get-Date -Format yyyy-MM-dd` in PowerShell), and wait for them to confirm or change
+   it. Then run:
 
    ```bash
    gemba list --updated-to <date> --status done

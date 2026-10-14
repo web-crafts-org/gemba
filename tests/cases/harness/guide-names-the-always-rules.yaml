@@ -20,13 +20,13 @@ run: [harness, launch, SUP-1, --no-open]
 exit: 0
 files_contain:
   harnesses/support/2026-09-30-SUP-1-login-fails/CLAUDE.md:
-    - "The task is `task.md`"
+    - "The task is `task.md`:"
     - "is `harness.yaml`"
     - "**Write before you act.**"
     - "needs an `external-action` note whose frontmatter reads `approved: true`."
     - "Only the user sets it, by editing the note. Check it by reading the file"
-    - "**`task.md` is read-only.** gemba updates the task"
-    - "`gemba-record` skill; never edit it."
+    - "**`task.md` and the task file it reaches are read-only.** gemba updates the task"
+    - "`gemba-record` skill; never edit either."
     - "**`harness.yaml` and the frontmatter of every note are written by gemba.**"
     - "**`worktrees/` holds checkouts of other repositories.**"
     - "created through the `gemba-worktree` skill"

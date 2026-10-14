@@ -8,6 +8,7 @@ exit: 0
 stdout: |
   kept gemba.yaml
   kept .gitignore
+  kept .gitattributes
   kept tasks/.gitkeep
   kept .claude/skills/gemba-create/SKILL.md
   kept .claude/skills/gemba-list/SKILL.md

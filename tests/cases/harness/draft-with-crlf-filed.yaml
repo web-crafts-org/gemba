@@ -1,0 +1,31 @@
+name: a draft with CRLF line endings and a byte-order mark is filed with LF and no mark, character for character otherwise
+scenario: "harness-notes: Draft with CRLF filed"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  harnesses/support/2026-09-30-SUP-1-login-fails/notes/login-trace.md: "﻿The login request returns 500 when the session cookie is missing.\r\n\r\nSee the trace: señal ✅ in the server log.\r\n"
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [harness, note, notes/login-trace.md, --type, finding, --harness, harnesses/support/2026-09-30-SUP-1-login-fails]
+exit: 0
+stdout_contains: ["notes/{today}-", "-login-trace.md\n"]
+files_contain:
+  "harnesses/support/2026-09-30-SUP-1-login-fails/notes/{today}-[0-9][0-9][0-9][0-9][0-9][0-9]-login-trace.md":
+    - "---\ntype: finding\ndate: {today}\ntime: \""
+    - "\"\n---\n\nThe login request returns 500 when the session cookie is missing.\n\nSee the trace: señal ✅ in the server log.\n"
+lf_only:
+  - "harnesses/support/2026-09-30-SUP-1-login-fails/notes/{today}-[0-9][0-9][0-9][0-9][0-9][0-9]-login-trace.md"
+absent: [harnesses/support/2026-09-30-SUP-1-login-fails/notes/login-trace.md]

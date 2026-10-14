@@ -7,7 +7,7 @@ import datetime
 import sys
 from pathlib import Path
 
-from gemba import config, tasks, values
+from gemba import config, platform, tasks, values
 
 
 def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
@@ -65,7 +65,7 @@ def run(args: argparse.Namespace) -> int:
 
     task_file = gemba_config.root / task.path
     try:
-        text, moved = tasks.transition(task_file.read_bytes().decode("utf-8"), args.status, day)
+        text, moved = tasks.transition(platform.decode(task_file.read_bytes()), args.status, day)
     except tasks.TaskError as exc:
         return fail(f"task not marked: {task.path}: {exc}")
     if moved.changed:

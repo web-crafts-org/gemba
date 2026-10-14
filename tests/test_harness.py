@@ -2,11 +2,14 @@
 
 import dataclasses
 import datetime
+import os
+import stat
 import tempfile
 import unittest
 from pathlib import Path
 
-from gemba import harness, worktree
+from gemba import harness, platform, worktree
+from gemba.commands import harness as harness_command
 
 CONFIG = harness.HarnessConfig(
     task="tasks/support/2026-09-30-SUP-1-login-fails.md",
@@ -53,6 +56,38 @@ class LayoutTest(unittest.TestCase):
             "../../../tasks/support/2026-09-30-SUP-1-login-fails.md",
         )
 
+    def test_task_link_content_is_the_target_on_one_line(self):
+        self.assertEqual(
+            harness.task_link_content("tasks/support/2026-09-30-SUP-1-login-fails.md"),
+            "../../../tasks/support/2026-09-30-SUP-1-login-fails.md\n",
+        )
+
+    def test_task_path_written_when_the_system_refuses_links(self):
+        """Scenario: Task path written when the system refuses links."""
+
+        def refuse(path, target):
+            raise OSError(1, "A required privilege is not held by the client")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / harness.TASK_LINK
+            harness_command.write_task_link(path, CONFIG.task, refuse)
+            self.assertFalse(path.is_symlink())
+            self.assertEqual(path.read_bytes(), b"../../../tasks/support/2026-09-30-SUP-1-login-fails.md\n")
+            harness_command.write_task_link(path, "tasks/other.md", refuse)
+            self.assertEqual(path.read_bytes(), b"../../../tasks/support/2026-09-30-SUP-1-login-fails.md\n")
+
+    def test_task_linked_where_the_system_allows_it(self):
+        made = []
+
+        def record(path, target):
+            made.append((path, target))
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / harness.TASK_LINK
+            harness_command.write_task_link(path, CONFIG.task, record)
+            self.assertEqual(made, [(path, "../../../tasks/support/2026-09-30-SUP-1-login-fails.md")])
+            self.assertFalse(path.exists())
+
     def test_link_target_resolves_from_the_harness(self):
         root = Path("/repo")
         folder = harness.harness_path(root, "support", "2026-09-30-SUP-1-login-fails")
@@ -63,6 +98,28 @@ class LayoutTest(unittest.TestCase):
         self.assertEqual(harness.launch_message("SUP-1"), "launch SUP-1")
         self.assertEqual(harness.note_message("finding", "login-trace"), "note finding login-trace")
         self.assertEqual(harness.resolve_message("login-trace"), "resolve login-trace")
+
+
+class GitHintsTest(unittest.TestCase):
+    def test_identity_hint(self):
+        problem = "git commit --quiet -m launch SUP-1 failed: Author identity unknown\n*** Please tell me who you are."
+        self.assertEqual(harness.git_hints(problem), [harness.IDENTITY_HINT])
+        self.assertEqual(
+            harness.git_hints("fatal: empty ident name (for <>) not allowed; set user.email"), [harness.IDENTITY_HINT]
+        )
+
+    def test_long_path_hint(self):
+        problem = "git worktree add failed: error: unable to create file a/very/long/path.txt: Filename too long"
+        self.assertEqual(harness.git_hints(problem), [harness.LONG_PATH_HINT])
+        self.assertIn("core.longpaths", harness.LONG_PATH_HINT)
+
+    def test_no_hint(self):
+        self.assertEqual(harness.git_hints("git add -A failed: fatal: not a git repository"), [])
+        self.assertEqual(harness.git_hints(""), [])
+
+    def test_both_hints_in_order(self):
+        problem = "Author identity unknown; unable to create file: Filename too long"
+        self.assertEqual(harness.git_hints(problem), [harness.IDENTITY_HINT, harness.LONG_PATH_HINT])
 
 
 class FindRootTest(unittest.TestCase):
@@ -255,6 +312,108 @@ class RemovalTest(unittest.TestCase):
         )
 
 
+class DeleteTreeTest(unittest.TestCase):
+    """Scenarios: Read-only files deleted; Path held by another program reported; Worktree path held by another
+    program reported (the message both removals share)."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.folder = Path(self._tmp.name).resolve() / "harness"
+        self.read_only = self.folder / ".git" / "objects" / "ab" / "cdef"
+        self.held = self.folder / "notes" / "open.md"
+        for path in (self.read_only, self.held):
+            path.parent.mkdir(parents=True)
+            path.write_bytes(b"x")
+        self.read_only.chmod(stat.S_IREAD)
+        self.calls = []
+        self.slept = []
+
+    def tearDown(self):
+        if self.read_only.exists():
+            self.read_only.chmod(stat.S_IWRITE | stat.S_IREAD)
+        self._tmp.cleanup()
+
+    def report(self, options, function, path, error):
+        """Call the error handler of rmtree as the running Python does, with `onexc` or with `onerror`."""
+        if "onexc" in options:
+            options["onexc"](function, str(path), error)
+        else:
+            options["onerror"](function, str(path), (type(error), error, None))
+
+    def rmtree_read_only_then_held(self, path, **options):
+        """A fake rmtree: the first call reports a read-only file, every call reports a held file."""
+        self.calls.append(Path(path))
+        if len(self.calls) == 1:
+            self.report(options, os.unlink, self.read_only, PermissionError(13, "Access is denied"))
+        self.report(options, os.unlink, self.held, PermissionError(13, "Access is denied"))
+
+    def test_read_only_file_deleted_and_held_path_reported_after_the_retries(self):
+        problem = harness_command.delete_tree(
+            self.folder, rmtree=self.rmtree_read_only_then_held, sleep=self.slept.append
+        )
+        self.assertFalse(self.read_only.exists(), "the read-only bit is cleared and the unlink retried")
+        self.assertEqual(self.slept, list(platform.HELD_RETRY_DELAYS))
+        self.assertEqual(len(self.calls), 1 + len(platform.HELD_RETRY_DELAYS))
+        self.assertIsNotNone(problem)
+        assert problem is not None
+        self.assertIn("notes/open.md", problem)
+        self.assertIn("held by another program", problem)
+
+    def test_held_path_released_during_the_retries(self):
+        def rmtree(path, **options):
+            self.calls.append(Path(path))
+            if len(self.calls) < 3:
+                self.report(options, os.unlink, self.held, PermissionError(13, "Access is denied"))
+
+        problem = harness_command.delete_tree(self.folder, rmtree=rmtree, sleep=self.slept.append)
+        self.assertIsNone(problem)
+        self.assertEqual(self.slept, list(platform.HELD_RETRY_DELAYS[:2]))
+
+    def test_folder_left_because_of_a_held_file_is_not_an_error(self):
+        def rmtree(path, **options):
+            self.calls.append(Path(path))
+            self.report(options, os.unlink, self.held, PermissionError(13, "Access is denied"))
+            self.report(options, os.rmdir, self.held.parent, OSError(41, "The directory is not empty"))
+            self.report(options, os.rmdir, self.folder, OSError(41, "The directory is not empty"))
+
+        problem = harness_command.delete_tree(self.folder, rmtree=rmtree, sleep=self.slept.append)
+        assert problem is not None
+        self.assertIn("notes/open.md", problem)
+        self.assertNotIn("not empty", problem)
+
+    def test_other_errors_reported_as_they_are(self):
+        def rmtree(path, **options):
+            self.calls.append(Path(path))
+            self.report(options, os.unlink, self.held, OSError(5, "Input/output error"))
+
+        problem = harness_command.delete_tree(self.folder, rmtree=rmtree, sleep=self.slept.append)
+        assert problem is not None
+        self.assertIn("Input/output error", problem)
+        self.assertEqual(self.slept, [])
+
+    def test_real_rmtree_deletes_a_read_only_file(self):
+        self.assertIsNone(harness_command.delete_tree(self.folder, sleep=self.slept.append))
+        self.assertFalse(self.folder.exists())
+        self.assertEqual(self.slept, [])
+
+    def test_removal_message_names_the_cause_and_the_way_to_finish(self):
+        left = "notes/open.md is held by another program"
+        message = harness.not_removed_completely("harnesses/support/x", left, "gemba harness remove SUP-1 --yes")
+        self.assertIn("harnesses/support/x was not removed completely: notes/open.md", message)
+        self.assertIn("an IDE window or a terminal open on it is the likely cause", message)
+        self.assertIn("run gemba harness remove SUP-1 --yes again to finish it", message)
+
+    def test_worktree_message_shares_the_cause_and_the_way_to_finish(self):
+        git_said = "git worktree remove failed: fatal: failed to delete 'worktrees/nakatomi-web': Permission denied"
+        self.assertTrue(harness.is_held(git_said))
+        self.assertFalse(harness.is_held("git worktree remove failed: fatal: 'x' is not a working tree"))
+        self.assertEqual(harness.git_hints(git_said), [harness.HELD_CAUSE])
+        message = harness.not_removed("worktrees/nakatomi-web", git_said, "gemba worktree remove nakatomi-web --yes")
+        self.assertIn("worktrees/nakatomi-web was not removed: git worktree remove failed", message)
+        self.assertIn(harness.HELD_CAUSE, message)
+        self.assertIn("run gemba worktree remove nakatomi-web --yes again to finish it", message)
+
+
 class RenderGuideTest(unittest.TestCase):
     def test_without_a_section(self):
         self.assertEqual(harness.render_guide(GUIDE, None, None), GUIDE)
@@ -445,6 +604,16 @@ class NoteFilesTest(unittest.TestCase):
                 problems = harness.check_draft(self.put(f"notes/{name}"), self.root)
                 self.assertEqual(len(problems), 1)
                 self.assertIn("is not a slug followed by .md", problems[0])
+
+    def test_draft_with_a_reserved_name(self):
+        for name in ("aux.md", "com1.md", "nul.md"):
+            with self.subTest(name=name):
+                problems = harness.check_draft(self.put(f"notes/{name}"), self.root)
+                self.assertEqual(
+                    problems, ["is named with a slug reserved on Windows, where it could not be a file name"]
+                )
+        problems = harness.check_draft(self.put("drafts/aux.md"), self.root)
+        self.assertEqual(len(problems), 2, "reported together with the other problems of the call")
 
     def test_draft_outside_notes(self):
         for relative in ("login-trace.md", "notes/drafts/login-trace.md", "assets/login-trace.md"):

@@ -29,9 +29,10 @@ Inside the harness of the task. Paths are relative to the harness root, the fold
 holds `harness.yaml`.
 
 1. **Choose the date.** Today, unless the user names another day. Read today's date
-   with `date +%F` and resolve "yesterday" or a weekday against it. When several dates
-   are to be recorded, take them oldest first and go through steps 2 to 8 once per
-   date, each with its own draft and its own run.
+   from the environment (`date +%F` in a POSIX shell, `Get-Date -Format yyyy-MM-dd` in
+   PowerShell) and resolve "yesterday" or a weekday against it. When several dates are
+   to be recorded, take them oldest first and go through steps 2 to 8 once per date,
+   each with its own draft and its own run.
 2. **Read the task and the notes of the date.** Read `task.md` for what the task is and
    what is already recorded. Then read every note under `notes/` whose name starts with
    the date, `notes/<YYYY-MM-DD>-*.md`, in the order of their names, whatever their

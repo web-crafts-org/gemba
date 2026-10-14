@@ -9,6 +9,10 @@ from gemba import config, skills, tasks
 GITIGNORE = ".gitignore"
 # The line of the .gitignore that keeps the harnesses, each a git repository of its own, out of the tasks repo.
 IGNORED_LINE = "harnesses/"
+GITATTRIBUTES = ".gitattributes"
+# The lines of the .gitattributes that keep LF in the files gemba owns, whatever core.autocrlf says; the scope
+# is those files, not `*`, so that an asset a person keeps in the tasks repo is never renormalized.
+GITATTRIBUTES_LINES = ("*.md text eol=lf", "*.yaml text eol=lf")
 # The token of the config template that the selected providers replace, as a flow list.
 TEMPLATE_PROVIDERS_TOKEN = "__PROVIDERS__"
 GITKEEP = PurePosixPath(tasks.TASKS_DIR, tasks.GITKEEP).as_posix()
@@ -34,6 +38,22 @@ def gitignore_text(existing: str | None) -> str | None:
         return None
     separator = "\n" if existing and not existing.endswith("\n") else ""
     return f"{existing}{separator}{IGNORED_LINE}\n"
+
+
+def gitattributes_text(existing: str | None) -> str | None:
+    """The `.gitattributes` to write given the one on disk, or None when it already holds both lines.
+
+    With no file, the two lines; with a file that lacks one or both, the file with the missing
+    lines appended after a final newline, in their order.
+    """
+    if existing is None:
+        return "".join(f"{line}\n" for line in GITATTRIBUTES_LINES)
+    present = {line.strip() for line in existing.splitlines()}
+    missing = [line for line in GITATTRIBUTES_LINES if line not in present]
+    if not missing:
+        return None
+    separator = "\n" if existing and not existing.endswith("\n") else ""
+    return f"{existing}{separator}" + "".join(f"{line}\n" for line in missing)
 
 
 def nested_problem(target: Path, found_root: Path) -> str:

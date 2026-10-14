@@ -1,0 +1,22 @@
+name: the task file create writes ends every line with LF
+scenario: "platform-support: Task file created with LF"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [create, --workstream, support, --slug, login-fails, --date, 2026-09-30, --description, Login fails on Safari]
+exit: 0
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari
+
+    ## Updates
+lf_only: [tasks/support/2026-09-30-SUP-1-login-fails.md]
