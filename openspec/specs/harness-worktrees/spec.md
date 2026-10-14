@@ -155,7 +155,11 @@ and delete nothing, with or without `--yes`. Otherwise without `--yes` it SHALL 
 `not removed: pass --yes to delete the worktree` and exit 0, and with `--yes` it SHALL
 remove the worktree from the base repository, delete the folder, delete the branch
 that was checked out in it from the base repository, print `removed` and exit 0. The
-remote SHALL NOT be touched: its branches are what they were.
+remote SHALL NOT be touched: its branches are what they were. When git cannot delete
+the folder because another program holds a path in it, the command SHALL retry
+briefly and, when the path stays held, say the worktree was not removed, name the
+path, name an IDE window or a terminal on the worktree as the likely cause, and say
+that running the removal again finishes it, with the branch left for that run.
 
 #### Scenario: State shown without deleting
 - **WHEN** `gemba worktree remove nakatomi-web` runs for a worktree with nothing pending
@@ -176,6 +180,10 @@ remote SHALL NOT be touched: its branches are what they were.
 #### Scenario: No worktree to remove
 - **WHEN** `gemba worktree remove nakatomi-web` runs and nothing exists at `worktrees/nakatomi-web`, or a plain folder is there
 - **THEN** the command exits 1, says which of the two it is, and deletes nothing
+
+#### Scenario: Worktree path held by another program reported
+- **WHEN** a file of `worktrees/nakatomi-web` stays held by another program while `gemba worktree remove nakatomi-web --yes` runs
+- **THEN** the output says the worktree was not removed, names the path left, names an IDE window or a terminal on the worktree as the likely cause, says that running the removal again finishes it, and the exit code is 1
 
 ### Requirement: Worktrees by the agent
 The `gemba-worktree` skill SHALL have the agent, inside a harness, find the

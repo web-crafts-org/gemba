@@ -29,10 +29,11 @@ with the folder. Without `--yes` it SHALL then print
 was. With `--yes` it SHALL first remove every worktree of the harness from its base
 repository and delete the branch checked out in it, delete every branch of the run
 left in a repository under `repos_dir` without a worktree, then delete the harness
-folder and everything inside it, the `task.md` link and the uncommitted paths
-included and never the target of the link, print `removed`, and exit 0. The remote of
-every repository SHALL NOT be touched. The task file SHALL NOT be touched, whatever its
-status, and no git command SHALL run against the tasks repo.
+folder and everything inside it, `task.md` whatever its form and the uncommitted
+paths included and never the task file `task.md` links or names, print `removed`,
+and exit 0. The remote of every repository SHALL NOT be touched. The task file SHALL
+NOT be touched, whatever its status, and no git command SHALL run against the tasks
+repo.
 
 #### Scenario: Manifest shown without deleting
 - **WHEN** `gemba harness remove SUP-1` runs for a launched task whose harness holds two filed notes and one asset
@@ -150,3 +151,19 @@ follow its `rules` and `context`.
 #### Scenario: Agent follows the verb's rules
 - **WHEN** workstream `support` declares `harness.remove.rules` containing "check the client report was sent before removing"
 - **THEN** the agent follows that rule before showing the manifest for a `support` task
+
+### Requirement: Removal finishes what the system allows
+When deleting the harness folder, `remove --yes` SHALL delete a file the system
+marks read-only, as git marks its objects on Windows, and SHALL retry briefly a path
+another program holds open. When a path stays held, the command SHALL say the
+harness was not removed completely, name what is left, say that an IDE window or a
+terminal open on the harness is the likely cause, and say that running the removal
+again with `--yes` finishes it, and SHALL exit 1.
+
+#### Scenario: Read-only files deleted
+- **WHEN** the harness repository holds read-only files under `.git/`, as git writes them on Windows, and `gemba harness remove SUP-1 --yes` runs
+- **THEN** the harness folder no longer exists, the output ends with `removed` and the exit code is 0
+
+#### Scenario: Path held by another program reported
+- **WHEN** a file of the harness stays held by another program while `gemba harness remove SUP-1 --yes` deletes the folder
+- **THEN** the output says the harness was not removed completely, names the path left, names an IDE window or a terminal on the harness as the likely cause, says that `gemba harness remove SUP-1 --yes` again finishes, and the exit code is 1
