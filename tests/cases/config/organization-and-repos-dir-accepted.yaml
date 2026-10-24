@@ -3,10 +3,11 @@ scenario: "gemba-config: Organization and repositories folder accepted"
 config:
   default_workstream: operations
   organization: nakatomi
-  repos_dir: ~/projects
-  branch_prefix: nk
   workstreams:
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  repos_dir: ~/projects
+  branch_prefix: nk
 run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
 exit: 0
 stdout_contains: [tasks/operations/2026-09-30-OPS-1-renew-domain.md, OPS-1]

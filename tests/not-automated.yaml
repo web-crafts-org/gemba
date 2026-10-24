@@ -10,6 +10,7 @@
   command only checks that the default exists, which test_config covers.
 "gemba-config: List rules applied": the agent follows the rule through the gemba-list skill
 "gemba-config: Workstream rule wins over a base rule": the agent reads both rules of worktree.add from gemba config show and resolves their contradiction through the gemba-worktree skill
+"gemba-config: Personal rule wins over a shared rule": the agent reads the shared and the personal rules of worktree.add from gemba config show and resolves their contradiction through the gemba-worktree skill
 "harness-guide: Guide free of organization values": a property of the guide asset text, not of a command
 "harness-launch: Agent launches a task": the agent runs the command and relays its output by following the gemba-harness skill
 "harness-launch: Agent reads the task through the link": the agent reads task.md, or the file at the path task.md names, by following the guide of the harness
@@ -91,6 +92,7 @@
 "config-maintenance: Edit verified by check": the agent runs gemba config check until it exits 0 by following the gemba-config skill; the command is covered by the config cases
 "config-maintenance: Providers change refreshes the skills": the agent runs gemba skills update and names the folder left behind by following the gemba-config skill
 "config-maintenance: Reference free of organization values": a property of the gemba-config skill text, not of a command
+"config-maintenance: Keys of an earlier config moved": "the agent moves the keys from gemba.yaml to gemba.local.yaml by following the gemba-config skill; the refusal that names them is covered by gemba-config: Personal keys refused in the shared config"
 "built-in-skills: Command missing": the agent stops and names the install command by following the prerequisite of every skill
 "package-release: Package built": verified by the build step of the CI and release workflows and by uv build before a release
 "package-release: Installed from the index": needs the published index; checked by hand after each release

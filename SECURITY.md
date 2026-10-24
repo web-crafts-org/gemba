@@ -7,9 +7,10 @@ Report privately through
 Please do not open a public issue for a suspected vulnerability.
 
 Include what you can: the version (`gemba --version`), the steps that reproduce the
-problem, the `gemba.yaml` with anything private removed, and the impact you believe it
-has. You will get an acknowledgement within a week, and a fix or a decision within 30
-days. Valid reports are credited in the advisory unless you would rather stay anonymous.
+problem, the `gemba.yaml` and `gemba.local.yaml` with anything private removed, and the
+impact you believe it has. You will get an acknowledgement within a week, and a fix or
+a decision within 30 days. Valid reports are credited in the advisory unless you would
+rather stay anonymous.
 
 ## Supported versions
 
@@ -22,8 +23,11 @@ pick up a fix.
 Gemba is a local command-line tool. It has no server, no network listener, no daemon,
 no telemetry and no self-update, and it reads no environment variable. It reads and
 writes Markdown and YAML under the tasks repo and the harnesses, with your own user
-permissions. It runs `git` on the repositories under the `repos_dir` of `gemba.yaml`,
-and starts the `ide` command of `gemba.yaml` on a harness. Its one network operation
+permissions. It runs `git` on the repositories under the `repos_dir` of
+`gemba.local.yaml`, and starts the `ide` command of `gemba.local.yaml` on a harness.
+Both keys are read from that personal config only, which git ignores and every command
+refuses to find in the committed `gemba.yaml`, so that no command a teammate commits
+runs on your machine and no path they choose is used on it. Its one network operation
 is a `git fetch` of `origin` during `gemba worktree add`, with the credentials git
 already holds; it never pushes and never clones.
 
@@ -31,7 +35,7 @@ That shapes what is and is not a vulnerability here:
 
 | In scope | Out of scope |
 | --- | --- |
-| Code execution triggered by parsing a task file, `gemba.yaml`, `harness.yaml` or a note | What the `ide` command of your `gemba.yaml` does: you wrote it |
+| Code execution triggered by parsing a task file, `gemba.yaml`, `gemba.local.yaml`, `harness.yaml` or a note, or a command started from a value of the committed `gemba.yaml` | What the `ide` command of your `gemba.local.yaml` does: you wrote it |
 | Writing or deleting outside the tasks repo, the harnesses and the worktrees of a run, through a ref, a slug, a workstream, a config value or a file name | Reading or writing a path you passed to the CLI yourself |
 | Deleting a harness or a worktree that holds uncommitted changes or commits on no remote branch, without `--force` | What an agent does inside a harness: gemba creates the harness, it does not run the agent |
 | A push, or any network access beyond the one fetch | Vulnerabilities in development dependencies that do not ship in the published package |

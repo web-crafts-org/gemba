@@ -1,0 +1,38 @@
+name: the providers of the personal config replace the shared ones for the harness, and only for it
+scenario: "harness-launch: Harness launched for the personal providers"
+config:
+  default_workstream: operations
+  agent_providers: [claude, agents]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  agent_providers: [claude]
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [harness, launch, SUP-1, --no-open]
+exit: 0
+files:
+  harnesses/support/2026-09-30-SUP-1-login-fails/harness.yaml: |
+    task: tasks/support/2026-09-30-SUP-1-login-fails.md
+    ref: SUP-1
+    workstream: support
+    agent_providers: [claude]
+    launched_at: {today}
+    gemba_version: "{version}"
+files_contain:
+  harnesses/support/2026-09-30-SUP-1-login-fails/CLAUDE.md: ["`task.md`"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-harness/SKILL.md: ["name: gemba-harness\n"]
+absent:
+  - harnesses/support/2026-09-30-SUP-1-login-fails/AGENTS.md
+  - harnesses/support/2026-09-30-SUP-1-login-fails/.agents
+  - .claude
+  - .agents

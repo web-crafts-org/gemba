@@ -20,7 +20,7 @@ files:
       default:
         prefix: TASK
         description: Work that fits no other workstream
-  acme-tasks/.gitignore: "harnesses/\n"
+  acme-tasks/.gitignore: "harnesses/\ngemba.local.yaml\n"
   acme-tasks/.gitattributes: "*.md text eol=lf\n*.yaml text eol=lf\n"
   acme-tasks/tasks/.gitkeep: ""
 files_contain:

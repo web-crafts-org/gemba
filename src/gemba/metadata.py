@@ -126,54 +126,69 @@ class Conditions:
         return True
 
 
-def parse_fields(declarations: object, where: str) -> tuple[Field, ...]:
-    """The fields of one declaration list, `where` naming the list in a refusal."""
+def parse_fields(declarations: object, where: str) -> tuple[tuple[Field, ...], list[str]]:
+    """The fields of one declaration list that parsed, and a problem for every declaration that did not.
+
+    `where` names the list in a problem. A declaration whose name another one already
+    took is reported as repeated and its other keys are not checked.
+    """
     if declarations is None:
-        return ()
+        return (), []
     if not isinstance(declarations, list):
-        raise MetadataError(f"{where}: must be a list of field declarations")
+        return (), [f"{where}: must be a list of field declarations"]
 
     fields = []
+    problems = []
     seen = set()
     for index, declaration in enumerate(declarations):
-        at = f"{where}[{index}]"
-        if not isinstance(declaration, dict):
-            raise MetadataError(f"{at}: a field declaration must be a map with at least a name and a type")
-        name = declaration.get("name")
-        if name is None:
-            raise MetadataError(f"{at}: field declaration has no name")
-        if not isinstance(name, str) or not FIELD_NAME_PATTERN.match(name):
-            raise MetadataError(
-                f"{at}: field name {name!r} must be snake_case (lowercase letters, digits and single underscores)"
-            )
-        if name in RESERVED:
-            raise MetadataError(
-                f"{at}: field name '{name}' is reserved: a report groups every task by its {name} "
-                f"(reserved: {', '.join(RESERVED)})"
-            )
-        unknown = [key for key in declaration if key not in FIELD_KEYS]
-        if unknown:
-            raise MetadataError(
-                f"{at}: field '{name}' has unsupported keys {', '.join(map(str, unknown))} "
-                f"(allowed: {', '.join(FIELD_KEYS)})"
-            )
-        kind = declaration.get("type")
-        if kind is None:
-            raise MetadataError(f"{at}: field '{name}' has no type (types: {', '.join(TYPES)})")
-        if kind not in TYPES:
-            shown = f"'{kind}'" if isinstance(kind, str) else repr(kind)
-            raise MetadataError(f"{at}: field '{name}' has unknown type {shown} (types: {', '.join(TYPES)})")
-        required = declaration.get("required", False)
-        if not isinstance(required, bool):
-            raise MetadataError(f"{at}: field '{name}' required must be true or false")
-        description = declaration.get("description")
-        if description is not None and (not isinstance(description, str) or not description.strip()):
-            raise MetadataError(f"{at}: field '{name}' description must be a non-empty string")
-        if name in seen:
-            raise MetadataError(f"{where}: field '{name}' is declared more than once")
-        seen.add(name)
-        fields.append(Field(name=name, type=kind, required=required, description=description))
-    return tuple(fields)
+        name = declaration.get("name") if isinstance(declaration, dict) else None
+        if isinstance(name, str) and FIELD_NAME_PATTERN.match(name):
+            if name in seen:
+                problems.append(f"{where}: field '{name}' is declared more than once")
+                continue
+            seen.add(name)
+        try:
+            fields.append(_parse_field(declaration, f"{where}[{index}]"))
+        except MetadataError as exc:
+            problems.append(str(exc))
+    return tuple(fields), problems
+
+
+def _parse_field(declaration: object, at: str) -> Field:
+    """One field declaration, `at` naming it in a refusal, which names its first problem."""
+    if not isinstance(declaration, dict):
+        raise MetadataError(f"{at}: a field declaration must be a map with at least a name and a type")
+    name = declaration.get("name")
+    if name is None:
+        raise MetadataError(f"{at}: field declaration has no name")
+    if not isinstance(name, str) or not FIELD_NAME_PATTERN.match(name):
+        raise MetadataError(
+            f"{at}: field name {name!r} must be snake_case (lowercase letters, digits and single underscores)"
+        )
+    if name in RESERVED:
+        raise MetadataError(
+            f"{at}: field name '{name}' is reserved: a report groups every task by its {name} "
+            f"(reserved: {', '.join(RESERVED)})"
+        )
+    unknown = [key for key in declaration if key not in FIELD_KEYS]
+    if unknown:
+        raise MetadataError(
+            f"{at}: field '{name}' has unsupported keys {', '.join(map(str, unknown))} "
+            f"(allowed: {', '.join(FIELD_KEYS)})"
+        )
+    kind = declaration.get("type")
+    if kind is None:
+        raise MetadataError(f"{at}: field '{name}' has no type (types: {', '.join(TYPES)})")
+    if kind not in TYPES:
+        shown = f"'{kind}'" if isinstance(kind, str) else repr(kind)
+        raise MetadataError(f"{at}: field '{name}' has unknown type {shown} (types: {', '.join(TYPES)})")
+    required = declaration.get("required", False)
+    if not isinstance(required, bool):
+        raise MetadataError(f"{at}: field '{name}' required must be true or false")
+    description = declaration.get("description")
+    if description is not None and (not isinstance(description, str) or not description.strip()):
+        raise MetadataError(f"{at}: field '{name}' description must be a non-empty string")
+    return Field(name=name, type=kind, required=required, description=description)
 
 
 def effective(base: Sequence[Field], own: Sequence[Field]) -> list[Field]:
@@ -188,18 +203,33 @@ def types(base: Sequence[Field], lists: Mapping[str, Sequence[Field]]) -> dict[s
     """Every declared name, base list first, mapped to its one type.
 
     `lists` maps each other declaration list, named as a refusal names it, to its
-    fields. A name declared with two types is refused, naming the two lists.
+    fields. A name declared with two types is refused, naming the two lists: the
+    callers at run time only ever see a config the validator accepted.
     """
+    found, problems = _declared_types(base, lists)
+    if problems:
+        raise MetadataError(problems[0])
+    return found
+
+
+def type_problems(base: Sequence[Field], lists: Mapping[str, Sequence[Field]]) -> list[str]:
+    """A problem for every declaration of a name with another type than its first one, naming both lists."""
+    return _declared_types(base, lists)[1]
+
+
+def _declared_types(base: Sequence[Field], lists: Mapping[str, Sequence[Field]]) -> tuple[dict[str, str], list[str]]:
+    """Every declared name mapped to the type of its first declaration, and every disagreement with it."""
     found: dict[str, tuple[str, str]] = {}
+    problems = []
     for where, fields in [(BASE_LIST, base), *lists.items()]:
         for field in fields:
             first = found.setdefault(field.name, (field.type, where))
             if first[0] != field.type:
-                raise MetadataError(
+                problems.append(
                     f"field '{field.name}' has type {first[0]} in {first[1]} and type {field.type} in {where}: "
                     "a field name has one type across the config"
                 )
-    return {name: kind for name, (kind, _where) in found.items()}
+    return {name: kind for name, (kind, _where) in found.items()}, problems
 
 
 def parse_assignments(texts: Sequence[str], allow_add: bool) -> tuple[list[Assignment], list[str]]:

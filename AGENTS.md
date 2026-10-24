@@ -21,7 +21,11 @@ One word for one thing, in the specs, the skills, the code and the chat.
 - The **tasks repo** is the repository that holds `gemba.yaml`, `tasks/` and
   `harnesses/`; `gemba init` creates one. It is the personal traceability layer of
   someone who works for an organization.
-- The **gemba config** is `gemba.yaml`, the organization's customization.
+- The **gemba config** is the customization of the tasks repo, in two files at its root:
+  the **shared config**, `gemba.yaml`, committed, what everyone who uses the tasks repo
+  agrees on; and the **personal config**, `gemba.local.yaml`, optional, private to the
+  clone and ignored by git, what belongs to one person on one machine. `config.py` says
+  which file each key belongs in.
 - A **task** is one unit of work, recorded in one **task file** under
   `tasks/<workstream>/`, identified by its **ref** (`PREFIX-N`). A **workstream** is a
   folder under `tasks/` plus its block in the gemba config. An **update** is one dated
@@ -33,12 +37,13 @@ One word for one thing, in the specs, the skills, the code and the chat.
   create its harness and open it in the IDE.
 - Inside a harness: the **guide** (`AGENTS.md`, `CLAUDE.md`, one per agent provider),
   **notes** (filed and dated by gemba), **assets** (raw artifacts), **worktrees** (git
-  worktrees of the repositories under the `repos_dir` of the gemba config, each on the
-  local **branch of the run**, `<branch_prefix>/<organization>/<ref>`, never pushed
+  worktrees of the repositories under the `repos_dir` of the personal config, each on
+  the local **branch of the run**, `<branch_prefix>/<organization>/<ref>`, never pushed
   under its own name).
 - An **agent provider** is the agent tool (Claude Code, Codex...) that decides the
-  skills folder and the guide filename. The **IDE** is the editor that opens the
-  harness. Both are declared in the gemba config.
+  skills folder and the guide filename, declared in the shared config, which the
+  personal config may replace for the harnesses of its clone. The **IDE** is the editor
+  that opens the harness, declared in the personal config.
 - A **process** is one capability of Gemba: one skill plus one subcommand or group. A
   **skill** is the agent-facing instructions of a process, a package asset written by
   the CLI into the tasks repo and into each harness.
@@ -70,9 +75,10 @@ subcommand; the README explains each process.
 ## Principles
 
 - **Three piles, kept physically separate.** Built-in behaviour (`src/gemba/` and the
-  steps in the skills), customization (`gemba.yaml`) and data (`tasks/`,
-  `harnesses/`). No module and no skill contains a value of one organization;
-  everything organization-specific is read from the gemba config at run time.
+  steps in the skills), customization (`gemba.yaml`, `gemba.local.yaml`) and data
+  (`tasks/`, `harnesses/`). No module and no skill contains a value of one
+  organization; everything organization-specific is read from the gemba config at run
+  time.
 - **Commands own the frontmatter, agents own the body.** Only commands write
   `status`, `ref`, the dates and `metadata` of a task; the skills are forbidden from
   writing frontmatter by hand. Refs are never reused, archives included.
@@ -86,9 +92,9 @@ subcommand; the README explains each process.
   accumulated and reported in one message so the agent fixes a call in one round.
   Every error path exits 1, argparse usage errors included, and writes no file.
 - **Config and skills share one contract.** `config.py` is the only entry point that
-  validates `gemba.yaml`, including the `context` and `rules` blocks that only the
-  agent consumes; `gemba config show` prints the effective config and the skills read
-  it there, never combining the levels of the file themselves.
+  validates `gemba.yaml` and `gemba.local.yaml`, including the `context` and `rules`
+  blocks that only the agent consumes; `gemba config show` prints the effective config
+  and the skills read it there, never combining the levels of the files themselves.
 - **The cases are the executable specification.** `tests/cases/<process>/*.yaml` hold
   one black-box case per spec scenario, each naming its scenario
   (`<capability>: <scenario title>`); `test_scenarios.py` enforces the link in both

@@ -2,9 +2,10 @@
 
 ## Purpose
 
-The config process: the `gemba config` group, which checks `gemba.yaml` and shows the
-effective config without ever writing it, and the `gemba-config` skill, which carries
-the reference of every key and guides any edit of the file by hand.
+The config process: the `gemba config` group, which checks `gemba.yaml` and
+`gemba.local.yaml` and shows the effective config merged from both without ever writing
+them, and the `gemba-config` skill, which carries the reference of every key with the
+file it belongs in and guides any edit of either file by hand.
 
 ## Requirements
 

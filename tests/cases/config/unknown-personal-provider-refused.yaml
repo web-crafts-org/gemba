@@ -1,0 +1,13 @@
+name: a provider the CLI does not know in the personal config is refused naming its file, the provider and the known ones
+scenario: "gemba-config: Unknown personal provider refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  agent_providers: [cursor]
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: [invalid gemba config, gemba.local.yaml, agent_providers, "'cursor'", "known providers: claude, agents"]
+unchanged: true

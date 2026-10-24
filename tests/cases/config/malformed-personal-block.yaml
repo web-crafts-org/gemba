@@ -1,0 +1,32 @@
+name: a top-level list.rules of the personal config written as a string is refused naming its file and the top level
+scenario: "gemba-config: Malformed personal block"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  list:
+    rules: mention the client of every task
+tree:
+  tasks/operations/.gitkeep: ""
+run: [list]
+exit: 1
+stderr_contains: ["invalid gemba config:\n", "gemba.local.yaml: top level: list.rules must be a list of non-empty strings"]
+unchanged: true
+---
+name: a harness.rules under a workstream of the personal config is refused naming its file, the workstream and the key
+scenario: "gemba-config: Malformed personal block"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  workstreams:
+    support:
+      harness:
+        rules: [cite the ticket]
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["invalid gemba config:\n", "gemba.local.yaml: workstream 'support': harness.rules is not a key of harness"]
+unchanged: true

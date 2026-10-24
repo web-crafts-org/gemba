@@ -1,0 +1,16 @@
+name: show run from a folder below the root reads the personal config of that root
+scenario: "gemba-config: Personal config read from below the root"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  ide: code -n
+tree:
+  tasks/support/.gitkeep: ""
+cwd: tasks/support
+run: [config, show]
+exit: 0
+stdout_contains: ['"ide": "code -n"']
+unchanged: true

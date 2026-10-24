@@ -1,0 +1,56 @@
+name: show prints the shared providers as agent_providers and the personal ones as harness_providers
+scenario: "gemba-config: Providers declared in both files"
+config:
+  default_workstream: operations
+  agent_providers: [claude, agents]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  agent_providers: [claude]
+run: [config, show]
+exit: 0
+stdout_json:
+  organization: null
+  branch_prefix: gemba
+  repos_dir: null
+  ide: null
+  agent_providers: [claude, agents]
+  harness_providers: [claude]
+  default_workstream: operations
+  workstreams:
+    - id: operations
+      prefix: OPS
+      description: Anything that does not fit another workstream
+      metadata: []
+      processes:
+        create: &empty { context: null, rules: [] }
+        list: *empty
+        record: *empty
+        report: *empty
+        mark: *empty
+        archive: *empty
+        set: *empty
+        harness:
+          guide: { organization: null, workstream: null, user: null }
+          launch: *empty
+          note: *empty
+          resolve: *empty
+          remove: *empty
+        worktree:
+          add: *empty
+          list: *empty
+          remove: *empty
+unchanged: true
+---
+name: the create process accepts providers declared in both files
+scenario: "gemba-config: Providers declared in both files"
+config:
+  default_workstream: operations
+  agent_providers: [claude, agents]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  agent_providers: [claude]
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 0
+stdout_contains: [tasks/operations/2026-09-30-OPS-1-renew-domain.md]

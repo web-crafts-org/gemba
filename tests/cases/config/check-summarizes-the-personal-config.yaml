@@ -1,0 +1,40 @@
+name: check of a valid config with a personal config reports both files and the harness providers
+scenario: "config-maintenance: Personal config summarized"
+config:
+  default_workstream: operations
+  agent_providers: [claude, agents]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  ide: code -n
+  agent_providers: [claude]
+run: [config, check]
+exit: 0
+stdout: |
+  gemba.yaml is valid
+  gemba.local.yaml is valid
+  workstreams: support (SUP), operations (OPS)
+  default workstream: operations
+  agent providers: claude, agents
+  harness providers: claude
+unchanged: true
+---
+name: check of a personal config that declares no providers prints no harness providers line
+scenario: "config-maintenance: Personal config summarized"
+config:
+  default_workstream: operations
+  agent_providers: [claude, agents]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config: ""
+run: [config, check]
+exit: 0
+stdout: |
+  gemba.yaml is valid
+  gemba.local.yaml is valid
+  workstreams: support (SUP), operations (OPS)
+  default workstream: operations
+  agent providers: claude, agents
+unchanged: true

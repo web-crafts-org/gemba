@@ -3,10 +3,11 @@ scenario: "harness-launch: IDE command not found"
 config:
   default_workstream: operations
   agent_providers: [claude]
-  ide: no-such-ide -n
   workstreams:
     support: { prefix: SUP, description: Investigate a client-reported problem }
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  ide: no-such-ide -n
 tree:
   tasks/support/2026-09-30-SUP-1-login-fails.md: |
     ---

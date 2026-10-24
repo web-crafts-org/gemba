@@ -2,6 +2,7 @@
 
 import dataclasses
 import datetime
+import itertools
 import os
 import stat
 import tempfile
@@ -416,41 +417,65 @@ class DeleteTreeTest(unittest.TestCase):
 
 class RenderGuideTest(unittest.TestCase):
     def test_without_a_section(self):
-        self.assertEqual(harness.render_guide(GUIDE, None, None), GUIDE)
-        self.assertEqual(harness.render_guide(GUIDE, None, "  \n"), GUIDE)
+        self.assertEqual(harness.render_guide(GUIDE, None, None, None), GUIDE)
+        self.assertEqual(harness.render_guide(GUIDE, None, "  \n", None), GUIDE)
 
     def test_with_a_workstream_section(self):
         self.assertEqual(
-            harness.render_guide(GUIDE, None, "Write for the client.\n"),
+            harness.render_guide(GUIDE, None, "Write for the client.\n", None),
             "# Working in this harness\n\nRead `task.md`.\n\n## Your workstream\n\nWrite for the client.\n",
         )
 
     def test_section_text_kept_verbatim(self):
         text = "Write for the client.\n\n- Name the ticket.\n  - Quote it.\n"
-        self.assertTrue(harness.render_guide(GUIDE, None, text).endswith(f"## Your workstream\n\n{text}"))
-        self.assertTrue(harness.render_guide(GUIDE, text, None).endswith(f"## Your organization\n\n{text}"))
+        self.assertTrue(harness.render_guide(GUIDE, None, text, None).endswith(f"## Your workstream\n\n{text}"))
+        self.assertTrue(harness.render_guide(GUIDE, text, None, None).endswith(f"## Your organization\n\n{text}"))
 
     def test_with_an_organization_section(self):
         self.assertEqual(
-            harness.render_guide(GUIDE, "Open the harness through its workspace.\n", None),
+            harness.render_guide(GUIDE, "Open the harness through its workspace.\n", None, None),
             "# Working in this harness\n\nRead `task.md`.\n\n"
             "## Your organization\n\nOpen the harness through its workspace.\n",
         )
 
     def test_organization_section_before_the_workstream_section(self):
         self.assertEqual(
-            harness.render_guide(GUIDE, "Open the harness through its workspace.", "Write for the client."),
+            harness.render_guide(GUIDE, "Open the harness through its workspace.", "Write for the client.", None),
             "# Working in this harness\n\nRead `task.md`.\n\n"
             "## Your organization\n\nOpen the harness through its workspace.\n\n"
             "## Your workstream\n\nWrite for the client.\n",
         )
 
     def test_blank_organization_text(self):
-        self.assertEqual(harness.render_guide(GUIDE, "  \n", None), GUIDE)
+        self.assertEqual(harness.render_guide(GUIDE, "  \n", None, None), GUIDE)
         self.assertEqual(
-            harness.render_guide(GUIDE, "  \n", "Write for the client."),
-            harness.render_guide(GUIDE, None, "Write for the client."),
+            harness.render_guide(GUIDE, "  \n", "Write for the client.", None),
+            harness.render_guide(GUIDE, None, "Write for the client.", None),
         )
+
+    def test_user_section_closes_the_guide(self):
+        self.assertEqual(
+            harness.render_guide(GUIDE, None, None, "Answer me in Spanish.\n\nQuote the ticket.\n"),
+            "# Working in this harness\n\nRead `task.md`.\n\n"
+            "## Your user\n\nAnswer me in Spanish.\n\nQuote the ticket.\n",
+        )
+        self.assertEqual(harness.render_guide(GUIDE, None, None, " \n"), GUIDE)
+
+    def test_every_combination_of_the_three_texts(self):
+        sections = (
+            ("## Your organization", "Open the harness through its workspace."),
+            ("## Your workstream", "Write for the client."),
+            ("## Your user", "Answer me in Spanish."),
+        )
+        for present in itertools.product((False, True), repeat=3):
+            with self.subTest(present=present):
+                texts = [text if shown else None for (_heading, text), shown in zip(sections, present, strict=True)]
+                expected = GUIDE.rstrip()
+                for (heading, text), shown in zip(sections, present, strict=True):
+                    if shown:
+                        expected += f"\n\n{heading}\n\n{text}"
+                expected = GUIDE if not any(present) else expected + "\n"
+                self.assertEqual(harness.render_guide(GUIDE, *texts), expected)
 
 
 class GateTest(unittest.TestCase):

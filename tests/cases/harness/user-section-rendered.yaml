@@ -1,0 +1,26 @@
+name: the top-level guide text of the personal config closes every guide as the Your user section
+scenario: "harness-guide: User section rendered"
+config:
+  default_workstream: operations
+  agent_providers: [claude, agents]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  harness:
+    guide: Answer me in Spanish.
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [harness, launch, SUP-1, --no-open]
+exit: 0
+files_contain:
+  harnesses/support/2026-09-30-SUP-1-login-fails/CLAUDE.md: &section ["uncommitted. Do not commit here yourself.\n\n## Your user\n\nAnswer me in Spanish.\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/AGENTS.md: *section

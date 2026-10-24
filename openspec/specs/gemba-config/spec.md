@@ -2,10 +2,12 @@
 
 ## Purpose
 
-The gemba config is the single customization layer of Gemba: it holds
-every organization-specific value (workstreams, metadata schema, per-process
-customization) so that processes and their commands stay free of such values and can
-later be extracted into a CLI unchanged.
+The gemba config is the customization of Gemba, in two files at the tasks repo root:
+`gemba.yaml`, the shared config, committed with the tasks repo, and `gemba.local.yaml`,
+the personal config, private to the clone. Between them they hold every value specific
+to the organization or to the person (workstreams, metadata schema, per-process
+customization, the IDE and the repositories folder), each in the file its layer names,
+so that processes and their commands stay free of such values.
 
 ## Requirements
 

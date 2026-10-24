@@ -25,3 +25,19 @@ exit: 1
 stderr_contains: ["no agent providers declared: add agent_providers to gemba.yaml (known providers: claude, agents)"]
 absent: [tasks, .gitignore, .claude, .agents]
 unchanged: true
+---
+name: init in a folder whose personal config declares organization is refused and writes nothing
+scenario: "repo-initialization: Invalid existing config refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  organization: nakatomi
+cwd: .
+run: [init]
+exit: 1
+stderr_contains: ["invalid gemba config:\n", "gemba.local.yaml: organization belongs in gemba.yaml"]
+absent: [tasks, .gitignore, .claude]
+unchanged: true

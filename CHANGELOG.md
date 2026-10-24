@@ -7,6 +7,42 @@ All notable changes to the gemba CLI are recorded here. The format follows
 
 ## [Unreleased]
 
+The gemba config becomes two files, so that a tasks repo can be shared: `gemba.yaml`,
+committed, and `gemba.local.yaml`, private to the clone. One change refuses a
+`gemba.yaml` that 0.2 accepted: the keys that moved to the personal config, listed
+under Changed.
+
+### Added
+
+- `gemba.local.yaml`, the personal config, beside `gemba.yaml` at the tasks repo root:
+  optional, ignored by git, never written by a command. It holds `ide`, `repos_dir`
+  and `branch_prefix`; it may declare `agent_providers`, which replace the shared ones
+  for the harnesses launched from that clone and for nothing else; and it may add
+  `context`, `rules` and `harness.guide` at its top level and under `workstreams`, for
+  workstreams of the shared catalogue. The personal blocks come after the shared ones
+  in every effective block, so a personal rule wins a contradiction.
+- The guide of a harness ends with a `Your user` section holding the `harness.guide`
+  texts of the personal config.
+- `gemba config check` reports `gemba.local.yaml is valid` and a `harness providers:`
+  line when there is a personal config; `gemba config show` prints `harness_providers`
+  and `guide.user`.
+- `gemba init` writes `gemba.local.yaml` into the `.gitignore` and appends it to an
+  existing one: running it again on a tasks repo made before this version adds it.
+
+### Changed
+
+- **Breaking:** `ide`, `repos_dir` and `branch_prefix` are read from
+  `gemba.local.yaml` only. Every command refuses a `gemba.yaml` that declares them,
+  naming each key and the file it goes in. Move them by hand, or ask the agent to fix
+  the config (the `gemba-config` skill moves them), then run `gemba init` once and
+  commit `gemba.yaml` and `.gitignore`. No command rewrites the config.
+- A config refusal reports every problem of both files at once, each on its own line
+  with the path of its file, instead of the first one; a check that needs another
+  value runs only when that value is valid, so one mistake is reported once.
+- The `gemba-init` skill writes the IDE command and the repositories folder into
+  `gemba.local.yaml`, and the `gemba-config` skill holds the reference of both files
+  and moves the keys of an earlier `gemba.yaml`: `gemba skills update` refreshes them.
+
 ## [0.2.0] - 2026-10-13
 
 Windows joins Linux and macOS as a supported platform, with the same behaviour and the

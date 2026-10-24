@@ -27,15 +27,18 @@ class ConfigTestCase(unittest.TestCase):
     def tearDown(self):
         self._tmp.cleanup()
 
-    def write(self, text):
+    def write(self, text, local=None):
+        """`text` as the shared config and, when given, `local` as the personal config."""
         (self.root / config.CONFIG_FILENAME).write_text(textwrap.dedent(text), encoding="utf-8")
+        if local is not None:
+            (self.root / config.LOCAL_FILENAME).write_text(textwrap.dedent(local), encoding="utf-8")
 
-    def load(self, text):
-        self.write(text)
+    def load(self, text, local=None):
+        self.write(text, local)
         return config.load(root=self.root)
 
-    def assertRefused(self, text, *fragments):
-        self.write(text)
+    def assertRefused(self, text, *fragments, local=None):
+        self.write(text, local)
         with self.assertRaises(config.ConfigError) as caught:
             config.load(root=self.root)
         message = str(caught.exception)
@@ -399,7 +402,7 @@ class WorktreeKeysTest(ConfigTestCase):
         self.assertEqual(loaded.branch_prefix, "gemba")
 
     def test_accepted(self):
-        loaded = self.load(VALID + "organization: naka-tomi2\nrepos_dir: ~/projects\nbranch_prefix: nk\n")
+        loaded = self.load(VALID + "organization: naka-tomi2\n", local="repos_dir: ~/projects\nbranch_prefix: nk\n")
         self.assertEqual(loaded.organization, "naka-tomi2")
         self.assertEqual(loaded.repos_dir, "~/projects")
         self.assertEqual(loaded.branch_prefix, "nk")
@@ -407,23 +410,28 @@ class WorktreeKeysTest(ConfigTestCase):
     def test_repos_dir_kept_as_declared(self):
         for declared in ("/srv/repos", "repos", "../projects"):
             with self.subTest(repos_dir=declared):
-                self.assertEqual(self.load(VALID + f"repos_dir: {declared}\n").repos_dir, declared)
+                self.assertEqual(self.load(VALID, local=f"repos_dir: {declared}\n").repos_dir, declared)
 
     def test_malformed_names(self):
-        for key in ("organization", "branch_prefix"):
+        for key, filename in (("organization", config.CONFIG_FILENAME), ("branch_prefix", config.LOCAL_FILENAME)):
             for declaration in ('"Nakatomi Corp"', '""', "[nakatomi]", "Gemba/", "naka--tomi", "-web", "3", "true"):
                 with self.subTest(key=key, declaration=declaration):
-                    self.assertRefused(VALID + f"{key}: {declaration}\n", f"{key} must be kebab-case")
+                    declared = f"{key}: {declaration}\n"
+                    if filename == config.CONFIG_FILENAME:
+                        self.assertRefused(VALID + declared, filename, f"{key} must be kebab-case")
+                    else:
+                        self.assertRefused(VALID, filename, f"{key} must be kebab-case", local=declared)
 
     def test_malformed_repos_dir(self):
         for declaration in ('""', '"   "', "[~/projects]", "{path: ~/projects}", "3", "true"):
             with self.subTest(declaration=declaration):
-                self.assertRefused(VALID + f"repos_dir: {declaration}\n", "repos_dir must be a non-empty string")
+                text = f"repos_dir: {declaration}\n"
+                self.assertRefused(VALID, config.LOCAL_FILENAME, "repos_dir must be a non-empty string", local=text)
 
 
 class IdeTest(ConfigTestCase):
     def ide(self, declaration):
-        ide = self.load(VALID + f"ide: {declaration}\n").ide
+        ide = self.load(VALID, local=f"ide: {declaration}\n").ide
         self.assertIsNotNone(ide)
         assert ide is not None
         return ide
@@ -456,15 +464,15 @@ class IdeTest(ConfigTestCase):
     def test_malformed_string_or_other_type(self):
         for declaration in ('""', '"   "', "[code, -n]", "3", "true", '"\'"'):
             with self.subTest(declaration=declaration):
-                self.assertRefused(VALID + f"ide: {declaration}\n", "ide must be a non-empty string")
+                self.assertRefused(VALID, "ide must be a non-empty string", local=f"ide: {declaration}\n")
 
     def test_malformed_map(self):
         for declaration in ("{}", "{args: [-n]}", '{command: ""}', "{command: [code]}", "{command: 3}"):
             with self.subTest(declaration=declaration):
-                self.assertRefused(VALID + f"ide: {declaration}\n", "ide.command must be a non-empty string")
+                self.assertRefused(VALID, "ide.command must be a non-empty string", local=f"ide: {declaration}\n")
         for declaration in ("{command: code, args: -n}", "{command: code, args: [-n, 1]}", "{command: code, args: {}}"):
             with self.subTest(declaration=declaration):
-                self.assertRefused(VALID + f"ide: {declaration}\n", "ide.args must be a list of strings")
+                self.assertRefused(VALID, "ide.args must be a list of strings", local=f"ide: {declaration}\n")
 
 
 class AgentProvidersTest(ConfigTestCase):
@@ -488,6 +496,192 @@ class AgentProvidersTest(ConfigTestCase):
             with self.subTest(declaration=declaration):
                 text = VALID + f"agent_providers: {declaration}\n"
                 self.assertRefused(text, "agent_providers must be a non-empty list", self.KNOWN)
+
+    def test_personal_list_validated_as_the_shared_one(self):
+        local = "agent_providers: [claude, cursor]\n"
+        self.assertRefused(VALID, config.LOCAL_FILENAME, "'cursor'", self.KNOWN, local=local)
+        self.assertRefused(
+            VALID, config.LOCAL_FILENAME, "listed more than once", local="agent_providers: [claude, claude]\n"
+        )
+        self.assertRefused(VALID, config.LOCAL_FILENAME, "non-empty list", local="agent_providers: []\n")
+
+    def test_harness_providers(self):
+        shared = VALID + "agent_providers: [claude, agents]\n"
+        self.assertIsNone(self.load(VALID).harness_providers)
+        self.assertEqual(self.load(shared).harness_providers, ("claude", "agents"))
+        loaded = self.load(shared, local="agent_providers: [agents]\n")
+        self.assertEqual((loaded.agent_providers, loaded.harness_providers), (("claude", "agents"), ("agents",)))
+        loaded = self.load(VALID, local="agent_providers: [claude]\n")
+        self.assertEqual((loaded.agent_providers, loaded.harness_providers), (None, ("claude",)))
+
+
+class LayersTest(ConfigTestCase):
+    def test_every_key_has_one_or_both_files(self):
+        both = (config.CONFIG_FILENAME, config.LOCAL_FILENAME)
+        for key, files in config.LAYERS.items():
+            with self.subTest(key=key):
+                self.assertTrue(files)
+                self.assertTrue(set(files) <= set(both))
+        for process in config.PROCESSES:
+            self.assertEqual(config.LAYERS[process], both)
+        personal = [key for key, files in config.LAYERS.items() if files == (config.LOCAL_FILENAME,)]
+        self.assertEqual(personal, ["ide", "repos_dir", "branch_prefix"])
+
+    def test_personal_keys_refused_in_the_shared_config_all_at_once(self):
+        text = VALID + "ide: code -n\nrepos_dir: ~/projects\nbranch_prefix: nk\n"
+        message = self.assertRefused(text, "invalid gemba config:\n")
+        shared = self.root / config.CONFIG_FILENAME
+        for key in ("ide", "repos_dir", "branch_prefix"):
+            self.assertIn(f"- {shared}: {key} belongs in gemba.local.yaml, the personal config: move it there", message)
+
+    def test_shared_keys_refused_in_the_personal_config_all_at_once(self):
+        local = "organization: nakatomi\ndefault_workstream: support\nmetadata: []\nide: code -n\n"
+        message = self.assertRefused(VALID, local=local)
+        personal = self.root / config.LOCAL_FILENAME
+        for key in ("organization", "default_workstream", "metadata"):
+            self.assertIn(f"- {personal}: {key} belongs in gemba.yaml, the shared config: move it there", message)
+        self.assertNotIn("ide", message)
+
+    def test_misplaced_keys_of_both_files_in_one_refusal(self):
+        message = self.assertRefused(VALID + "ide: code -n\n", local="organization: nakatomi\n")
+        self.assertIn("ide belongs in gemba.local.yaml", message)
+        self.assertIn("organization belongs in gemba.yaml", message)
+
+    def test_keys_of_both_files_accepted_in_either(self):
+        loaded = self.load(VALID + "agent_providers: [claude]\n", local="agent_providers: [agents]\n")
+        self.assertEqual((loaded.agent_providers, loaded.personal_providers), (("claude",), ("agents",)))
+
+    def test_unknown_keys_ignored_in_both_files(self):
+        loaded = self.load(VALID + "reviewers: [ana]\n", local="theme: dark\n3: three\n")
+        self.assertEqual(list(loaded.workstreams), ["support", "operations"])
+
+    def test_empty_personal_config(self):
+        for local in ("", "# nothing declared yet\n"):
+            with self.subTest(local=local):
+                loaded = self.load(VALID, local=local)
+                self.assertIsNone(loaded.ide)
+                self.assertIsNone(loaded.personal_providers)
+                self.assertTrue(loaded.personal)
+        (self.root / config.LOCAL_FILENAME).unlink()
+        self.assertFalse(config.load(root=self.root).personal)
+
+    def test_personal_config_not_a_map(self):
+        self.assertRefused(VALID, config.LOCAL_FILENAME, "must be a map", local="- ide\n")
+
+    def test_personal_config_read_at_the_root_found_by_the_shared_one(self):
+        self.write(VALID, local="ide: code -n\n")
+        nested = self.root / "tasks" / "support"
+        nested.mkdir(parents=True)
+        ide = config.load(cwd=nested).ide
+        self.assertEqual(ide, config.Ide(command="code", args=("-n",), declared="code -n"))
+
+    def test_personal_config_alone_is_not_a_tasks_repo(self):
+        (self.root / config.LOCAL_FILENAME).write_text("ide: code -n\n", encoding="utf-8")
+        with self.assertRaises(config.ConfigError) as caught:
+            config.find_root(self.root)
+        self.assertIn("no gemba config found", str(caught.exception))
+
+
+class EveryProblemTest(ConfigTestCase):
+    def problems(self, text, local=None):
+        """The problems of a refused config, as (file name, message) pairs in the order reported."""
+        self.write(text, local)
+        with self.assertRaises(config.ConfigError) as caught:
+            config.load(root=self.root)
+        return [(path.name, message) for path, message in caught.exception.problems]
+
+    def test_rendered_one_line_per_problem_with_its_path(self):
+        error = config.ConfigError(problems=[(Path("/r/gemba.yaml"), "one"), (Path("/r/gemba.local.yaml"), "two")])
+        self.assertEqual(str(error), "invalid gemba config:\n- /r/gemba.yaml: one\n- /r/gemba.local.yaml: two")
+        self.assertEqual(str(config.ConfigError("no gemba config found: here")), "no gemba config found: here")
+
+    def test_every_problem_of_both_files(self):
+        text = (
+            VALID.replace("prefix: OPS", "prefix: SUP").replace(
+                "description: Investigate a client-reported problem", ""
+            )
+            + "metadata:\n  - { name: hours, type: integer }\n  - { name: Client, type: text }\n"
+            + "agent_providers: [claude, cursor, claude]\n"
+        )
+        problems = self.problems(text, local='ide: ""\norganization: nakatomi\nbranch_prefix: Gemba/\n')
+        expected = [
+            ("gemba.yaml", "metadata[0]: field 'hours' has unknown type 'integer'"),
+            ("gemba.yaml", "metadata[1]: field name 'Client' must be snake_case"),
+            ("gemba.yaml", "workstream 'support': description is missing or empty"),
+            ("gemba.yaml", "agent_providers: unknown provider 'cursor'"),
+            ("gemba.yaml", "agent_providers: provider 'claude' is listed more than once"),
+            ("gemba.local.yaml", "organization belongs in gemba.yaml, the shared config"),
+            ("gemba.local.yaml", "ide must be a non-empty string"),
+            ("gemba.local.yaml", "branch_prefix must be kebab-case"),
+        ]
+        self.assertEqual(len(problems), len(expected), problems)
+        for (name, message), (expected_name, start) in zip(problems, expected, strict=True):
+            self.assertEqual(name, expected_name)
+            self.assertTrue(message.startswith(start), message)
+
+    def test_duplicate_prefix_checked_over_the_workstreams_that_parsed(self):
+        text = VALID.replace("prefix: OPS", "prefix: SUP") + "  billing:\n    prefix: SUP\n    description: Bills\n"
+        problems = self.problems(text)
+        self.assertEqual(
+            [message for _name, message in problems],
+            [
+                "workstreams 'support' and 'operations' declare the same prefix 'SUP'",
+                "workstreams 'support' and 'billing' declare the same prefix 'SUP'",
+            ],
+        )
+
+    def test_default_not_checked_against_a_catalogue_that_is_not_a_map(self):
+        problems = self.problems("default_workstream: support\nworkstreams: [support, operations]\n")
+        self.assertEqual(len(problems), 1)
+        self.assertIn("workstreams must be a non-empty map", problems[0][1])
+
+    def test_default_checked_against_every_identifier_of_the_catalogue(self):
+        text = VALID.replace("    description: Anything that does not fit another workstream\n", "")
+        problems = self.problems(text)
+        self.assertEqual(
+            [message for _name, message in problems], ["workstream 'operations': description is missing or empty"]
+        )
+
+    def test_types_checked_over_the_declarations_that_parsed(self):
+        text = VALID + "metadata:\n  - { name: hours, type: integer }\n  - { name: client, type: text }\n"
+        text = text.replace(
+            "    description: Investigate a client-reported problem\n",
+            "    description: Investigate a client-reported problem\n"
+            "    metadata:\n      - { name: hours, type: number }\n      - { name: client, type: date }\n",
+        )
+        messages = [message for _name, message in self.problems(text)]
+        self.assertEqual(len(messages), 2)
+        self.assertIn("field 'hours' has unknown type 'integer'", messages[0])
+        self.assertIn(
+            "field 'client' has type text in metadata and type date in workstream 'support' metadata", messages[1]
+        )
+
+    def test_malformed_yaml_of_one_file_and_the_problems_of_the_other(self):
+        text = VALID.replace("prefix: OPS", "prefix: SUP")
+        problems = self.problems(text, local="ide: [unclosed\n")
+        self.assertEqual([name for name, _message in problems], ["gemba.yaml", "gemba.local.yaml"])
+        self.assertIn("declare the same prefix 'SUP'", problems[0][1])
+        self.assertTrue(problems[1][1].startswith("malformed YAML: "))
+        problems = self.problems("workstreams: [unclosed\n", local='ide: ""\n')
+        self.assertEqual([name for name, _message in problems], ["gemba.yaml", "gemba.local.yaml"])
+        self.assertTrue(problems[0][1].startswith("malformed YAML: "))
+
+    def test_every_malformed_block_of_one_level(self):
+        text = VALID + "list:\n  rules: list them\n  context: 3\nharness:\n  guide: [a]\n  rules: [b]\n"
+        messages = [message for _name, message in self.problems(text)]
+        self.assertEqual(
+            [message.split(" (")[0] for message in messages],
+            [
+                "top level: list.rules must be a list of non-empty strings",
+                "top level: list.context must be a string",
+                "top level: harness.guide must be a non-empty string",
+                "top level: harness.rules is not a key of harness",
+            ],
+        )
+
+    def test_malformed_ide_map_reports_command_and_args(self):
+        messages = [message for _name, message in self.problems(VALID, local="ide: {command: '', args: -n}\n")]
+        self.assertEqual([message.split(" ")[0] for message in messages], ["ide.command", "ide.args"])
 
 
 class EffectiveSchemaTest(ConfigTestCase):
@@ -605,7 +799,7 @@ class EffectiveBlockTest(ConfigTestCase):
                 "archive": empty,
                 "set": empty,
                 "harness": {
-                    "guide": {"organization": None, "workstream": None},
+                    "guide": {"organization": None, "workstream": None, "user": None},
                     "launch": empty,
                     "note": empty,
                     "resolve": empty,
@@ -623,8 +817,112 @@ class EffectiveBlockTest(ConfigTestCase):
         processes = self.load(text).effective_processes("support")
         harness = processes["harness"]
         assert isinstance(harness, dict)
-        self.assertEqual(harness["guide"], {"organization": "Write for the client.", "workstream": "Cite the ticket."})
+        self.assertEqual(
+            harness["guide"], {"organization": "Write for the client.", "workstream": "Cite the ticket.", "user": None}
+        )
         self.assertEqual(harness["note"], {"context": None, "rules": ["name the client"]})
+
+
+class PersonalBlocksTest(ConfigTestCase):
+    SUPPORT = EffectiveBlockTest.SUPPORT
+
+    def with_support(self, base, own):
+        """VALID with `base` appended at the top level and `own` inside the support block."""
+        return VALID.replace(self.SUPPORT, self.SUPPORT + textwrap.indent(own, "    ")) + base
+
+    def test_four_levels_in_order(self):
+        text = self.with_support("create:\n  rules: [shared base]\n", "create:\n  rules: [shared support]\n")
+        local = (
+            "create:\n  rules: [personal base]\n"
+            "workstreams:\n  support:\n    create:\n      rules: [personal support]\n"
+        )
+        loaded = self.load(text, local=local)
+        self.assertEqual(
+            loaded.effective_block("support", "create").rules,
+            ("shared base", "shared support", "personal base", "personal support"),
+        )
+        self.assertEqual(loaded.effective_block("operations", "create").rules, ("shared base", "personal base"))
+
+    def test_three_and_four_contexts_joined(self):
+        text = self.with_support("create:\n  context: |\n    One.\n", "create:\n  context: Two.\n")
+        local = "create:\n  context: |\n    Three.\nworkstreams:\n  support:\n    create:\n      context: Four.\n"
+        loaded = self.load(text, local=local)
+        self.assertEqual(loaded.effective_block("support", "create").context, "One.\n\nTwo.\n\nThree.\n\nFour.")
+        self.assertEqual(loaded.effective_block("operations", "create").context, "One.\n\nThree.\n")
+        loaded = self.load(
+            text, local='create:\n  context: "  "\nworkstreams:\n  support:\n    create:\n      context: Four.\n'
+        )
+        self.assertEqual(loaded.effective_block("support", "create").context, "One.\n\nTwo.\n\nFour.")
+
+    def test_verb_of_a_group_from_the_personal_config_only(self):
+        local = "worktree:\n  add:\n    rules: [start from the default branch of origin]\n"
+        block = self.load(VALID, local=local).effective_block("support", "worktree", "add")
+        self.assertEqual(block, config.Block(None, ("start from the default branch of origin",)))
+
+    def test_user_guide(self):
+        text = self.with_support("harness:\n  guide: Write for the client.\n", "harness:\n  guide: Cite it.\n")
+        local = (
+            "harness:\n  guide: Answer me in Spanish.\n"
+            "workstreams:\n  support:\n    harness:\n      guide: Quote the ticket.\n"
+        )
+        loaded = self.load(text, local=local)
+        self.assertEqual(
+            loaded.effective_guide("support"),
+            config.Guide("Write for the client.", "Cite it.", "Answer me in Spanish.\n\nQuote the ticket."),
+        )
+        self.assertEqual(
+            loaded.effective_guide("operations"), config.Guide("Write for the client.", None, "Answer me in Spanish.")
+        )
+        loaded = self.load(VALID, local="workstreams:\n  support:\n    harness:\n      guide: Quote the ticket.\n")
+        self.assertEqual(loaded.effective_guide("support"), config.Guide(None, None, "Quote the ticket."))
+        self.assertEqual(loaded.effective_guide("operations"), config.Guide(None, None, None))
+
+    def test_processes_carry_the_user_guide(self):
+        harness = self.load(VALID, local="harness:\n  guide: Answer me in Spanish.\n").effective_processes("support")[
+            "harness"
+        ]
+        assert isinstance(harness, dict)
+        self.assertEqual(harness["guide"], {"organization": None, "workstream": None, "user": "Answer me in Spanish."})
+
+    def test_unknown_workstream_refused_naming_the_valid_ones(self):
+        local = "workstreams:\n  billing:\n    create:\n      rules: [name the invoice]\n"
+        self.assertRefused(
+            VALID,
+            config.LOCAL_FILENAME,
+            "workstream 'billing' is not in the workstream catalogue of gemba.yaml (valid: support, operations)",
+            local=local,
+        )
+
+    def test_workstream_definition_refused(self):
+        local = "workstreams:\n  support:\n    prefix: HLP\n    description: Mine\n    metadata: []\n"
+        message = self.assertRefused(VALID, config.LOCAL_FILENAME, local=local)
+        for key in config.DEFINITION_KEYS:
+            self.assertIn(f"workstream 'support': {key} belongs in gemba.yaml, the shared config", message)
+
+    def test_malformed_personal_blocks_refused(self):
+        local = (
+            "list:\n  rules: one\nworkstreams:\n  support:\n    harness:\n      rules: [cite]\n  operations: [create]\n"
+        )
+        message = self.assertRefused(VALID, local=local)
+        personal = self.root / config.LOCAL_FILENAME
+        self.assertIn(f"- {personal}: top level: list.rules must be a list of non-empty strings", message)
+        self.assertIn(f"- {personal}: workstream 'support': harness.rules is not a key of harness", message)
+        self.assertIn(f"- {personal}: workstream 'operations': must be a map of process blocks", message)
+
+    def test_personal_workstreams_not_a_map(self):
+        self.assertRefused(
+            VALID, "workstreams must be a map keyed by workstream identifiers", local="workstreams: [support]\n"
+        )
+
+    def test_personal_workstreams_not_checked_against_a_catalogue_that_is_not_a_map(self):
+        text = "default_workstream: support\nworkstreams: [support]\n"
+        message = self.assertRefused(text, local="workstreams:\n  billing:\n    create:\n      rules: [a rule]\n")
+        self.assertNotIn(config.LOCAL_FILENAME, message)
+
+    def test_no_personal_config_behaves_as_before(self):
+        loaded = self.load(VALID)
+        self.assertEqual((loaded.personal_processes, loaded.personal_workstreams), ({}, {}))
+        self.assertEqual(loaded.effective_guide("support"), config.Guide(None, None, None))
 
 
 if __name__ == "__main__":

@@ -18,27 +18,29 @@ SCHEMA = (
 
 
 class DeclarationTest(unittest.TestCase):
+    def parsed(self, declarations):
+        """The fields of a list every declaration of which must parse."""
+        fields, problems = metadata.parse_fields(declarations, "metadata")
+        self.assertEqual(problems, [])
+        return fields
+
     def refused(self, declarations, *fragments):
-        with self.assertRaises(MetadataError) as caught:
-            metadata.parse_fields(declarations, "metadata")
-        message = str(caught.exception)
+        """The one problem of a list with one bad declaration, which must hold every fragment."""
+        _fields, problems = metadata.parse_fields(declarations, "metadata")
+        self.assertEqual(len(problems), 1, problems)
         for fragment in fragments:
-            self.assertIn(fragment, message)
-        return message
+            self.assertIn(fragment, problems[0])
+        return problems[0]
 
     def test_absent_list(self):
-        self.assertEqual(metadata.parse_fields(None, "metadata"), ())
+        self.assertEqual(metadata.parse_fields(None, "metadata"), ((), []))
 
     def test_minimal_declaration(self):
-        self.assertEqual(
-            metadata.parse_fields([{"name": "client", "type": "text"}], "metadata"), (Field("client", "text"),)
-        )
+        self.assertEqual(self.parsed([{"name": "client", "type": "text"}]), (Field("client", "text"),))
 
     def test_every_type_accepted(self):
         declarations = [{"name": f"field_{kind}", "type": kind} for kind in metadata.TYPES]
-        self.assertEqual(
-            [field.type for field in metadata.parse_fields(declarations, "metadata")], list(metadata.TYPES)
-        )
+        self.assertEqual([field.type for field in self.parsed(declarations)], list(metadata.TYPES))
 
     def test_complete_declaration(self):
         declaration = {
@@ -48,7 +50,7 @@ class DeclarationTest(unittest.TestCase):
             "description": "Link to the merge request",
         }
         self.assertEqual(
-            metadata.parse_fields([declaration], "metadata"),
+            self.parsed([declaration]),
             (Field("merge_url", "text", required=True, description="Link to the merge request"),),
         )
 
@@ -95,6 +97,26 @@ class DeclarationTest(unittest.TestCase):
         declarations = [{"name": "client", "type": "text"}, {"name": "client", "type": "text"}]
         self.refused(declarations, "field 'client' is declared more than once")
 
+    def test_every_bad_declaration_reported_with_the_fields_that_parsed(self):
+        declarations = [
+            {"name": "hours", "type": "integer"},
+            {"name": "client", "type": "text"},
+            {"name": "Due", "type": "date"},
+            {"name": "project", "type": "text"},
+        ]
+        fields, problems = metadata.parse_fields(declarations, "metadata")
+        self.assertEqual(fields, (Field("client", "text"), Field("project", "text")))
+        self.assertEqual(len(problems), 2)
+        self.assertIn("metadata[0]: field 'hours' has unknown type 'integer'", problems[0])
+        self.assertIn("metadata[2]: field name 'Due' must be snake_case", problems[1])
+
+    def test_repeated_name_reported_beside_its_first_declaration_problem(self):
+        declarations = [{"name": "client", "type": "integer"}, {"name": "client", "type": "text"}]
+        fields, problems = metadata.parse_fields(declarations, "metadata")
+        self.assertEqual(fields, ())
+        self.assertIn("unknown type 'integer'", problems[0])
+        self.assertIn("field 'client' is declared more than once", problems[1])
+
 
 class SchemaTest(unittest.TestCase):
     def test_union_of_base_and_own(self):
@@ -129,6 +151,24 @@ class SchemaTest(unittest.TestCase):
         with self.assertRaises(MetadataError) as caught:
             metadata.types((), lists)
         self.assertIn("field 'due' has type date in first and type text in second", str(caught.exception))
+
+    def test_type_problems_of_two_names(self):
+        base = (Field("hours", "number"), Field("due", "date"))
+        lists = {"first": (Field("hours", "text"),), "second": (Field("due", "text"), Field("hours", "boolean"))}
+        self.assertEqual(
+            metadata.type_problems(base, lists),
+            [
+                "field 'hours' has type number in metadata and type text in first: "
+                "a field name has one type across the config",
+                "field 'due' has type date in metadata and type text in second: "
+                "a field name has one type across the config",
+                "field 'hours' has type number in metadata and type boolean in second: "
+                "a field name has one type across the config",
+            ],
+        )
+
+    def test_no_type_problems(self):
+        self.assertEqual(metadata.type_problems((Field("client", "text"),), {"one": (Field("client", "text"),)}), [])
 
 
 class ConversionTest(unittest.TestCase):
