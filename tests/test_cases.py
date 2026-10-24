@@ -68,11 +68,13 @@ the same places, stands for the version of the installed gemba CLI package, and
 `{root}` for the absolute path of the root the case runs in, as the system spells it.
 
 Git must be on PATH: harness commands run it. Every command runs with the user's and
-the system's git config ignored and a fixed identity, so commits never depend on the
-machine running the suite. The IDE is never started: every command runs with a stub
-for each name in STUBS first on PATH, a shell script and a `.cmd` script side by side
-so that the stub resolves on every platform, each exiting 0 and doing nothing. The
-output of every command is decoded as UTF-8, the encoding gemba promises.
+the system's git config ignored, a fixed identity and none of the variables that tie
+git to a repository, so commits never depend on the machine running the suite, and a
+suite run from a git hook never reaches the repository of the hook. The IDE is never
+started: every command runs with a stub for each name in STUBS first on PATH, a shell
+script and a `.cmd` script side by side so that the stub resolves on every platform,
+each exiting 0 and doing nothing. The output of every command is decoded as UTF-8, the
+encoding gemba promises.
 """
 
 import datetime
@@ -84,6 +86,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import yaml
 
@@ -122,6 +125,29 @@ GIT_ENVIRONMENT = {
     "GIT_COMMITTER_NAME": "Gemba Cases",
     "GIT_COMMITTER_EMAIL": "cases@gemba.invalid",
 }
+# The variables that tie git to one repository, as `git rev-parse --local-env-vars` lists
+# them, dropped from the inherited environment as git drops them on entering another one:
+# a hook run from a linked worktree exports GIT_DIR, which would point every git of a case
+# at that repository.
+GIT_LOCAL_VARIABLES = frozenset(
+    {
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+        "GIT_CONFIG",
+        "GIT_CONFIG_PARAMETERS",
+        "GIT_CONFIG_COUNT",
+        "GIT_OBJECT_DIRECTORY",
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+        "GIT_IMPLICIT_WORK_TREE",
+        "GIT_GRAFT_FILE",
+        "GIT_INDEX_FILE",
+        "GIT_NO_REPLACE_OBJECTS",
+        "GIT_REPLACE_REF_BASE",
+        "GIT_PREFIX",
+        "GIT_SHALLOW_FILE",
+        "GIT_COMMON_DIR",
+    }
+)
 GLOB_CHARACTERS = "*?["
 # Executables the cases may name in a config, such as `ide: "code -n"`, replaced by stubs.
 STUBS = ("code",)
@@ -172,7 +198,8 @@ def is_glob(relative):
 
 def environment():
     path = os.pathsep.join([_STUBS_DIR.name, os.environ.get("PATH", "")])
-    return {**os.environ, **GIT_ENVIRONMENT, "PATH": path}
+    inherited = {name: value for name, value in os.environ.items() if name not in GIT_LOCAL_VARIABLES}
+    return {**inherited, **GIT_ENVIRONMENT, "PATH": path}
 
 
 def write_tree(root, tree):
@@ -489,6 +516,19 @@ class RunnerTest(CaseRunner):
             self.check(root, passing, "stderr_excludes", {}, result)
             with self.assertRaises(AssertionError):
                 self.check(root, {"stderr_excludes": ["workstreams"]}, "stderr_excludes", {}, result)
+
+    def test_git_of_a_hook_is_left_out(self):
+        # A pre-push hook run from a linked worktree inherits GIT_DIR, the git dir of that worktree.
+        with tempfile.TemporaryDirectory() as tmp:
+            outer = Path(tmp).resolve() / "outer"
+            self.run_git(Path(tmp), "init", "--quiet", str(outer), label="outer")
+            before = snapshot(outer / ".git")
+            root = Path(tmp).resolve() / "case"
+            root.mkdir()
+            with mock.patch.dict(os.environ, {"GIT_DIR": str(outer / ".git")}):
+                self.prepare(root, {"repos": {"nakatomi-web": {}}}, "hook")
+            self.assertEqual(branches(root, "repos/nakatomi-web"), ["main"])
+            self.assertEqual(snapshot(outer / ".git"), before)
 
     def test_new_command_names_resolve_to_the_binary(self):
         for name in ("mark", "archive", "report", "set", "worktree", "init", "config"):
