@@ -10,6 +10,12 @@ context: |
   case per spec scenario, run against the real command. Unit tests cover module
   logic only where a case would be awkward.
 
+# guidelines: a convention of this ecosystem, not an OpenSpec feature. Each one is added
+# by a human, only after an observed failure, and a rule below points to it at the
+# moment of the flow where that failure happens.
+guidelines:
+  - .claude/skills/guidelines/cross-platform
+
 rules:
   specs:
     - Every scenario in a delta spec names the cases it adds, modifies or removes
@@ -18,6 +24,10 @@ rules:
   design:
     - State which module owns each new rule, domain or adapter, and name any new
       seam the change introduces, such as filesystem, clock or output
+    - When the change prints, compares, stores or links a path, reads or writes a
+      text file, names a file or folder, or starts a process, read and follow
+      .claude/skills/guidelines/cross-platform first, and say how each of those
+      holds on Windows
   tasks:
     - The first task of each scenario writes its black-box case; the implementation
       task comes after it
@@ -28,6 +38,10 @@ operations:
   apply:
     guidance:
       - Before implementing a scenario, run its case and confirm it fails
+      - Before writing a test or code that prints, compares, stores or links a path,
+        reads or writes a text file, names a file or folder, or starts a process,
+        read and follow .claude/skills/guidelines/cross-platform, and run its checks
+        before marking the task done
       - Mark a task done only after the formatter, linter, type checker and the
         affected cases pass
       - Never edit a case to make it pass; if the spec is wrong, stop and say so
