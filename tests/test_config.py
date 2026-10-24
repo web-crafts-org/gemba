@@ -591,8 +591,9 @@ class EveryProblemTest(ConfigTestCase):
         return [(path.name, message) for path, message in caught.exception.problems]
 
     def test_rendered_one_line_per_problem_with_its_path(self):
-        error = config.ConfigError(problems=[(Path("/r/gemba.yaml"), "one"), (Path("/r/gemba.local.yaml"), "two")])
-        self.assertEqual(str(error), "invalid gemba config:\n- /r/gemba.yaml: one\n- /r/gemba.local.yaml: two")
+        shared, personal = Path("/r/gemba.yaml"), Path("/r/gemba.local.yaml")
+        error = config.ConfigError(problems=[(shared, "one"), (personal, "two")])
+        self.assertEqual(str(error), f"invalid gemba config:\n- {shared}: one\n- {personal}: two")
         self.assertEqual(str(config.ConfigError("no gemba config found: here")), "no gemba config found: here")
 
     def test_every_problem_of_both_files(self):
