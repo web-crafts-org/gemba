@@ -11,8 +11,7 @@ rule instead of from a case-by-case choice.
 ### Requirement: The task is the implicit object of the command
 A subcommand of `gemba` that acts on a task SHALL be a bare verb with no object noun.
 The command SHALL NOT expose a `task` group or a `task` noun for those subcommands.
-Initializing a tasks repo SHALL be the bare subcommand `init`, acting on the tasks
-repo itself; the config of the tasks repo, an object with verbs of its own, SHALL be
+Initializing an obeya SHALL be the bare subcommand `init`, acting on the obeya itself; the config of the obeya, an object with verbs of its own, SHALL be
 the group `gemba config`.
 
 #### Scenario: Task subcommands take no noun
@@ -20,15 +19,15 @@ the group `gemba config`.
 - **THEN** its subcommand is the verb alone, as in `gemba create` and `gemba list`, and no form with a `task` noun exists
 
 #### Scenario: Harness initialization is plain
-- **WHEN** a process initializes a tasks repo in a folder
+- **WHEN** a process initializes an obeya in a folder
 - **THEN** its subcommand is `gemba init`, with no object noun, and its skill is `gemba-init`
 
 #### Scenario: Config subcommands are grouped
-- **WHEN** a process checks or shows the config of the tasks repo
+- **WHEN** a process checks or shows the config of the obeya
 - **THEN** its subcommands are `gemba config check` and `gemba config show`, and its skill is `gemba-config`
 
 ### Requirement: Every other object is a group
-A process whose steps act on an object other than a task or the tasks repo, such as
+A process whose steps act on an object other than a task or the obeya, such as
 the harness of a launched task or the skills the CLI writes, SHALL expose its
 subcommands under a group named after that object, as in `gemba harness <verb>` and
 `gemba skills <verb>`. A verb SHALL NOT exist both bare and inside a group with
@@ -39,7 +38,7 @@ different meanings.
 - **THEN** its subcommands are `gemba harness launch`, `gemba harness note` and `gemba harness resolve`, and `gemba <verb>` keeps its meaning for tasks
 
 #### Scenario: Skills subcommands are grouped
-- **WHEN** the CLI writes or checks the skills of the tasks repo
+- **WHEN** the CLI writes or checks the skills of the obeya
 - **THEN** its subcommands are `gemba skills <verb>`, as in `gemba skills update`
 
 ### Requirement: One skill per process, named after its subcommand
@@ -55,11 +54,11 @@ that subcommand and its skill keeps its name, as the report did; `gemba-migrate`
 which composes `gemba create`, `gemba record`, `gemba mark` and `gemba archive`, is
 one. The skill's description, not its name, SHALL carry the phrases that make an agent
 choose it. A subcommand or group that no process needs, because a person runs it to
-maintain the tasks repo rather than an agent following steps, SHALL have no skill;
+maintain the obeya rather than an agent following steps, SHALL have no skill;
 `gemba skills` is one.
 
 #### Scenario: Existing skills follow the rule
-- **WHEN** the tasks repo is at this change or later
+- **WHEN** the obeya is at this change or later
 - **THEN** the skills that drive `gemba create` and `gemba list` are `gemba-create` and `gemba-list`, and no skill named `task-creator` or `task-lister` exists
 
 #### Scenario: Grouped process is one skill

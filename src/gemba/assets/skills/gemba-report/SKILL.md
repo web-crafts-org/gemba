@@ -1,6 +1,6 @@
 ---
 name: gemba-report
-description: Report what was done in a period, a day, a week or a month, across every task of this tasks repo, with every count and total taken from gemba report. Use whenever the user asks for the daily report, a standup, an end-of-day, weekly or monthly summary, "what did I do today", "yesterday", "this week" or "in September", or how much of an amount went to each workstream, status or value of a field in a period, whatever the workstream.
+description: Report what was done in a period, a day, a week or a month, across every task of this obeya, with every count and total taken from gemba report. Use whenever the user asks for the daily report, a standup, an end-of-day, weekly or monthly summary, "what did I do today", "yesterday", "this week" or "in September", or how much of an amount went to each workstream, status or value of a field in a period, whatever the workstream.
 ---
 
 # Report a period
@@ -13,10 +13,11 @@ sum over a selection of tasks. Your part is to list the candidates, read the
 subsections of the period, take every number from `gemba report`, and compose the
 report without adding anything the files and the commands do not say.
 
-Every organization-specific value (workstreams, prefixes, metadata fields, rules) lives
-in `gemba.yaml`. Run `gemba config show` on every run and rely on nothing else you know
-or remember about workstreams or fields: it prints the config resolved, with the fields
-and the blocks shared by every workstream already joined to those of each one.
+Every configured value (workstreams, prefixes, metadata fields, rules) lives in the
+gemba config at the obeya root. Run `gemba config show` on every run and rely on nothing
+else you know or remember about workstreams or fields: it prints the config resolved,
+with the fields and the blocks shared by every workstream already joined to those of
+each one.
 
 ## Prerequisite
 
@@ -28,7 +29,7 @@ candidates by reading the task folders yourself, and do not compute a number you
 ## Process
 
 1. **Locate the config.** Walk up from the current folder to the nearest `gemba.yaml`.
-   That folder is the tasks repo root. If there is none, stop and tell the user that no
+   That folder is the obeya root. If there is none, stop and tell the user that no
    gemba config was found.
 2. **Choose the period**, from F to T, both included. Today, unless the user names
    another day or period. Read today's date from the environment (`date +%F` in a
@@ -37,7 +38,7 @@ candidates by reading the task folders yourself, and do not compute a number you
    starts on Monday, and a period never ends after today. A day is F equal to T. Several
    periods give one report each, oldest first, and steps 3 to 9 run once per period.
 3. **List the candidates** of the period with exactly this command, from anywhere
-   inside the tasks repo:
+   inside the obeya:
 
    ```bash
    gemba list --to T --updated-from F
@@ -137,7 +138,7 @@ candidates by reading the task folders yourself, and do not compute a number you
 The report never fills a gap. To record what a task is missing, point the user to the
 `gemba-record` skill, used in one of two places: inside the harness of that task,
 `harnesses/<workstream>/<task file name without .md>/`, for the work of its run, from
-its notes; or from the tasks repo, for work done outside a run, such as a meeting or a
+its notes; or from the obeya, for work done outside a run, such as a meeting or a
 review, from what the user tells it. A metadata value that is missing or wrong is set
 with the `gemba-set` skill.
 

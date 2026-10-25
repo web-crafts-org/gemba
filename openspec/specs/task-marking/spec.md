@@ -21,7 +21,7 @@ rewritten in its fixed key order and the body SHALL be kept byte for byte. The c
 SHALL refuse, writing nothing, when no task has that ref, when the status is not one
 of the four, or when the task is archived, saying in that case that the file must be
 moved out of `archive/` first. On success it SHALL print the task path relative to the
-tasks repo root, a `status: <old> -> <new>` line, a `done_at: <date>` or `done_at:
+obeya root, a `status: <old> -> <new>` line, a `done_at: <date>` or `done_at:
 removed` line when `done_at` changed, and an `updated_at: <old> -> <new>` or
 `updated_at: <value> (unchanged)` line. Refusals SHALL report every problem in one
 message and exit 1.
@@ -82,7 +82,7 @@ file: `gemba record` records on a task whatever its status, `done` included, and
 `gemba archive` moves a task whatever its status.
 
 #### Scenario: Harness untouched
-- **WHEN** a launched task is marked `done` from the tasks repo
+- **WHEN** a launched task is marked `done` from the obeya
 - **THEN** the harness repository has the same commits as after the launch and a clean working tree, and the task read through `task.md` shows the new status
 
 #### Scenario: Done task recorded
@@ -90,7 +90,7 @@ file: `gemba record` records on a task whatever its status, `done` included, and
 - **THEN** the day is recorded as on any task, `status` still reads `done` and `done_at` is kept
 
 ### Requirement: Marking by the agent
-The `gemba-mark` skill SHALL have the agent, from the tasks repo or from inside a
+The `gemba-mark` skill SHALL have the agent, from the obeya or from inside a
 harness, identify the task by its ref, asking when the request is ambiguous, map the
 user's words to one destination status, run `gemba mark <ref> <status>` with `--date`
 only when the user names a past day, relay the output, and stop. The map SHALL be:

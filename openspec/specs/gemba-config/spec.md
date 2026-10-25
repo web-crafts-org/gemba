@@ -2,43 +2,43 @@
 
 ## Purpose
 
-The gemba config is the customization of Gemba, in two files at the tasks repo root:
-`gemba.yaml`, the shared config, committed with the tasks repo, and `gemba.local.yaml`,
+The gemba config is the customization of Gemba, in two files at the obeya root:
+`gemba.yaml`, the shared config, committed with the obeya, and `gemba.local.yaml`,
 the personal config, private to the clone. Between them they hold every value specific
-to the organization or to the person (workstreams, metadata schema, per-process
+to one obeya or to the person (workstreams, metadata schema, per-process
 customization, the IDE and the repositories folder), each in the file its layer names,
 so that processes and their commands stay free of such values.
 
 ## Requirements
 
 ### Requirement: Config file location and format
-The tasks repo SHALL hold its customization, the gemba config, in two YAML files at
-its root: `gemba.yaml`, the shared config, committed with the tasks repo, and
+The obeya SHALL hold its customization, the gemba config, in two YAML files at
+its root: `gemba.yaml`, the shared config, committed with the obeya, and
 `gemba.local.yaml`, the personal config, optional and private to the clone, which git
 ignores. Processes and commands SHALL locate the root by walking up from the current
 working directory to the nearest `gemba.yaml`, so they work from any folder inside the
-tasks repo, including the harnesses, and SHALL read the personal config at that root
+obeya, including the harnesses, and SHALL read the personal config at that root
 when it exists. A `gemba.local.yaml` with no `gemba.yaml` beside it SHALL never be
 read. An empty personal config SHALL be read as one that declares nothing.
 
 #### Scenario: Command run from a subfolder
-- **WHEN** a gemba command is started from any folder below the tasks repo root
-- **THEN** it resolves the tasks repo root as the nearest ancestor folder containing `gemba.yaml` and reads that file, and the `gemba.local.yaml` of that root when there is one
+- **WHEN** a gemba command is started from any folder below the obeya root
+- **THEN** it resolves the obeya root as the nearest ancestor folder containing `gemba.yaml` and reads that file, and the `gemba.local.yaml` of that root when there is one
 
 #### Scenario: No config found
 - **WHEN** no ancestor folder of the current working directory contains `gemba.yaml`
 - **THEN** the process stops, reports that no gemba config was found, and writes nothing
 
 #### Scenario: Personal config read from below the root
-- **WHEN** `gemba config show` runs from `tasks/support/` and the tasks repo root holds `gemba.yaml` and a `gemba.local.yaml` declaring `ide: "code -n"`
+- **WHEN** `gemba config show` runs from `tasks/support/` and the obeya root holds `gemba.yaml` and a `gemba.local.yaml` declaring `ide: "code -n"`
 - **THEN** the document holds `ide: "code -n"`
 
 #### Scenario: Empty personal config
 - **WHEN** `gemba.local.yaml` is an empty file and a task is created
 - **THEN** the create process proceeds exactly as with no personal config
 
-### Requirement: No organization-specific value outside the config
-Every value that is specific to the organization or to the person using Gemba
+### Requirement: No configured value outside the config
+Every value that is specific to one obeya or to the person using Gemba
 (workstream identifiers, prefixes, descriptions, metadata fields, process rules, the
 IDE command, the repositories folder) SHALL live in the gemba config, in the file the
 layer of its key names, and nowhere else. Skills and commands SHALL obtain such values
@@ -295,8 +295,8 @@ and the other file SHALL still be checked.
 - **THEN** the process stops, reports the parse error, and writes nothing
 
 #### Scenario: Every problem reported at once
-- **WHEN** `gemba.yaml` declares two workstreams with the same prefix and a field `hours` of type `integer`, and `gemba.local.yaml` declares `ide: ""` and `organization: nakatomi`
-- **THEN** any process that reads the config refuses to proceed with one message that names the two workstreams, the field `hours`, `ide` and `organization`, each problem with the path of its file, and writes nothing
+- **WHEN** `gemba.yaml` declares two workstreams with the same prefix and a field `hours` of type `integer`, and `gemba.local.yaml` declares `ide: ""` and `obeya: nakatomi`
+- **THEN** any process that reads the config refuses to proceed with one message that names the two workstreams, the field `hours`, `ide` and `obeya`, each problem with the path of its file, and writes nothing
 
 #### Scenario: One mistake reported once
 - **WHEN** `workstreams` in `gemba.yaml` is a list, `default_workstream` is `support`, and `gemba.local.yaml` declares `create.rules` under `workstreams.support`
@@ -308,8 +308,8 @@ and the other file SHALL still be checked.
 
 ### Requirement: Agent providers
 Each file of the config MAY declare a top-level `agent_providers` list. The list of
-the shared config names the providers of the people who share the tasks repo: the
-skills of the tasks repo are written for them, and a harness is launched for them
+the shared config names the providers of the people who share the obeya: the
+skills of the obeya are written for them, and a harness is launched for them
 unless the personal config declares its own list. The list of the personal config
 names the providers of the person and replaces the shared one for the harnesses
 launched from that clone, and for nothing else. In either file, each entry SHALL be the
@@ -378,26 +378,26 @@ does not open the IDE SHALL proceed when the key is absent.
 - **WHEN** the config has no `ide` key and a task is created
 - **THEN** the create process proceeds exactly as before
 
-### Requirement: Organization, repositories folder and branch prefix
-The shared config MAY declare a top-level `organization`, a kebab-case name (lowercase
-letters, digits and single hyphens) of the organization the tasks repo works for,
-which is a segment of every branch the worktree process creates. The personal config
+### Requirement: Obeya, repositories folder and branch prefix
+The shared config MAY declare a top-level `obeya`, the name of the obeya, a
+kebab-case name (lowercase letters, digits and single hyphens) which is a segment of
+every branch the worktree process creates. The personal config
 MAY declare a top-level `repos_dir`, a non-empty string naming the folder of the
 person's machine whose immediate subfolders are the repositories a run may check out,
-absolute, starting with `~`, or relative to the tasks repo root; and a top-level
+absolute, starting with `~`, or relative to the obeya root; and a top-level
 `branch_prefix`, a kebab-case name that is the first segment of those branches,
 `gemba` when absent. Any process that reads the config SHALL refuse to proceed when
-`organization` or `branch_prefix` is present and is not kebab-case, or when
+`obeya` or `branch_prefix` is present and is not kebab-case, or when
 `repos_dir` is present and is not a non-empty string, naming the key and its file. A
 process that does not need them SHALL proceed when they are absent; the worktree
 process reports the absence itself.
 
-#### Scenario: Organization and repositories folder accepted
-- **WHEN** the shared config declares `organization: nakatomi` and the personal config declares `repos_dir: ~/projects` and `branch_prefix: nk`
+#### Scenario: Obeya and repositories folder accepted
+- **WHEN** the shared config declares `obeya: nakatomi` and the personal config declares `repos_dir: ~/projects` and `branch_prefix: nk`
 - **THEN** every process that reads the config accepts it, and a task is created as before
 
-#### Scenario: Malformed organization or branch prefix refused
-- **WHEN** the `organization` of the shared config is `Nakatomi Corp`, an empty string or a list, or the `branch_prefix` of the personal config is `Gemba/`
+#### Scenario: Malformed obeya or branch prefix refused
+- **WHEN** the `obeya` of the shared config is `Nakatomi Corp`, an empty string or a list, or the `branch_prefix` of the personal config is `Gemba/`
 - **THEN** any process that reads the config refuses to proceed and names the key
 
 #### Scenario: Malformed repositories folder refused
@@ -405,24 +405,30 @@ process reports the absence itself.
 - **THEN** any process that reads the config refuses to proceed and names `repos_dir`
 
 #### Scenario: Keys absent for a process that does not need them
-- **WHEN** neither file declares `organization`, `repos_dir` or `branch_prefix` and a task is created
+- **WHEN** neither file declares `obeya`, `repos_dir` or `branch_prefix` and a task is created
 - **THEN** the create process proceeds exactly as before
 
 ### Requirement: Keys of each layer
 Each top-level key of the gemba config SHALL belong to a layer. Only the shared config
-SHALL hold `metadata`, `default_workstream`, `organization` and the catalogue of
+SHALL hold `metadata`, `default_workstream`, `obeya` and the catalogue of
 workstreams; only the personal config SHALL hold `ide`, `repos_dir` and
 `branch_prefix`; both MAY hold `agent_providers` and the process blocks, which the
 personal config gives a workstream under `workstreams`. A key in the wrong file SHALL
-be refused, naming the key and the file it goes in. Any other key SHALL be ignored.
+be refused, naming the key and the file it goes in. `organization`, the key `obeya`
+replaces, SHALL be refused in either file, naming it and saying that it was renamed
+`obeya`, which belongs in `gemba.yaml`. Any other key SHALL be ignored.
 
 #### Scenario: Personal keys refused in the shared config
 - **WHEN** `gemba.yaml` declares `ide: "code -n"`, `repos_dir: ~/projects` and `branch_prefix: nk`, as a config written for an earlier version may
 - **THEN** any process that reads the config refuses to proceed with one message that names `ide`, `repos_dir` and `branch_prefix` and says each goes in `gemba.local.yaml`, and writes nothing
 
 #### Scenario: Shared keys refused in the personal config
-- **WHEN** `gemba.local.yaml` declares `organization: nakatomi`, `default_workstream: support` and a top-level `metadata` list
+- **WHEN** `gemba.local.yaml` declares `obeya: nakatomi`, `default_workstream: support` and a top-level `metadata` list
 - **THEN** any process that reads the config refuses to proceed with one message that names the three keys and says each goes in `gemba.yaml`, and writes nothing
+
+#### Scenario: Former organization key refused
+- **WHEN** `gemba.yaml` declares `organization: nakatomi`, as a config written for an earlier version does, or `gemba.local.yaml` declares `organization`
+- **THEN** any process that reads the config refuses to proceed with one message that names `organization` under the path of each file that declares it and says it was renamed `obeya`, which belongs in `gemba.yaml`, and writes nothing
 
 #### Scenario: Unknown keys ignored in both files
 - **WHEN** `gemba.yaml` declares a top-level key `reviewers` and `gemba.local.yaml` a top-level key `theme`, neither known to gemba, and a task is created

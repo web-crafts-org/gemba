@@ -1,13 +1,13 @@
 ---
 name: gemba-config
-description: Explain, check, show and edit the config of this tasks repo, gemba.yaml, shared by everyone who uses it, and gemba.local.yaml, private to this clone. Use whenever the user asks to add, change or remove a workstream, a field, a provider, the IDE command, the repositories folder, the branch prefix or the context and rules of a process, for everyone who uses the tasks repo or for themselves alone, or asks what the config can hold.
+description: Explain, check, show and edit the config of this obeya, gemba.yaml, shared by everyone who uses it, and gemba.local.yaml, private to this clone. Use whenever the user asks to add, change or remove a workstream, a field, a provider, the IDE command, the repositories folder, the branch prefix or the context and rules of a process, for everyone who uses the obeya or for themselves alone, or asks what the config can hold.
 ---
 
 # Maintain the gemba config
 
-The gemba config is two files at the root of the tasks repo. `gemba.yaml`, the shared
-config, is committed with the tasks repo: its workstreams, the fields a task records,
-the organization, the agent providers and the context and rules of every process.
+The gemba config is two files at the root of the obeya. `gemba.yaml`, the shared
+config, is committed with the obeya: its workstreams, the fields a task records,
+the name of the obeya, the agent providers and the context and rules of every process.
 `gemba.local.yaml`, the personal config, is optional, private to this clone and ignored
 by git: the command that opens the IDE, where the repositories are, how the local
 branches are named, and what the person adds for themselves alone. Every command reads
@@ -25,7 +25,7 @@ found, stop and tell the user to install it with that command.
 
 ## Reference
 
-Every example below is only an example: the names of this tasks repo are in its own
+Every example below is only an example: the names of this obeya are in its own
 files, which `gemba config show` prints resolved.
 
 ### Top level
@@ -38,10 +38,10 @@ naming the file it belongs in; a key gemba does not know is ignored in both.
 | `default_workstream` | `gemba.yaml` | the identifier of a workstream of the catalogue, where a task goes when no description covers it | refused: it is required |
 | `workstreams` | `gemba.yaml`; process blocks only in `gemba.local.yaml` | a non-empty map of workstreams, keyed by identifier; its order is the order reports group by | refused: it is required |
 | `metadata` | `gemba.yaml` | the list of field declarations shared by every workstream | no shared field |
-| `organization` | `gemba.yaml` | a kebab-case name, the middle segment of the branch of a run, `<branch_prefix>/<organization>/<ref>` | `gemba worktree add` refuses to run |
-| `agent_providers` | both | a non-empty list of agent providers, each listed once: `claude` (`.claude/skills/`, guide `CLAUDE.md`) or `agents` (`.agents/skills/`, guide `AGENTS.md`). In `gemba.yaml`, the providers whose skills the tasks repo holds, and those of every harness; in `gemba.local.yaml`, the providers of the harnesses launched from this clone, in place of the shared list | in `gemba.yaml`: `gemba skills update` and `gemba init` refuse to run, and so does `gemba harness launch` unless `gemba.local.yaml` declares a list; in `gemba.local.yaml`: harnesses use the shared list |
+| `obeya` | `gemba.yaml` | the name of the obeya, the repository that holds `gemba.yaml`, `tasks/` and `harnesses/`, where one person or a team keeps a part of their work in sight, drawn as whoever created it chose: a kebab-case name, the middle segment of the branch of a run, `<branch_prefix>/<obeya>/<ref>` | `gemba worktree add` refuses to run |
+| `agent_providers` | both | a non-empty list of agent providers, each listed once: `claude` (`.claude/skills/`, guide `CLAUDE.md`) or `agents` (`.agents/skills/`, guide `AGENTS.md`). In `gemba.yaml`, the providers whose skills the obeya holds, and those of every harness; in `gemba.local.yaml`, the providers of the harnesses launched from this clone, in place of the shared list | in `gemba.yaml`: `gemba skills update` and `gemba init` refuse to run, and so does `gemba harness launch` unless `gemba.local.yaml` declares a list; in `gemba.local.yaml`: harnesses use the shared list |
 | `ide` | `gemba.local.yaml` | the command that opens a folder in the IDE, as a string split the way a POSIX shell splits it, such as `code -n`, where a path holding spaces or backslashes goes between double quotes, or as a map `{ command: code, args: [-n] }`, which means the same and needs no quoting; the command is resolved on PATH and launch appends the harness path | launch opens nothing |
-| `repos_dir` | `gemba.local.yaml` | the folder of the repositories a run may check out as worktrees: absolute, starting with `~`, or relative to the tasks repo root | `gemba worktree add` refuses to run |
+| `repos_dir` | `gemba.local.yaml` | the folder of the repositories a run may check out as worktrees: absolute, starting with `~`, or relative to the obeya root | `gemba worktree add` refuses to run |
 | `branch_prefix` | `gemba.local.yaml` | a kebab-case name, the first segment of the branch of a run | `gemba` |
 
 The top level of either file may also hold the process blocks described below,
@@ -126,7 +126,7 @@ worktree:
   `harness.note`, `harness.resolve`, `harness.remove`, `worktree.add`, `worktree.list`
   and `worktree.remove`. A group takes no other key, except `harness.guide`.
 - `harness.guide` is a non-empty string written into the guide of every harness
-  launched afterwards: the top-level text of `gemba.yaml` under `## Your organization`,
+  launched afterwards: the top-level text of `gemba.yaml` under `## Your obeya`,
   the workstream's under `## Your workstream`, and the texts of `gemba.local.yaml`
   under `## Your user`, last. A harness already launched keeps its guide.
 - The block that applies to a workstream joins four levels in this order: the top level
@@ -152,12 +152,12 @@ workstreams:
 ```
 
 `gemba.local.yaml` sits beside `gemba.yaml` and is read only there: a folder that holds
-it without `gemba.yaml` is not a tasks repo. It is never committed (`gemba init` adds
+it without `gemba.yaml` is not an obeya. It is never committed (`gemba init` adds
 it to the `.gitignore`), so nobody else sees it. An empty file declares nothing.
 
 - `ide`, `repos_dir` and `branch_prefix` go here and nowhere else.
 - `agent_providers`, when declared, replaces the shared list for the harnesses launched
-  from this clone, and for nothing else: the skills of the tasks repo stay those of the
+  from this clone, and for nothing else: the skills of the obeya stay those of the
   shared list, since they are committed for everyone.
 - Process blocks at its top level apply to every workstream, after the shared ones.
 - `workstreams` gives process blocks to workstreams of the shared catalogue: each key is
@@ -170,8 +170,8 @@ it to the `.gitignore`), so nobody else sees it. An empty file declares nothing.
 ## Process
 
 1. **Locate the config.** Walk up from the current folder to the first folder that holds
-   `gemba.yaml`: it is the tasks repo root, and `gemba.local.yaml`, when there is one,
-   is beside it. If there is none, stop and tell the user that a tasks repo is started
+   `gemba.yaml`: it is the obeya root, and `gemba.local.yaml`, when there is one,
+   is beside it. If there is none, stop and tell the user that an obeya is started
    with `gemba init` and configured the first time through the `gemba-init` skill.
 2. **Read the current state** with `gemba config show`, and read `gemba.yaml` and
    `gemba.local.yaml` themselves, since the edit is made there. When the command
@@ -183,7 +183,7 @@ it to the `.gitignore`), so nobody else sees it. An empty file declares nothing.
    and whether every workstream shares it or one workstream holds it; for a rule or a
    context, the process or verb and whether it applies to every workstream or to one.
    For a key both files may hold, `agent_providers`, a context, a rule or a
-   `harness.guide`, ask whether it is for everyone who uses the tasks repo, in
+   `harness.guide`, ask whether it is for everyone who uses the obeya, in
    `gemba.yaml`, or for the user alone, in `gemba.local.yaml`, unless they said so.
    Check each value against the reference and the current state: an identifier or a
    prefix already in use, a field name declared with another type, or a personal block
@@ -192,7 +192,7 @@ it to the `.gitignore`), so nobody else sees it. An empty file declares nothing.
 4. **Edit the file the key belongs in** with your own tools, changing only what the edit
    needs: keep every other line, comment, key and their order as they were, and write
    new keys in the style of the file. When a key of the personal config is set and
-   `gemba.local.yaml` does not exist, create it at the tasks repo root holding that key
+   `gemba.local.yaml` does not exist, create it at the obeya root holding that key
    alone. Never rewrite a file from the output of `gemba config show`: it holds defaults
    and joined blocks that the files do not.
 5. **Check the config:**
@@ -207,7 +207,7 @@ it to the `.gitignore`), so nobody else sees it. An empty file declares nothing.
    file is moved there, as the next section says. Never leave an invalid config behind,
    since every command refuses to run while it is.
 6. **Refresh the skills when the `agent_providers` of `gemba.yaml` changed**, from the
-   tasks repo root:
+   obeya root:
 
    ```bash
    gemba skills update
@@ -221,22 +221,30 @@ it to the `.gitignore`), so nobody else sees it. An empty file declares nothing.
 7. **Report** what changed in each file, the summary `gemba config check` printed and
    what follows from the edit: the skills written, a folder left to delete, tasks whose
    values no longer match a field. Do not commit: the user reviews and commits the
-   tasks repo, which never holds `gemba.local.yaml`.
+   obeya, which never holds `gemba.local.yaml`.
 
 ## Keys of an earlier config
 
 A config written for an earlier version of gemba declares `ide`, `repos_dir` or
 `branch_prefix` in `gemba.yaml`, and every command refuses it, saying that each belongs
-in `gemba.local.yaml`. When `gemba config check` reports it:
+in `gemba.local.yaml`. It may also declare `organization`, which every command refuses,
+saying that it was renamed `obeya`, which belongs in `gemba.yaml`. When
+`gemba config check` reports them:
 
-1. Move each of these keys to `gemba.local.yaml`, creating the file when it is missing,
-   with its value exactly as written and any comment that belongs to it, and remove it
-   from `gemba.yaml`. Leave every other key where it is.
-2. Run `gemba config check` until it exits 0, fixing every other problem it lists.
-3. When the `.gitignore` at the tasks repo root does not list `gemba.local.yaml`, tell
+1. Move each of `ide`, `repos_dir` and `branch_prefix` to `gemba.local.yaml`, creating
+   the file when it is missing, with its value exactly as written and any comment that
+   belongs to it, and remove it from `gemba.yaml`. Leave every other key where it is.
+2. Rename `organization` to `obeya` in `gemba.yaml`, with its value and any comment
+   that belongs to it exactly as written, leaving every other line where it is. Its
+   value names the branches of the runs, which keep their names. When
+   `gemba.local.yaml` declares `organization`, remove it there and give its value to
+   `obeya` in `gemba.yaml`, asking the user which value to keep when both files declare
+   one and they differ.
+3. Run `gemba config check` until it exits 0, fixing every other problem it lists.
+4. When the `.gitignore` at the obeya root does not list `gemba.local.yaml`, tell
    the user that running `gemba init` once appends that line and changes nothing else,
    so the personal config never reaches the history.
-4. Report the move without committing.
+5. Report the move and the rename without committing.
 
 ## Rules
 
@@ -250,5 +258,5 @@ in `gemba.local.yaml`. When `gemba config check` reports it:
   every ref already allocated as it is; a field changed leaves every value already
   written as it is, and a value no longer of its field's type is reported until
   `gemba set` writes it again. Tell the user so.
-- No organization's names belong in a skill or in the CLI: every workstream, field and
-  rule of the tasks repo lives in its config files.
+- No configured value belongs in a skill or in the CLI: every workstream, field and
+  rule of the obeya lives in its config files.

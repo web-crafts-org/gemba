@@ -1,8 +1,8 @@
-name: organization, repos_dir and branch_prefix do not stop the create process
-scenario: "gemba-config: Organization and repositories folder accepted"
+name: obeya, repos_dir and branch_prefix do not stop the create process
+scenario: "gemba-config: Obeya and repositories folder accepted"
 config:
   default_workstream: operations
-  organization: nakatomi
+  obeya: nakatomi
   workstreams:
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
 local_config:

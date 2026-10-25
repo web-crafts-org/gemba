@@ -1,4 +1,4 @@
-"""`gemba init`: make a folder a tasks repo, writing only what is missing."""
+"""`gemba init`: make a folder an obeya, writing only what is missing."""
 
 from __future__ import annotations
 
@@ -8,17 +8,17 @@ from collections.abc import Callable
 from importlib.metadata import version
 from pathlib import Path
 
-from gemba import config, repo, skills
+from gemba import config, obeya, skills
 
 
 def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
     parser = subparsers.add_parser(
         "init",
-        help="make a folder a tasks repo",
+        help="make a folder an obeya",
         description=(
-            f"Make the folder a tasks repo: {config.CONFIG_FILENAME} with the one workstream default, the "
-            f"{repo.GITKEEP} file, the {', '.join(repo.IGNORED_LINES)} lines of {repo.GITIGNORE}, the LF lines of "
-            f"{repo.GITATTRIBUTES} and the tasks repo skills under the skills folder of every agent provider. "
+            f"Make the folder an obeya: {config.CONFIG_FILENAME} with the one workstream default, the "
+            f"{obeya.GITKEEP} file, the {', '.join(obeya.IGNORED_LINES)} lines of {obeya.GITIGNORE}, the LF lines of "
+            f"{obeya.GITATTRIBUTES} and the obeya skills under the skills folder of every agent provider. "
             "Only what is missing is written: an existing "
             f"{config.CONFIG_FILENAME} is never rewritten and gives the providers, and a skill already on disk is "
             "kept. Nothing is asked and no git is run."
@@ -47,15 +47,15 @@ def run(args: argparse.Namespace) -> int:
     except config.ConfigError:
         pass
     else:
-        errors.append(repo.nested_problem(target, found))
+        errors.append(obeya.nested_problem(target, found))
     if target.exists() and not target.is_dir():
         errors.append(f"{target} is not a folder")
     selected = list(skills.PROVIDERS)
     if args.providers is not None and exists:
-        errors.append(repo.conflict_problem())
+        errors.append(obeya.conflict_problem())
     elif args.providers is not None:
         selected = [provider.strip() for provider in args.providers.split(",")]
-        errors.extend(repo.providers_problem(selected))
+        errors.extend(obeya.providers_problem(selected))
     if errors:
         return fail("nothing written:\n" + "\n".join(f"- {error}" for error in errors))
 
@@ -66,29 +66,29 @@ def run(args: argparse.Namespace) -> int:
         except config.ConfigError as exc:
             return fail(str(exc))
         if gemba_config.agent_providers is None:
-            return fail(repo.no_providers_problem())
+            return fail(obeya.no_providers_problem())
         providers = gemba_config.agent_providers
 
     target.mkdir(parents=True, exist_ok=True)
     if exists:
         report("kept", config.CONFIG_FILENAME)
     else:
-        config_path.write_text(repo.render_config(providers), encoding="utf-8", newline="\n")
+        config_path.write_text(obeya.render_config(providers), encoding="utf-8", newline="\n")
         report("written", config.CONFIG_FILENAME)
 
-    converge(target / repo.GITIGNORE, repo.gitignore_text)
-    converge(target / repo.GITATTRIBUTES, repo.gitattributes_text)
+    converge(target / obeya.GITIGNORE, obeya.gitignore_text)
+    converge(target / obeya.GITATTRIBUTES, obeya.gitattributes_text)
 
-    gitkeep = target / repo.GITKEEP
+    gitkeep = target / obeya.GITKEEP
     if gitkeep.is_file():
-        report("kept", repo.GITKEEP)
+        report("kept", obeya.GITKEEP)
     else:
         gitkeep.parent.mkdir(parents=True, exist_ok=True)
         gitkeep.touch()
-        report("written", repo.GITKEEP)
+        report("written", obeya.GITKEEP)
 
     # A skill on disk is kept whatever its state: refreshing it is the work of gemba skills update.
-    for action in skills.plan(target, providers, version("gemba-cli"), "repo"):
+    for action in skills.plan(target, providers, version("gemba-cli"), "obeya"):
         if action.state == "missing":
             path = target / action.path
             path.parent.mkdir(parents=True, exist_ok=True)
@@ -97,7 +97,7 @@ def run(args: argparse.Namespace) -> int:
         else:
             report("kept", action.path)
 
-    print(repo.NEXT_STEP)
+    print(obeya.NEXT_STEP)
     return 0
 
 

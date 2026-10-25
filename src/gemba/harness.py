@@ -20,12 +20,12 @@ TASK_LINK = "task.md"
 GITIGNORE = ".gitignore"
 GITIGNORE_TEXT = f"{WORKTREES_DIR}/\n"
 BRANCH = "main"
-ORGANIZATION_HEADING = "## Your organization"
+OBEYA_HEADING = "## Your obeya"
 WORKSTREAM_HEADING = "## Your workstream"
 # The section of the guide texts of the personal config, which the person whose agent reads the guide wrote.
 USER_HEADING = "## Your user"
 
-# Levels between the tasks repo root and a harness root: harnesses/<workstream>/<stem>.
+# Levels between the obeya root and a harness root: harnesses/<workstream>/<stem>.
 DEPTH = 3
 
 # The last line `remove` prints in each of its outcomes.
@@ -78,7 +78,7 @@ class NoteFrontmatter:
 class HarnessConfig:
     """The identity of a run, written once by launch."""
 
-    task: str  # task file path relative to the tasks repo root, POSIX separators
+    task: str  # task file path relative to the obeya root, POSIX separators
     ref: str
     workstream: str
     agent_providers: tuple[str, ...]
@@ -154,7 +154,7 @@ def ref_problem(given: str, harness_config: HarnessConfig) -> str | None:
         return None
     return (
         f"{given} is not the task of this harness, {harness_config.ref}: "
-        f"record {given} from the tasks repo or from its own harness"
+        f"record {given} from the obeya or from its own harness"
     )
 
 
@@ -162,7 +162,7 @@ def ref_problem(given: str, harness_config: HarnessConfig) -> str | None:
 class Manifest:
     """What a run holds, shown before its harness is removed."""
 
-    path: str  # harness root relative to the tasks repo root, POSIX separators
+    path: str  # harness root relative to the obeya root, POSIX separators
     task: str
     launched_at: datetime.date
     notes: int
@@ -216,7 +216,7 @@ def removal_problems(
     problems = []
     if working_directory.is_relative_to(harness_root):
         problems.append(
-            "the working directory is inside the harness: run the command from outside it, such as the tasks repo root"
+            "the working directory is inside the harness: run the command from outside it, such as the obeya root"
         )
     if status_lines is None:
         problems.append("the state of the harness repository could not be read with git status")
@@ -231,12 +231,12 @@ def removal_problems(
 
 
 def harness_path(root: Path, workstream: str, stem: str) -> Path:
-    """Where the harness of the task file `<stem>.md` of `workstream` lives under the tasks repo root."""
+    """Where the harness of the task file `<stem>.md` of `workstream` lives under the obeya root."""
     return root / HARNESSES_DIR / workstream / stem
 
 
 def task_link_target(task: str) -> str:
-    """The relative target of `task.md` for the task file at `task`, relative to the tasks repo root."""
+    """The relative target of `task.md` for the task file at `task`, relative to the obeya root."""
     return PurePosixPath(*[".."] * DEPTH, task).as_posix()
 
 
@@ -258,7 +258,7 @@ def render_guide(asset_text: str, base_guide: str | None, workstream_guide: str 
     """The guide of a harness: the asset as shipped, then the base text, the workstream's and the personal one, each
     in its section."""
     guide = asset_text
-    sections = ((ORGANIZATION_HEADING, base_guide), (WORKSTREAM_HEADING, workstream_guide), (USER_HEADING, user_guide))
+    sections = ((OBEYA_HEADING, base_guide), (WORKSTREAM_HEADING, workstream_guide), (USER_HEADING, user_guide))
     for heading, text in sections:
         if text is not None and text.strip():
             guide = f"{guide.rstrip()}\n\n{heading}\n\n{text.strip()}\n"

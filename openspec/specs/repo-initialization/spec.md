@@ -2,15 +2,15 @@
 
 ## Purpose
 
-How a tasks repo is started: what `gemba init` writes so that every command runs from
+How an obeya is started: what `gemba init` writes so that every command runs from
 the first second, how it converges when run again, what it refuses, and how the
 `gemba-init` skill guides a person through the first configuration of the result.
 
 ## Requirements
 
-### Requirement: Init scaffolds a tasks repo
+### Requirement: Init scaffolds an obeya
 `gemba init [path]` SHALL make `path`, or the working directory when `path` is
-omitted, a tasks repo, creating the folder when it does not exist. It SHALL write a
+omitted, an obeya, creating the folder when it does not exist. It SHALL write a
 `gemba.yaml` that every command accepts: `default_workstream: default`, a workstream
 catalogue holding the one workstream `default`, with the prefix `TASK` and a
 description that names it as the place of work that fits no other workstream, and
@@ -18,10 +18,10 @@ description that names it as the place of work that fits no other workstream, an
 SHALL write the `tasks/` folder, kept by an empty `.gitkeep`, a `.gitignore` holding
 the lines `harnesses/`, `gemba.local.yaml` and `/update.md`, so that neither the
 harnesses, nor the personal config, nor the draft of an update left at the root by a
-refused record reach the history of the tasks repo, a `.gitattributes` holding the
+refused record reach the history of the obeya, a `.gitattributes` holding the
 lines `*.md text eol=lf` and `*.yaml text eol=lf`, so that the files gemba owns keep
 LF on every platform whatever `core.autocrlf` says, and every registered skill whose
-scope includes the tasks repo under the skills folder of each selected provider, with
+scope includes the obeya under the skills folder of each selected provider, with
 the content and the provenance that `gemba skills update` writes. It SHALL NOT write a
 `gemba.local.yaml`. It SHALL print one line per path it wrote, `written` followed by
 the path relative to the new root, in the order written, the config, the
@@ -29,11 +29,11 @@ the path relative to the new root, in the order written, the config, the
 final line naming the next step, the guided configuration through the agent, and
 SHALL exit 0. The command SHALL ask nothing on the terminal.
 
-#### Scenario: Tasks repo scaffolded in the working directory
+#### Scenario: Obeya scaffolded in the working directory
 - **WHEN** `gemba init` runs in an empty folder with no `--providers`
-- **THEN** the folder holds `gemba.yaml` with the `default` workstream as the default and `agent_providers` listing every known provider, `.gitignore` with `harnesses/`, `gemba.local.yaml` and `/update.md`, `.gitattributes` with the two `eol=lf` lines, `tasks/.gitkeep` and the tasks-repo skills under `.claude/skills/` and `.agents/skills/`, `gemba-record` and `gemba-migrate` among them, and no `gemba.local.yaml`; the output lists each path as `written` and ends with the next step, and the command exits 0
+- **THEN** the folder holds `gemba.yaml` with the `default` workstream as the default and `agent_providers` listing every known provider, `.gitignore` with `harnesses/`, `gemba.local.yaml` and `/update.md`, `.gitattributes` with the two `eol=lf` lines, `tasks/.gitkeep` and the obeya skills under `.claude/skills/` and `.agents/skills/`, `gemba-record` and `gemba-migrate` among them, and no `gemba.local.yaml`; the output lists each path as `written` and ends with the next step, and the command exits 0
 
-#### Scenario: Tasks repo scaffolded at a given path
+#### Scenario: Obeya scaffolded at a given path
 - **WHEN** `gemba init acme-tasks` runs and `acme-tasks` does not exist
 - **THEN** the folder is created, holds the same files, and nothing is written in the working directory itself
 
@@ -82,16 +82,16 @@ it. Running the command twice SHALL leave the tree identical after the second ru
 - **WHEN** `gemba init` runs in a folder holding a valid `gemba.yaml` with `agent_providers: [claude]`, a `.gitignore` with none of its three lines, a `.gitattributes` holding only `*.md text eol=lf`, and no `tasks/` folder or skills
 - **THEN** `gemba.yaml` is kept byte for byte, `harnesses/`, `gemba.local.yaml` and `/update.md` are appended to `.gitignore` in that order, the `*.yaml` line is appended to `.gitattributes`, `tasks/.gitkeep` and the skills of `claude` are written, no `.agents/` folder appears, and the output reports `kept gemba.yaml`, `updated .gitignore`, `updated .gitattributes` and `written` for the rest
 
-#### Scenario: Personal config ignored in an earlier tasks repo
-- **WHEN** `gemba init` runs in a tasks repo made by an earlier version, whose `.gitignore` holds `harnesses/` alone and whose other files are all in place
+#### Scenario: Personal config ignored in an earlier obeya
+- **WHEN** `gemba init` runs in an obeya made by an earlier version, whose `.gitignore` holds `harnesses/` alone and whose other files are all in place
 - **THEN** `gemba.local.yaml` and `/update.md` are appended to `.gitignore` in that order, the output reports `updated .gitignore` and every other path as `kept`, and the command exits 0
 
-#### Scenario: Draft ignored in an earlier tasks repo
-- **WHEN** `gemba init` runs in a tasks repo whose `.gitignore` holds `harnesses/` and `gemba.local.yaml` and whose other files are all in place, as the version before this change left it
+#### Scenario: Draft ignored in an earlier obeya
+- **WHEN** `gemba init` runs in an obeya whose `.gitignore` holds `harnesses/` and `gemba.local.yaml` and whose other files are all in place, as the version before this change left it
 - **THEN** `/update.md` is appended to `.gitignore`, the output reports `updated .gitignore` and every other path as `kept`, and the command exits 0
 
 #### Scenario: Existing skill kept whatever its state
-- **WHEN** `gemba init` runs in a tasks repo where one skill was edited by hand and another was written by an older version
+- **WHEN** `gemba init` runs in an obeya where one skill was edited by hand and another was written by an older version
 - **THEN** both files are left byte for byte as they were and reported as `kept`
 
 #### Scenario: Providers flag refused with an existing config
@@ -99,32 +99,33 @@ it. Running the command twice SHALL leave the tree identical after the second ru
 - **THEN** the command exits 1, says that the config already declares the providers and that `gemba.yaml` is edited by hand, and writes nothing
 
 #### Scenario: Invalid existing config refused
-- **WHEN** `gemba init` runs in a folder whose `gemba.yaml` declares two workstreams with the same prefix, or declares no `agent_providers`, or whose `gemba.local.yaml` declares `organization`
+- **WHEN** `gemba init` runs in a folder whose `gemba.yaml` declares two workstreams with the same prefix, or declares no `agent_providers`, or whose `gemba.local.yaml` declares `obeya`
 - **THEN** the command exits 1, reports the problem as every command reports it, and writes nothing, not even `.gitignore` or `tasks/`
 
-### Requirement: Init refuses a nested tasks repo
+### Requirement: Init refuses a nested obeya
 When a strict ancestor of the folder to initialize holds `gemba.yaml`, `gemba init`
-SHALL exit 1, name the tasks repo found, and write nothing, so that no tasks repo is
+SHALL exit 1, name the obeya found, and write nothing, so that no obeya is
 ever created inside another one, a harness included.
 
-#### Scenario: Nested tasks repo refused
-- **WHEN** `gemba init` runs from a subfolder of a tasks repo, or `gemba init sub` runs at its root
-- **THEN** the command exits 1, names the root of the tasks repo found, and the tree is untouched
+#### Scenario: Nested obeya refused
+- **WHEN** `gemba init` runs from a subfolder of an obeya, or `gemba init sub` runs at its root
+- **THEN** the command exits 1, names the root of the obeya found, and the tree is untouched
 
 ### Requirement: Init runs no git
 `gemba init` SHALL NOT run git: it creates no repository and no commit. Making the
-tasks repo a git repository, and committing what `init` wrote, is the person's step.
+obeya a git repository, and committing what `init` wrote, is the person's step.
 
 #### Scenario: No repository created
 - **WHEN** `gemba init` runs in an empty folder
 - **THEN** no `.git` folder exists afterwards
 
 ### Requirement: Guided initial configuration
-The `gemba-init` skill SHALL be the one process an agent follows to configure a tasks
-repo that `gemba init` just created, and its description SHALL carry the phrases that
+The `gemba-init` skill SHALL be the one process an agent follows to configure an
+obeya that `gemba init` just created, and its description SHALL carry the phrases that
 make an agent choose it when the user asks to configure, set up or customize gemba
 for the first time. Following it, the agent SHALL ask one question at a time, in this
-order, and skip what the user already said: the name of the organization; the kinds of
+order, and skip what the user already said: what this obeya holds, after saying what
+an obeya is, from which the agent proposes its name, the `obeya` key; the kinds of
 work the person does, from which the agent proposes the workstreams, each with a
 kebab-case identifier, a prefix of uppercase letters and a description written so that
 an agent can tell which work belongs there; which workstream is the default, the
@@ -142,14 +143,18 @@ report the resulting config, saying that `gemba.local.yaml` stays on this machin
 that git ignores it; and SHALL NOT commit. This skill SHALL be used for the first
 configuration only: any later edit is the `gemba-config` skill.
 
-#### Scenario: Agent configures a new tasks repo
-- **WHEN** the user asks the agent to configure gemba in a tasks repo that holds the scaffolded config
+#### Scenario: Agent configures a new obeya
+- **WHEN** the user asks the agent to configure gemba in an obeya that holds the scaffolded config
 - **THEN** the agent asks the questions in the order above, one per message, proposes the workstreams and the fields from the answers, writes the IDE command and the folder of the repositories into `gemba.local.yaml` and the rest into `gemba.yaml`, verifies both with `gemba config check`, refreshes the skills when the providers changed, and reports the config without committing
+
+#### Scenario: Obeya explained before its name
+- **WHEN** the agent asks its first question of the guided configuration
+- **THEN** it says what an obeya is, the room where one part of the person's work is kept in sight, drawn as they choose, such as the organization they work for, a project, a team inside a company or a whole company, asks what this one holds, and proposes the `obeya` name from the answer as a kebab-case name
 
 #### Scenario: Agent does not ask what has a default
 - **WHEN** the agent runs the guided configuration
 - **THEN** it never asks for the branch prefix or for the `context` and `rules` of a process, and names them at the end as edits the `gemba-config` skill makes later
 
 #### Scenario: Guided configuration is used once
-- **WHEN** the user asks to add a workstream or a field to a tasks repo already configured
+- **WHEN** the user asks to add a workstream or a field to an obeya already configured
 - **THEN** the agent follows the `gemba-config` skill, not the guided configuration

@@ -1,4 +1,4 @@
-name: a config without organization, repos_dir or branch_prefix still creates tasks
+name: a config without obeya, repos_dir or branch_prefix still creates tasks
 scenario: "gemba-config: Keys absent for a process that does not need them"
 config:
   default_workstream: operations

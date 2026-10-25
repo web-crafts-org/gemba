@@ -1,19 +1,20 @@
 ---
 name: gemba-list
-description: List, find or count tasks in this tasks repo. Use whenever the user asks to list, show, find, count or filter tasks, or asks "what do I have open", "what am I working on" or what happened on a task, whatever the workstream.
+description: List, find or count tasks in this obeya. Use whenever the user asks to list, show, find, count or filter tasks, or asks "what do I have open", "what am I working on" or what happened on a task, whatever the workstream.
 ---
 
 # List tasks
 
-Answer questions about the tasks in the tasks repo. The `gemba list` command scans the
+Answer questions about the tasks in the obeya. The `gemba list` command scans the
 task folders, validates every file and applies the filters. Your part is to turn the
 request into filters, run the command, open task files only when the answer needs
 their body, and present the result.
 
-Every organization-specific value (workstreams, prefixes, metadata fields, rules) lives
-in `gemba.yaml`. Run `gemba config show` on every run and rely on nothing else you know
-or remember about workstreams or fields: it prints the config resolved, with the fields
-and the blocks shared by every workstream already joined to those of each one.
+Every configured value (workstreams, prefixes, metadata fields, rules) lives in the
+gemba config at the obeya root. Run `gemba config show` on every run and rely on nothing
+else you know or remember about workstreams or fields: it prints the config resolved,
+with the fields and the blocks shared by every workstream already joined to those of
+each one.
 
 ## Prerequisite
 
@@ -25,10 +26,10 @@ Python files directly and do not build the list by reading the task folders your
 ## Process
 
 1. **Locate the config.** Walk up from the current folder to the nearest `gemba.yaml`.
-   That folder is the tasks repo root. If there is none, stop and tell the user that no
+   That folder is the obeya root. If there is none, stop and tell the user that no
    gemba config was found.
-2. **Choose the workstreams.** Run `gemba config show` from anywhere inside the tasks
-   repo: it prints the config resolved as one JSON document, or the problem when the
+2. **Choose the workstreams.** Run `gemba config show` from anywhere inside the obeya:
+   it prints the config resolved as one JSON document, or the problem when the
    config is invalid, which you relay before stopping. When the request names an area
    of work, compare it with the `description` of every entry of `workstreams` in the
    document and pass one `--workstream` per entry that covers it. When the request
@@ -77,7 +78,7 @@ Python files directly and do not build the list by reading the task folders your
    - Repeat an option to give alternatives: two `--status` values list tasks with
      either status, two `--where` values on the same field list tasks with either
      value. Different options must all match.
-5. **Run the command** from anywhere inside the tasks repo root, every time, even when you
+5. **Run the command** from anywhere inside the obeya root, every time, even when you
    listed the same tasks earlier in the conversation:
 
    ```bash
@@ -97,7 +98,7 @@ Python files directly and do not build the list by reading the task folders your
      run it again, asking the user only when the request itself is unclear. If the
      config is missing or invalid, stop and report the message.
 6. **Read the result.** The command prints one JSON object. `tasks` holds one record per
-   matching task: `path` (relative to the tasks repo root), `workstream`, `archived`,
+   matching task: `path` (relative to the obeya root), `workstream`, `archived`,
    `ref`, `date` (created), `title`, `status`, `updated_at`, `done_at`, `metadata` and
    `description`. `problems` holds the files that are not valid tasks and the metadata
    values that are not of the type their field declares, each with its `path` and the

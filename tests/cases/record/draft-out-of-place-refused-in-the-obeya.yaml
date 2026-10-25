@@ -1,6 +1,6 @@
-name: a draft outside the tasks repo is refused and left where it is
-scenario: "task-recording: Draft out of place refused in the tasks repo"
-# The tasks repo is a subfolder of the case, so that the draft above it stays inside the case.
+name: a draft outside the obeya is refused and left where it is
+scenario: "task-recording: Draft out of place refused in the obeya"
+# The obeya is a subfolder of the case, so that the draft above it stays inside the case.
 tree:
   acme-tasks/gemba.yaml: |
     default_workstream: operations
@@ -26,11 +26,11 @@ run: [record, SUP-1, ../outside.md, --date, 2026-10-01]
 exit: 1
 stderr_contains:
   - record not done
-  - ../outside.md is not directly in the tasks repo root (paths are relative to the tasks repo root)
+  - ../outside.md is not directly in the obeya root (paths are relative to the obeya root)
 unchanged: true
 ---
 name: a draft inside a workstream folder is refused, so that a task file is never consumed
-scenario: "task-recording: Draft out of place refused in the tasks repo"
+scenario: "task-recording: Draft out of place refused in the obeya"
 config:
   default_workstream: operations
   agent_providers: [claude]
@@ -55,11 +55,11 @@ run: [record, SUP-1, tasks/support/update.md, --date, 2026-10-01]
 exit: 1
 stderr_contains:
   - record not done
-  - tasks/support/update.md is not directly in the tasks repo root (paths are relative to the tasks repo root)
+  - tasks/support/update.md is not directly in the obeya root (paths are relative to the obeya root)
 unchanged: true
 ---
-name: the draft of a run is refused from the tasks repo, so that it is recorded from its harness
-scenario: "task-recording: Draft out of place refused in the tasks repo"
+name: the draft of a run is refused from the obeya, so that it is recorded from its harness
+scenario: "task-recording: Draft out of place refused in the obeya"
 config:
   default_workstream: operations
   agent_providers: [claude]
@@ -87,6 +87,6 @@ exit: 1
 stderr_contains:
   - record not done
   - >-
-    harnesses/support/2026-09-30-SUP-1-login-fails/update.md is not directly in the tasks repo root
-    (paths are relative to the tasks repo root)
+    harnesses/support/2026-09-30-SUP-1-login-fails/update.md is not directly in the obeya root
+    (paths are relative to the obeya root)
 unchanged: true

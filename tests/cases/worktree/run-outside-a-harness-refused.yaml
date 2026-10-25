@@ -3,7 +3,7 @@ scenario: "harness-worktrees: Run outside a harness refused"
 config:
   default_workstream: operations
   agent_providers: [claude]
-  organization: nakatomi
+  obeya: nakatomi
   workstreams:
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
 local_config:

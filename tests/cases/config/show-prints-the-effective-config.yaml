@@ -2,7 +2,7 @@ name: show prints the resolved top level and the effective schema and blocks of 
 scenario: "config-maintenance: Effective config shown"
 config:
   default_workstream: operations
-  organization: acme
+  obeya: acme
   agent_providers: [claude, agents]
   metadata:
     - { name: client, type: text, description: Who the work is for }
@@ -20,7 +20,7 @@ local_config:
 run: [config, show]
 exit: 0
 stdout_json:
-  organization: acme
+  obeya: acme
   branch_prefix: gemba
   repos_dir: ~/projects
   ide: code -n
@@ -43,7 +43,7 @@ stdout_json:
         archive: *empty
         set: *empty
         harness:
-          guide: { organization: null, workstream: null, user: null }
+          guide: { obeya: null, workstream: null, user: null }
           launch: *empty
           note: *empty
           resolve: *empty

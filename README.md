@@ -5,13 +5,16 @@
 [![Python](https://img.shields.io/pypi/pyversions/gemba-cli)](https://pypi.org/project/gemba-cli/)
 [![License](https://img.shields.io/pypi/l/gemba-cli)](https://github.com/web-crafts-org/gemba/blob/main/LICENSE)
 
-Gemba is a task-based system for working with AI agents. Every unit of work is one
-Markdown file in a repository of your own, your agent registers, launches, updates and
-closes those tasks through fixed processes, and each task is worked on inside a
-harness: a folder of its own, with its notes, its evidence and the code it touches,
-where nothing leaves without your written approval. Everything that is specific to one
-organization, its kinds of work, its fields, its rules, lives in one config file, so
-you keep one tasks repo per organization and the agent behaves the same in all of them.
+Gemba is a task-based system for working with AI agents, made for developers to
+organize their own work, alone or with a team, beside the way their company organizes
+its tasks rather than in its place. Every unit of work is one Markdown file in a
+repository of your own, the obeya. Your agent registers, launches, updates and closes
+those tasks through fixed processes, and each task is worked on inside a harness: a
+folder of its own, with its notes, its evidence and the code it touches, where nothing
+leaves without your written approval. What an obeya holds is yours to draw: the
+organization you work for, a project, a team inside a company, or a whole startup.
+Everything specific to it, its kinds of work, its fields and its rules, lives in its
+config, so the agent behaves the same in every obeya you keep.
 
 The name is 現場, *gemba*: "the actual place", where the work happens. In Gemba that
 place is the harness, a folder made for one task, where the agent works on it and on
@@ -21,12 +24,17 @@ and what it cost, recorded day by day. The harness is where the work gets done; 
 task file is where you learn from it, the record that over time lets you see how you
 work, measure it and improve it.
 
+The repository that holds the tasks is the obeya, 大部屋, "the big room": the room
+where lean teams keep all of their work in sight. In Gemba it is where every task, its
+record and every report of a period are within reach, whether you keep it alone or
+share it with a team.
+
 ## The idea
 
 ```
-  your tasks repo                                  the harness of one run
+  your obeya                                       the harness of one run
   +-------------------------------------+          +--------------------------------+
-  | gemba.yaml   your organization:     |  launch  | task.md     the task, read-only|
+  | gemba.yaml   the config:            |  launch  | task.md     the task, read-only|
   |              workstreams, fields,   | -------> | notes/      what the agent     |
   |              rules per process      |          |             found and decided  |
   | tasks/       one file per task,     |          | assets/     the raw evidence   |
@@ -69,7 +77,7 @@ macOS or Windows.
 ```bash
 uv tool install gemba-cli
 gemba --version
-gemba init ~/nakatomi-tasks       # a tasks repo for the organization you work with
+gemba init ~/nakatomi-obeya       # an obeya for the organization you work with
 ```
 
 `gemba init` writes a minimal `gemba.yaml`, the `tasks/` folder, a `.gitignore` that
@@ -80,11 +88,11 @@ endings in the files Gemba owns, and the skills for every agent it knows
 commit it when you like.
 
 Then open the folder with your agent and ask it to configure Gemba. The `gemba-init`
-skill asks, one question at a time, for your organization, the kinds of work you do,
-which one takes a task that fits no other, what to record per task, your agents, your
-editor and the folder of your repositories. It writes your editor and your
-repositories folder into `gemba.local.yaml`, which stays on your machine, and the rest
-into `gemba.yaml`.
+skill says what an obeya is and asks, one question at a time, what yours holds, which
+gives it its name, the kinds of work you do, which one takes a task that fits no other,
+what to record per task, your agents, your editor and the folder of your repositories.
+It writes your editor and your repositories folder into `gemba.local.yaml`, which stays
+on your machine, and the rest into `gemba.yaml`.
 
 From there, talk to the agent:
 
@@ -145,8 +153,8 @@ the task, or a file naming its path where the system creates no links; the guide
 the agent (`CLAUDE.md`, `AGENTS.md`); the harness skills;
 `notes/`, `assets/` and `worktrees/`. It moves an `open` task to `in-progress` and
 opens the folder with the `ide` command of `gemba.local.yaml` (`--no-open` skips it).
-Launching again only reopens it. `harnesses/` is ignored by the tasks repo: a run is
-not a record, the task is.
+Launching again only reopens it. `harnesses/` is ignored by the obeya: a run is not a
+record, the task is.
 
 ### Work in the harness
 
@@ -194,31 +202,30 @@ gemba record update.md --date 2026-09-30   # a past day
 ```
 
 The bullets land under `### 2026-09-30` in the task's `## Updates` section,
-`updated_at` moves forward, and the draft is deleted. Nothing is committed: the tasks
-repo is yours to review and commit.
+`updated_at` moves forward, and the draft is deleted. Nothing is committed: the obeya
+is yours to review and commit.
 
-Work done outside a harness, such as a meeting or a review, is recorded from the tasks
-repo. Tell the agent what was done: it writes only that into `update.md` at the tasks
-repo root, never the notes of a harness, and names the task by its ref, archived or
-not:
+Work done outside a harness, such as a meeting or a review, is recorded from the obeya.
+Tell the agent what was done: it writes only that into `update.md` at the obeya root,
+never the notes of a harness, and names the task by its ref, archived or not:
 
 ```bash
 gemba record SUP-1 update.md                     # today
 gemba record SUP-1 update.md --date 2026-09-30   # a past day
 ```
 
-A whole history comes from another task file, such as a task of an earlier tasks repo,
-with `--from`: the command reads that file itself, copies its dated subsections as they
-are into a task whose `## Updates` is still empty, and moves `updated_at` to the last
-date copied. The other file is only read:
+A whole history comes from another task file, such as a task of an earlier obeya, with
+`--from`: the command reads that file itself, copies its dated subsections as they are
+into a task whose `## Updates` is still empty, and moves `updated_at` to the last date
+copied. The other file is only read:
 
 ```bash
-gemba record SUP-1 --from ../old-tasks/tasks/support/2026-03-02-SUP-3-login-fails.md
+gemba record SUP-1 --from ../old-obeya/tasks/support/2026-03-02-SUP-3-login-fails.md
 ```
 
 ### Report
 
-Ask the agent in the tasks repo for yesterday, for a day, a week or a month. The
+Ask the agent in the obeya for yesterday, for a day, a week or a month. The
 `gemba-report` skill finds the tasks alive in the period with `gemba list`, reads the
 subsections dated in it, groups what it finds by workstream, and lists the tasks
 updated recently with nothing recorded. Every count and total comes from:
@@ -249,8 +256,8 @@ after its harness is gone. Archived tasks leave `gemba list` unless
 
 ### Keep the metadata
 
-The hours grow, the work gets invoiced. Tell the agent, from the tasks repo or inside
-the harness, and the `gemba-set` skill runs:
+The hours grow, the work gets invoiced. Tell the agent, from the obeya or inside the
+harness, and the `gemba-set` skill runs:
 
 ```bash
 gemba set SUP-1 hours+=2                # added to the number the task holds
@@ -263,9 +270,9 @@ value of the wrong type.
 
 ## The config
 
-The config is two files at the root of the tasks repo. `gemba.yaml`, the shared
-config, is committed: the workstreams, the fields, the organization and the rules
-everyone who uses the tasks repo agrees on. `gemba.local.yaml`, the personal config, is
+The config is two files at the root of the obeya. `gemba.yaml`, the shared config, is
+committed: the workstreams, the fields, the name of the obeya and the rules everyone
+who uses the obeya agrees on. `gemba.local.yaml`, the personal config, is
 optional and ignored by git: what belongs to you and your machine. Both are edited by
 hand, or by the `gemba-config` skill when you ask the agent to add a workstream, a
 field or a rule, for everyone or for yourself; `gemba config check` validates both and
@@ -278,7 +285,7 @@ the skills read it. No command rewrites either.
 default_workstream: operations
 
 agent_providers: [claude, agents]
-organization: nakatomi
+obeya: nakatomi
 
 metadata:
   - { name: client, type: text, required: true, description: Who the work is for }
@@ -322,7 +329,7 @@ workstreams:
 `ide`, `repos_dir` and `branch_prefix` go only in `gemba.local.yaml`: they run a
 command or name paths and branches on your machine, so no command a teammate commits
 runs on yours. `agent_providers` may go in both: the shared list decides the skills of
-the tasks repo, and yours, when you declare one, the agents your harnesses are launched
+the obeya, and yours, when you declare one, the agents your harnesses are launched
 for. The `context`, `rules` and `harness.guide` of your personal config come after the
 shared ones, at the top level and for any workstream of the shared catalogue, so your
 rule wins a contradiction; they add to the team's agreement and never remove from it.
@@ -334,46 +341,45 @@ What you can customize, all of it in the config and never in a skill:
 - **Metadata fields**, shared or per workstream, each of one type: `text`, `number`,
   `boolean` or `date`. Gemba reads, filters, groups and adds values by their type and
   never interprets their meaning.
-- **Agent providers**, the organization, and in your personal config the IDE command
-  (a string, or `{ command: code, args: [-n] }`), the repositories folder and the
-  branch prefix.
+- **Agent providers**, the name of the obeya, and in your personal config the IDE
+  command (a string, or `{ command: code, args: [-n] }`), the repositories folder and
+  the branch prefix.
 - **`context` and `rules` for every process**, at the top level and per workstream, in
   either file: what the agent should know and do when it creates, lists, launches,
   notes, records, marks, archives or checks out, with the workstream's rule winning a
   contradiction, and yours winning over the shared ones.
-- **The guide** of every harness, with a paragraph of your organization, one of the
+- **The guide** of every harness, with a paragraph of your obeya, one of the
   workstream and one of your own.
 
 Changing any of it is a config edit: no skill and no code changes.
 
-## Bring tasks from another tasks repo
+## Bring tasks from another obeya
 
-When you start in a new tasks repo, such as the one a team shares, your earlier tasks
-stay in the old one. Nothing converts it: the old tasks repo stays as it was, as
-history. Ask the agent, in the new tasks repo, to migrate tasks from the old one, naming
-its path. The `gemba-migrate` skill reads the old tasks repo as data, never following
-its rules, asks which tasks to bring, the ones not done or the finished ones too, and
-maps each old workstream and field to one of the new config with you, one question at
-a time. A task whose harness is still there waits: finish it in the old tasks repo, or
-push its work, remove the harness and launch the task again in the new one once it is
-migrated.
+When you start in a new obeya, such as the one a team shares, your earlier tasks stay
+in the old one. Nothing converts it: the old obeya stays as it was, as history. Ask
+the agent, in the new obeya, to migrate tasks from the old one, naming its path. The
+`gemba-migrate` skill reads the old obeya as data, never following its rules, asks
+which tasks to bring, the ones not done or the finished ones too, and maps each old
+workstream and field to one of the new config with you, one question at a time. A task
+whose harness is still there waits: finish it in the old obeya, or push its work,
+remove the harness and launch the task again in the new one once it is migrated.
 
-The commands write every task, with a new ref. For a task done in the old tasks repo:
+The commands write every task, with a new ref. For a task done in the old obeya:
 
 ```bash
 gemba create --workstream support --slug login-fails --date 2026-03-02 --set client=Acme
-gemba record SUP-1 --from ../old-tasks/tasks/support/2026-03-02-SUP-3-login-fails.md
+gemba record SUP-1 --from ../old-obeya/tasks/support/2026-03-02-SUP-3-login-fails.md
 gemba mark SUP-1 done --date 2026-04-10
-gemba archive SUP-3 --root ../old-tasks
+gemba archive SUP-3 --root ../old-obeya
 ```
 
 Between the first two, the agent copies the old body above `## Updates`, ending with a
-paragraph that names the old ref and tasks repo; `gemba record --from` copies the dated
-history as it is, and a task archived in the old tasks repo is archived in the new one
-too. The last command closes the loop: the migrated tasks are archived in the old tasks
-repo. Nothing is committed: both tasks repos are yours to review and commit. A tasks
-repo made by an earlier version whose config the current CLI refuses is upgraded first,
-with the `gemba-config` skill run from inside it.
+paragraph that names the old ref and obeya; `gemba record --from` copies the dated
+history as it is, and a task archived in the old obeya is archived in the new one too.
+The last command closes the loop: the migrated tasks are archived in the old obeya.
+Nothing is committed: both obeyas are yours to review and commit. An obeya made by an
+earlier version whose config the current CLI refuses is upgraded first, with the
+`gemba-config` skill run from inside it.
 
 ## On Windows
 
@@ -382,7 +388,7 @@ PowerShell, the command prompt or Git Bash, with no administrator rights:
 
 ```powershell
 uv tool install gemba-cli
-gemba init $HOME\nakatomi-tasks
+gemba init $HOME\nakatomi-obeya
 ```
 
 - **The `ide` command** of `gemba.local.yaml`. A bare `code -n` works: the command is
@@ -401,7 +407,7 @@ gemba init $HOME\nakatomi-tasks
   Developer Mode is optional.
 - **Long paths.** When git fails with `Filename too long`, run
   `git config --global core.longpaths true`, which Gemba's message suggests.
-- **An existing tasks repo.** Running `gemba init` again on a tasks repo made before
+- **An existing obeya.** Running `gemba init` again on an obeya made before
   this version adds the `.gitattributes`; on a checkout with `core.autocrlf=true`, run
   `git add --renormalize .` once and commit, so that the task files and the config are
   stored with LF.

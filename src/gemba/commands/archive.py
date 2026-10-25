@@ -23,7 +23,7 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
     parser.add_argument(
         "refs", nargs="+", metavar="ref", help="ref of a task, such as SUP-1; give several to archive them"
     )
-    parser.add_argument("--root", type=Path, help="tasks repo root (default: walk up to the nearest gemba.yaml)")
+    parser.add_argument("--root", type=Path, help="obeya root (default: walk up to the nearest gemba.yaml)")
     parser.set_defaults(handler=run)
 
 

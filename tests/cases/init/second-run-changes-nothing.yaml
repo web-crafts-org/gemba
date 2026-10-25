@@ -32,5 +32,5 @@ stdout: |
   kept .agents/skills/gemba-init/SKILL.md
   kept .agents/skills/gemba-config/SKILL.md
   kept .agents/skills/gemba-migrate/SKILL.md
-  next step: open this tasks repo with your agent and ask it to configure gemba (the gemba-init skill)
+  next step: open this obeya with your agent and ask it to configure gemba (the gemba-init skill)
 unchanged: true

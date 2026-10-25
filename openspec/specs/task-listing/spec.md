@@ -79,7 +79,7 @@ SHALL be reported as a problem so that tasks never disappear silently.
 On success the command SHALL print to standard output a single JSON object with two
 keys: `tasks`, the list of matching task records, and `problems`, the list of problems
 found while scanning. A task record SHALL carry exactly: `path` (relative to the
-tasks repo root, POSIX separators), `workstream`, `archived` (boolean), `ref`, `date`
+obeya root, POSIX separators), `workstream`, `archived` (boolean), `ref`, `date`
 (the creation date from the filename), `title` (the display title derived from the
 filename), `status`, `updated_at`, `done_at` (`null` when absent), `metadata` (the
 frontmatter map as written, values uninterpreted) and `description` (the first
@@ -264,9 +264,9 @@ process depends on it.
 - **WHEN** the user asks only for the refs of blocked tasks
 - **THEN** the agent answers with the refs and titles, without the full suggested layout
 
-### Requirement: Skill contains no organization-specific value
+### Requirement: Skill contains no configured value
 The `gemba-list` skill SHALL contain only the process and SHALL NOT name any workstream,
-prefix, metadata field or organization-specific rule.
+prefix, metadata field or configured rule.
 
 #### Scenario: Config change without skill change
 - **WHEN** a workstream or a metadata field is added to `gemba.yaml`

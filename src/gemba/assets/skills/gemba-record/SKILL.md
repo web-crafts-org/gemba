@@ -1,6 +1,6 @@
 ---
 name: gemba-record
-description: Record the day's work on a task, inside its harness distilled from the notes of the run, or from the tasks repo from what the user says was done outside a run, such as a meeting or a review. Use whenever the user asks to record, log or backfill what was done on a task today, yesterday or on a given date, to update the task from the notes of its harness, or to record a meeting, a call or a review held on a task, whatever the workstream.
+description: Record the day's work on a task, inside its harness distilled from the notes of the run, or from the obeya from what the user says was done outside a run, such as a meeting or a review. Use whenever the user asks to record, log or backfill what was done on a task today, yesterday or on a given date, to update the task from the notes of its harness, or to record a meeting, a call or a review held on a task, whatever the workstream.
 ---
 
 # Record the day
@@ -13,11 +13,11 @@ decides where they go.
 
 Where you record decides the only source of the bullets. Inside the harness of the
 task, the notes of a harness are the memory of the run, and recording promotes one day
-of the run into the task, from the notes of that day. From the tasks repo, for work done
+of the run into the task, from the notes of that day. From the obeya, for work done
 outside a run, such as a meeting or a review, the source is what the user tells you.
 
-Every organization-specific value (workstreams and their rules) lives in `gemba.yaml`,
-at the tasks repo root. Run `gemba config show` on every run and rely on nothing else
+Every configured value (workstreams and their rules) lives in the gemba config at the
+obeya root. Run `gemba config show` on every run and rely on nothing else
 you know or remember about workstreams: it prints the config resolved, with the blocks
 shared by every workstream already joined to those of each one.
 
@@ -32,7 +32,7 @@ task file.
 
 Inside the harness of the task. Paths are relative to the harness root, the folder that
 holds `harness.yaml`. Only the task of the harness is recorded here; another task is
-recorded from the tasks repo or from its own harness.
+recorded from the obeya or from its own harness.
 
 1. **Choose the date.** Today, unless the user names another day. Read today's date
    from the environment (`date +%F` in a POSIX shell, `Get-Date -Format yyyy-MM-dd` in
@@ -84,11 +84,11 @@ recorded from the tasks repo or from its own harness.
 8. **Relay the result:** the task path and the `updated_at` line the command printed,
    which says whether the date moved or was left unchanged because the task was
    already updated later, and the bullets you recorded. The user reviews and commits
-   the change in the tasks repo.
+   the change in the obeya.
 
-## Process from the tasks repo
+## Process from the obeya
 
-For work done outside a run. Paths are relative to the tasks repo root, the folder that
+For work done outside a run. Paths are relative to the obeya root, the folder that
 holds `gemba.yaml`.
 
 1. **Identify the task by its ref**, `<PREFIX>-<N>`. Take the ref the user gives; when
@@ -119,12 +119,12 @@ holds `gemba.yaml`.
    whom. Each bullet must make sense to someone who was not in the conversation: name
    the system, the file, the merge request or the person. Say nothing the user did not
    tell you.
-7. **Write the draft** at the tasks repo root, `update.md`, with your own tools: bullets
+7. **Write the draft** at the obeya root, `update.md`, with your own tools: bullets
    only, each starting with `- `, and a bullet that runs over several lines continued
    by lines indented by two spaces. No heading, no date, no frontmatter, no other text.
    Never write it anywhere else: the command refuses a draft that is not directly in
-   the tasks repo root.
-8. **Run the command** from anywhere in the tasks repo:
+   the obeya root.
+8. **Run the command** from anywhere in the obeya:
 
    ```bash
    gemba record <ref> update.md [--date YYYY-MM-DD]
@@ -145,16 +145,15 @@ holds `gemba.yaml`.
      `update.md` yourself and do not run the command again: a second run would write
      the same bullets twice.
 9. **Relay the result:** the task path and the `updated_at` line the command printed,
-   and the bullets you recorded. The user reviews and commits the change in the tasks
-   repo.
+   and the bullets you recorded. The user reviews and commits the change in the obeya.
 
 ## Rules
 
 - `task.md` and every task file are read-only: never edit them, and never write a
   `### YYYY-MM-DD` heading or a frontmatter value by hand. The command is the only
   writer of the update.
-- Inside a harness, record only what the notes of the date support; from the tasks
-  repo, only what the user told you, and never the notes of a harness. When in doubt,
+- Inside a harness, record only what the notes of the date support; from the obeya,
+  only what the user told you, and never the notes of a harness. When in doubt,
   leave it out.
 - One draft and one run per date, oldest date first.
 - When `gemba.yaml` changes, follow the new content. This skill never needs an edit when

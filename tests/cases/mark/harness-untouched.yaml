@@ -1,4 +1,4 @@
-name: marking a launched task done from the tasks repo leaves its harness repository as launch left it
+name: marking a launched task done from the obeya leaves its harness repository as launch left it
 scenario: "task-marking: Harness untouched"
 config:
   default_workstream: operations

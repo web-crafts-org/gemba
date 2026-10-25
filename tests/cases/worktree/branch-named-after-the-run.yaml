@@ -1,9 +1,9 @@
-name: without branch_prefix the branch of the run is gemba/<organization>/<ref>, with no upstream
+name: without branch_prefix the branch of the run is gemba/<obeya>/<ref>, with no upstream
 scenario: "harness-worktrees: Branch named after the run"
 config:
   default_workstream: operations
   agent_providers: [claude]
-  organization: nakatomi
+  obeya: nakatomi
   workstreams:
     support: { prefix: SUP, description: Investigate a client-reported problem }
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
@@ -40,12 +40,12 @@ files_contain:
 git_branches:
   repos/nakatomi-web: [gemba/nakatomi/SUP-1, main]
 ---
-name: with branch_prefix the branch of the run is <branch_prefix>/<organization>/<ref>, with no upstream
+name: with branch_prefix the branch of the run is <branch_prefix>/<obeya>/<ref>, with no upstream
 scenario: "harness-worktrees: Branch named after the run"
 config:
   default_workstream: operations
   agent_providers: [claude]
-  organization: nakatomi
+  obeya: nakatomi
   workstreams:
     support: { prefix: SUP, description: Investigate a client-reported problem }
     operations: { prefix: OPS, description: Anything that does not fit another workstream }

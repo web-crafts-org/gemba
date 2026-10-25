@@ -31,8 +31,8 @@ A contribution of code follows that shape:
    your agent, which run the same commands; write the case of each scenario before the
    code that makes it pass, and never edit a case to make it pass.
 3. Keep the three piles apart: built-in behaviour in `src/gemba/` and the skills,
-   customization in `gemba.yaml`, data in the tasks repo. No module and no skill holds
-   a value of one organization.
+   customization in `gemba.yaml`, data in the obeya. No module and no skill holds a
+   configured value.
 4. Run the gates below before opening the pull request, and describe in it what the
    change does and which scenarios it adds or modifies.
 

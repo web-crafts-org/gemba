@@ -1,5 +1,5 @@
-name: init from a subfolder of a tasks repo is refused naming the tasks repo found
-scenario: "repo-initialization: Nested tasks repo refused"
+name: init from a subfolder of an obeya is refused naming the obeya found
+scenario: "repo-initialization: Nested obeya refused"
 config:
   default_workstream: operations
   agent_providers: [claude]
@@ -10,12 +10,12 @@ tree:
 cwd: notes
 run: [init]
 exit: 1
-stderr_contains: [is inside the tasks repo, a tasks repo is never created inside another one]
+stderr_contains: [is inside the obeya, an obeya is never created inside another one]
 absent: [notes/gemba.yaml, notes/tasks]
 unchanged: true
 ---
-name: init of a subfolder given at the root of a tasks repo is refused naming the tasks repo found
-scenario: "repo-initialization: Nested tasks repo refused"
+name: init of a subfolder given at the root of an obeya is refused naming the obeya found
+scenario: "repo-initialization: Nested obeya refused"
 config:
   default_workstream: operations
   agent_providers: [claude]
@@ -24,6 +24,6 @@ config:
 cwd: .
 run: [init, sub]
 exit: 1
-stderr_contains: [is inside the tasks repo, a tasks repo is never created inside another one]
+stderr_contains: [is inside the obeya, an obeya is never created inside another one]
 absent: [sub]
 unchanged: true

@@ -24,7 +24,7 @@ a file that is not valid YAML. When no config is found, it SHALL exit 1 and say 
 The command SHALL write nothing in any case.
 
 #### Scenario: Valid config summarized
-- **WHEN** `gemba config check` runs in a tasks repo whose config declares `support` (`SUP`) and `operations` (`OPS`), the default `operations`, and `agent_providers: [claude, agents]`
+- **WHEN** `gemba config check` runs in an obeya whose config declares `support` (`SUP`) and `operations` (`OPS`), the default `operations`, and `agent_providers: [claude, agents]`
 - **THEN** the output is the valid line, `workstreams: support (SUP), operations (OPS)`, `default workstream: operations` and `agent providers: claude, agents`, the tree is untouched and the exit code is 0
 
 #### Scenario: Providers absent summarized
@@ -40,13 +40,13 @@ The command SHALL write nothing in any case.
 - **THEN** `gemba config check` exits 1 and reports that no gemba config was found
 
 #### Scenario: Personal config summarized
-- **WHEN** `gemba config check` runs in the tasks repo of the first scenario, whose root also holds a `gemba.local.yaml` declaring `ide: "code -n"` and `agent_providers: [claude]`
+- **WHEN** `gemba config check` runs in the obeya of the first scenario, whose root also holds a `gemba.local.yaml` declaring `ide: "code -n"` and `agent_providers: [claude]`
 - **THEN** the output is `gemba.yaml is valid`, `gemba.local.yaml is valid`, `workstreams: support (SUP), operations (OPS)`, `default workstream: operations`, `agent providers: claude, agents` and `harness providers: claude`, the tree is untouched and the exit code is 0
 
 ### Requirement: Show prints the effective config
 `gemba config show [--workstream <id>]` SHALL validate the config as `check` does and
 print one JSON document holding the effective config, merged from both files:
-`organization` as the shared config declares it or `null`; `branch_prefix` as the
+`obeya` as the shared config declares it or `null`; `branch_prefix` as the
 personal config declares it, or the default when it declares none; `repos_dir` and
 `ide` as the personal config declares them or `null`; `agent_providers` as the shared
 config declares it or `null`; `harness_providers`, the providers a launch writes the
@@ -60,21 +60,21 @@ block: `context`, the context of every level that declares one, in the order of 
 effective block, separated by one empty line, or `null`; and `rules`, every rule of
 every level in that order, an empty list when none. The entry of a group holds one
 such block per verb of the group and, for `harness`, `guide`, an object with the base
-guide of the shared config under `organization`, the workstream's guide of the shared
+guide of the shared config under `obeya`, the workstream's guide of the shared
 config under `workstream`, and the guide texts of the personal config under `user`,
 its base text followed by the workstream's, one empty line apart, each `null` when
 absent. Every process and verb SHALL be present even when no level declares it. With
 `--workstream`, the list SHALL hold that workstream only; an identifier not in the
 catalogue SHALL be refused naming the valid ones. The command SHALL run from any
-folder inside the tasks repo, a harness included, and SHALL write nothing.
+folder inside the obeya, a harness included, and SHALL write nothing.
 
 #### Scenario: Effective config shown
-- **WHEN** `gemba config show` runs in a tasks repo whose shared config declares the base field `client`, workstream `support` redeclaring `client` as required and adding `project`, and `operations` with no fields, and whose personal config declares `ide` and `repos_dir`
-- **THEN** the document lists `support` with `client` required and `project`, `operations` with `client` optional, every process entry with `context: null` and `rules: []`, every `harness.guide` with `organization`, `workstream` and `user` all `null`, the top-level keys as declared, `ide` and `repos_dir` from the personal config, and `harness_providers` equal to `agent_providers`
+- **WHEN** `gemba config show` runs in an obeya whose shared config declares the base field `client`, workstream `support` redeclaring `client` as required and adding `project`, and `operations` with no fields, and whose personal config declares `ide` and `repos_dir`
+- **THEN** the document lists `support` with `client` required and `project`, `operations` with `client` optional, every process entry with `context: null` and `rules: []`, every `harness.guide` with `obeya`, `workstream` and `user` all `null`, the top-level keys as declared, `ide` and `repos_dir` from the personal config, and `harness_providers` equal to `agent_providers`
 
 #### Scenario: Blocks combined from both levels
 - **WHEN** the top level declares `create.context`, `create.rules`, `harness.guide` and `worktree.add.rules`, and workstream `support` declares `create.rules`, `harness.guide` and `worktree.add.rules`
-- **THEN** the `support` entry holds `create.context` as the base text, `create.rules` with the base rule first, `harness.guide` with both texts under `organization` and `workstream` and `null` under `user`, and `worktree.add.rules` with the base rule then the workstream's, while `operations` holds the base values alone
+- **THEN** the `support` entry holds `create.context` as the base text, `create.rules` with the base rule first, `harness.guide` with both texts under `obeya` and `workstream` and `null` under `user`, and `worktree.add.rules` with the base rule then the workstream's, while `operations` holds the base values alone
 
 #### Scenario: One workstream shown
 - **WHEN** `gemba config show --workstream support` runs
@@ -86,7 +86,7 @@ folder inside the tasks repo, a harness included, and SHALL write nothing.
 
 #### Scenario: Show from inside a harness
 - **WHEN** `gemba config show --workstream support` runs from inside the harness of a `support` task
-- **THEN** the document is the same as from the tasks repo root
+- **THEN** the document is the same as from the obeya root
 
 #### Scenario: Show refuses an invalid config
 - **WHEN** `gemba config show` runs with a config whose `default_workstream` names a missing workstream
@@ -103,17 +103,18 @@ person or by the agent on their behalf. The `gemba-config` skill SHALL be the on
 process an agent follows for that edit, and its description SHALL carry the phrases
 that make an agent choose it when the user asks to add, change or remove a workstream,
 a field, a provider, the IDE command, the repositories folder, the branch prefix or
-the context and rules of a process, for everyone who uses the tasks repo or for
+the context and rules of a process, for everyone who uses the obeya or for
 themselves alone, or asks what the config can hold. The skill SHALL carry the
 reference of every key of both files, its shape, its constraints and the file it
-belongs in, as the gemba config specifies them, with no organization-specific value
+belongs in, as the gemba config specifies them, with no configured value
 in it. Following it, the agent SHALL read the current state with `gemba config show`,
 ask for what the edit needs and the user did not say, including, for a key both files
-may hold, whether it is for everyone who uses the tasks repo or for the person alone;
+may hold, whether it is for everyone who uses the obeya or for the person alone;
 edit the file the key belongs in, creating `gemba.local.yaml` when a personal key is
 first set, keeping every other line, comment and key as it was; run
 `gemba config check` and fix every problem it reports until it exits 0, moving a key
-it reports in the wrong file to the file it names; run `gemba skills update` when the
+it reports in the wrong file to the file it names and renaming `organization`, which it
+reports as renamed, to `obeya` in `gemba.yaml`; run `gemba skills update` when the
 `agent_providers` of the shared config changed; tell the user that the skills folder
 of a removed provider is left for them to delete; report the edit, and SHALL NOT
 commit. The skill SHALL never move, rename or edit a task file for a workstream that
@@ -131,10 +132,14 @@ changed.
 - **WHEN** the edit added or removed an entry of the `agent_providers` of the shared config
 - **THEN** the agent runs `gemba skills update` and, for a removed provider, tells the user which skills folder is left for them to delete
 
-#### Scenario: Reference free of organization values
+#### Scenario: Reference free of configured values
 - **WHEN** the `gemba-config` skill is read
-- **THEN** it names every key of the gemba config with the file it belongs in, and no workstream, prefix, field or value of any organization
+- **THEN** it names every key of the gemba config with the file it belongs in, and no workstream, prefix, field or value of any obeya
 
 #### Scenario: Keys of an earlier config moved
 - **WHEN** `gemba config check` reports that `gemba.yaml` declares `ide`, `repos_dir` or `branch_prefix`, as a config written for an earlier version does
 - **THEN** the agent moves each of them to `gemba.local.yaml`, creating it when missing, with its value as written, removes it from `gemba.yaml`, runs `gemba config check` until it exits 0, and reports the move without committing
+
+#### Scenario: Former organization key renamed
+- **WHEN** `gemba config check` reports that `gemba.yaml` declares `organization`, as a config written for an earlier version does
+- **THEN** the agent renames the key to `obeya` with its value and any comment that belongs to it as written, leaving every other line where it is, runs `gemba config check` until it exits 0, and reports the rename without committing

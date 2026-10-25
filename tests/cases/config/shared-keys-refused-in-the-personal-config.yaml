@@ -1,4 +1,4 @@
-name: organization, default_workstream and metadata in gemba.local.yaml are refused in one message that sends each to gemba.yaml
+name: obeya, default_workstream and metadata in gemba.local.yaml are refused in one message that sends each to gemba.yaml
 scenario: "gemba-config: Shared keys refused in the personal config"
 config:
   default_workstream: operations
@@ -6,7 +6,7 @@ config:
     support: { prefix: SUP, description: Investigate a client-reported problem }
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
 local_config:
-  organization: nakatomi
+  obeya: nakatomi
   default_workstream: support
   metadata:
     - { name: client, type: text }
@@ -17,7 +17,7 @@ exit: 1
 stderr_contains:
   - invalid gemba config
   - gemba.local.yaml
-  - organization belongs in gemba.yaml
+  - obeya belongs in gemba.yaml
   - default_workstream belongs in gemba.yaml
   - metadata belongs in gemba.yaml
 unchanged: true

@@ -1,5 +1,5 @@
-name: the skills of the tasks repo are written for the providers of gemba.yaml, never for those of the personal config
-scenario: "built-in-skills: Personal providers leave the tasks repo skills"
+name: the skills of the obeya are written for the providers of gemba.yaml, never for those of the personal config
+scenario: "built-in-skills: Personal providers leave the obeya skills"
 config:
   default_workstream: operations
   agent_providers: [claude]

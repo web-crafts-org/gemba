@@ -15,7 +15,7 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         "config",
         help="check the gemba config or show it resolved",
         description=(
-            f"Read the config of the tasks repo, the shared {config.CONFIG_FILENAME} and the personal "
+            f"Read the config of the obeya, the shared {config.CONFIG_FILENAME} and the personal "
             f"{config.LOCAL_FILENAME} beside it, without ever writing them: both files are edited by hand."
         ),
     )
@@ -32,7 +32,7 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
             "reported with every problem of both files, each with the path of its file, and the command exits 1."
         ),
     )
-    check.add_argument("--root", type=Path, help="tasks repo root (default: walk up to the nearest gemba.yaml)")
+    check.add_argument("--root", type=Path, help="obeya root (default: walk up to the nearest gemba.yaml)")
     check.set_defaults(handler=run_check)
 
     show = verbs.add_parser(
@@ -48,7 +48,7 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         ),
     )
     show.add_argument("--workstream", metavar="ID", help="workstream identifier from gemba.yaml (default: every one)")
-    show.add_argument("--root", type=Path, help="tasks repo root (default: walk up to the nearest gemba.yaml)")
+    show.add_argument("--root", type=Path, help="obeya root (default: walk up to the nearest gemba.yaml)")
     show.set_defaults(handler=run_show)
 
 
@@ -86,7 +86,7 @@ def run_show(args: argparse.Namespace) -> int:
         )
     shown = [args.workstream] if args.workstream is not None else list(gemba_config.workstreams)
     document = {
-        "organization": gemba_config.organization,
+        "obeya": gemba_config.obeya,
         "branch_prefix": gemba_config.branch_prefix,
         "repos_dir": gemba_config.repos_dir,
         "ide": None if gemba_config.ide is None else gemba_config.ide.declared,

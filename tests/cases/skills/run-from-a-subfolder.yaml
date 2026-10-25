@@ -1,4 +1,4 @@
-name: run from a task folder writes the skills at the tasks repo root
+name: run from a task folder writes the skills at the obeya root
 scenario: "built-in-skills: Run from a subfolder"
 config:
   default_workstream: operations

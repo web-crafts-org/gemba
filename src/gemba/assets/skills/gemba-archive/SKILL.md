@@ -1,6 +1,6 @@
 ---
 name: gemba-archive
-description: Archive tasks of this tasks repo that went cold, so that they leave the listings. Use whenever the user asks to archive tasks, to put away cold, old or inactive tasks, or to clean up the task list, whatever the workstream.
+description: Archive tasks of this obeya that went cold, so that they leave the listings. Use whenever the user asks to archive tasks, to put away cold, old or inactive tasks, or to clean up the task list, whatever the workstream.
 ---
 
 # Archive tasks
@@ -11,8 +11,8 @@ the files, one or many in one call, whatever their status, and refuses the ones 
 cannot move. Your part is to find the tasks with the user, get their confirmation, run
 the command once and relay every line it prints.
 
-Every organization-specific value (workstreams and their rules) lives in `gemba.yaml`,
-at the tasks repo root. Run `gemba config show` on every run and rely on nothing else
+Every configured value (workstreams and their rules) lives in the gemba config at the
+obeya root. Run `gemba config show` on every run and rely on nothing else
 you know or remember about workstreams: it prints the config resolved, with the blocks
 shared by every workstream already joined to those of each one.
 
@@ -25,7 +25,7 @@ yourself, with `mv`, `git mv` or any other tool.
 
 ## Process
 
-From anywhere inside the tasks repo.
+From anywhere inside the obeya.
 
 1. **Take the refs the user names.** When the user names the tasks by ref, go to
    step 4 with those refs. When they name them by title or description, find their
@@ -66,7 +66,7 @@ From anywhere inside the tasks repo.
    line with its reason. When a task was refused because its harness still exists, say
    that `gemba harness remove <ref>` clears it, through the `gemba-harness` skill, and
    that the task can be archived once its harness is gone. The user reviews and
-   commits the moves in the tasks repo.
+   commits the moves in the obeya.
 
 ## Rules
 

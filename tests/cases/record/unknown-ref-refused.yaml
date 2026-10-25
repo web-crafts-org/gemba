@@ -1,4 +1,4 @@
-name: a ref no task has, archived or not, is refused from the tasks repo and the draft is kept
+name: a ref no task has, archived or not, is refused from the obeya and the draft is kept
 scenario: "task-recording: Unknown ref refused"
 config:
   default_workstream: operations

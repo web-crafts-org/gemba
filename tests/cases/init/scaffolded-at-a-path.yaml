@@ -1,5 +1,5 @@
-name: init with a path creates the folder and writes the tasks repo there only
-scenario: "repo-initialization: Tasks repo scaffolded at a given path"
+name: init with a path creates the folder and writes the obeya there only
+scenario: "repo-initialization: Obeya scaffolded at a given path"
 cwd: .
 run: [init, acme-tasks]
 exit: 0
@@ -8,7 +8,7 @@ stdout_contains:
   - "written .agents/skills/gemba-config/SKILL.md\nwritten .agents/skills/gemba-migrate/SKILL.md\nnext step: "
 files:
   acme-tasks/gemba.yaml: |
-    # The gemba config of this tasks repo, edited by hand: no gemba command rewrites it.
+    # The gemba config of this obeya, edited by hand: no gemba command rewrites it.
     # Ask your agent to configure gemba for the first time (the gemba-init skill) and to
     # change it later (the gemba-config skill, which holds the reference of every key).
 

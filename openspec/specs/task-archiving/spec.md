@@ -18,7 +18,7 @@ when no task has it, when its task is already archived, when a folder exists at 
 harness path of its task, or when a file already exists at the destination. The
 command SHALL print one line per ref, `archived: <new path>` or `not archived: <ref>
 <reason>`, SHALL exit 0 when every ref was archived and 1 otherwise, and SHALL run no
-git: the tasks repo is committed by a person. It SHALL check no status: a task is
+git: the obeya is committed by a person. It SHALL check no status: a task is
 archived whatever its status.
 
 #### Scenario: Task archived
@@ -42,7 +42,7 @@ archived whatever its status.
 - **THEN** that ref gets a `not archived:` line saying no task has it, the other refs are archived, and the exit code is 1
 
 ### Requirement: Archiving by the agent
-The `gemba-archive` skill SHALL have the agent, from the tasks repo, archive the tasks
+The `gemba-archive` skill SHALL have the agent, from the obeya, archive the tasks
 the user names by ref, or find candidates when the user asks to archive what has gone
 cold: run `gemba list --updated-to <date>` with the date the user names or confirms,
 with `--status done` unless the user names other statuses, show the candidates with

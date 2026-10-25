@@ -47,7 +47,7 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
     )
     launch.add_argument("ref", help="ref of the task, such as SUP-1")
     launch.add_argument("--no-open", action="store_true", help="do not start the IDE command of gemba.yaml")
-    launch.add_argument("--root", type=Path, help="tasks repo root (default: walk up to the nearest gemba.yaml)")
+    launch.add_argument("--root", type=Path, help="obeya root (default: walk up to the nearest gemba.yaml)")
     launch.set_defaults(handler=run_launch)
 
     types = "\n".join(f"  {name:<16} {note_type.definition}" for name, note_type in harness.NOTE_TYPES.items())
@@ -115,7 +115,7 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         action="store_true",
         help="delete even when the worktrees or the branches of the run hold work that is discarded",
     )
-    remove.add_argument("--root", type=Path, help="tasks repo root (default: walk up to the nearest gemba.yaml)")
+    remove.add_argument("--root", type=Path, help="obeya root (default: walk up to the nearest gemba.yaml)")
     remove.set_defaults(handler=run_remove)
 
 
@@ -446,8 +446,8 @@ def orphan_branches(gemba_config: config.Config, ref: str, harness_root: Path) -
         return []
     repos = worktree.repos_dir(gemba_config.root, gemba_config.repos_dir)
     named = None
-    if gemba_config.organization is not None:
-        named = worktree.branch_name(gemba_config.branch_prefix, gemba_config.organization, ref)
+    if gemba_config.obeya is not None:
+        named = worktree.branch_name(gemba_config.branch_prefix, gemba_config.obeya, ref)
     orphans = []
     for repo in worktree_command.repositories(repos) or []:
         repository = (repos / repo).resolve()
@@ -524,7 +524,7 @@ def write_layout(
     write_new(folder / harness.GITIGNORE, harness.GITIGNORE_TEXT)
     write_task_link(folder / harness.TASK_LINK, task.path, link)
     texts = gemba_config.effective_guide(task.workstream)
-    guide = harness.render_guide(skills.guide_asset(), texts.organization, texts.workstream, texts.user)
+    guide = harness.render_guide(skills.guide_asset(), texts.obeya, texts.workstream, texts.user)
     for provider in providers:
         write_new(folder / skills.PROVIDERS[provider].guide, guide)
     for action in skills.plan(folder, providers, version("gemba-cli"), "harness"):

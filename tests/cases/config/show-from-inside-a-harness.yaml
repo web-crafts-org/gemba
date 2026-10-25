@@ -22,7 +22,7 @@ setup:
 run: [config, show, --workstream, support]
 exit: 0
 stdout_json:
-  organization: null
+  obeya: null
   branch_prefix: gemba
   repos_dir: null
   ide: null
@@ -44,7 +44,7 @@ stdout_json:
         archive: *empty
         set: *empty
         harness:
-          guide: { organization: null, workstream: null, user: null }
+          guide: { obeya: null, workstream: null, user: null }
           launch: *empty
           note: *empty
           resolve: { context: null, rules: [name the client in the outcome] }

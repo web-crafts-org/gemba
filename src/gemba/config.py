@@ -1,6 +1,6 @@
 """Gemba config: discovery, loading and validation of its two files; field declarations are delegated to `metadata`.
 
-The shared config, `gemba.yaml`, is committed with the tasks repo; the personal config,
+The shared config, `gemba.yaml`, is committed with the obeya; the personal config,
 `gemba.local.yaml`, is private to the clone and read beside it when it exists.
 """
 
@@ -47,13 +47,16 @@ LAYERS: dict[str, tuple[str, ...]] = {
     "workstreams": (CONFIG_FILENAME, LOCAL_FILENAME),
     "metadata": (CONFIG_FILENAME,),
     "default_workstream": (CONFIG_FILENAME,),
-    "organization": (CONFIG_FILENAME,),
+    "obeya": (CONFIG_FILENAME,),
     "agent_providers": (CONFIG_FILENAME, LOCAL_FILENAME),
     "ide": (LOCAL_FILENAME,),
     "repos_dir": (LOCAL_FILENAME,),
     "branch_prefix": (LOCAL_FILENAME,),
     **dict.fromkeys(PROCESSES, (CONFIG_FILENAME, LOCAL_FILENAME)),
 }
+# Top-level keys of an earlier version, each mapped to the key that replaced it: refused in either file, naming
+# the new key and its file, and left out of parsing.
+RENAMED_KEYS: dict[str, str] = {"organization": "obeya"}
 # The keys that define a workstream of the catalogue, which only the shared config declares.
 DEFINITION_KEYS = ("prefix", "description", "metadata")
 # What each file is called in a refusal that sends a key to it.
@@ -95,11 +98,11 @@ class Block:
 class Guide:
     """The `harness.guide` texts of one workstream, as launch renders them under their own headings.
 
-    `organization` and `workstream` come from the shared config; `user` joins the base text
+    `obeya` and `workstream` come from the shared config; `user` joins the base text
     of the personal config and the workstream's.
     """
 
-    organization: str | None
+    obeya: str | None
     workstream: str | None
     user: str | None = None
 
@@ -124,10 +127,10 @@ class Config:
     default_workstream: str
     workstreams: dict[str, Workstream]
     metadata: tuple[Field, ...]
-    # The providers of the shared config, which the skills of the tasks repo are written for.
+    # The providers of the shared config, which the skills of the obeya are written for.
     agent_providers: tuple[str, ...] | None = None
     ide: Ide | None = None
-    organization: str | None = None
+    obeya: str | None = None
     repos_dir: str | None = None
     branch_prefix: str = DEFAULT_BRANCH_PREFIX
     # The base blocks: the top-level entries named after a process, shared by every workstream.
@@ -179,7 +182,7 @@ class Config:
         """The shared base and workstream `harness.guide` texts and the personal ones joined, each None when absent."""
         personal = [guide(self.personal_processes), guide(self.personal_workstreams.get(workstream_id, {}))]
         return Guide(
-            organization=guide(self.processes),
+            obeya=guide(self.processes),
             workstream=guide(self.workstreams[workstream_id].processes),
             user=_joined([text for text in personal if text is not None]),
         )
@@ -195,7 +198,7 @@ class Config:
             if GUIDE_KEY in GROUP_KEYS.get(process, ()):
                 texts = self.effective_guide(workstream_id)
                 entry[GUIDE_KEY] = {
-                    "organization": texts.organization,
+                    "obeya": texts.obeya,
                     "workstream": texts.workstream,
                     "user": texts.user,
                 }
@@ -319,9 +322,14 @@ def _read(path: Path, shape: str, problems: list[str]) -> dict[object, object] |
 
 
 def _misplaced(data: dict[object, object], filename: str) -> list[str]:
-    """A problem for every top-level key of the file `filename` that belongs in the other file."""
+    """A problem for every top-level key of the file `filename` that belongs in the other file or was renamed."""
     problems = []
     for key in data:
+        if isinstance(key, str) and key in RENAMED_KEYS:
+            renamed = RENAMED_KEYS[key]
+            home = LAYERS[renamed][0]
+            problems.append(f"{key} was renamed {renamed}, which belongs in {home}, {LAYER_NAMES[home]}")
+            continue
         files = LAYERS.get(key) if isinstance(key, str) else None
         if files is not None and filename not in files:
             home = files[0]
@@ -371,7 +379,7 @@ def _parse_shared(root: Path, data: dict[object, object], problems: list[str]) -
     problems.extend(metadata.type_problems(base, _lists(workstreams)))
 
     providers = _parse_providers(data.get("agent_providers"), problems)
-    organization = _parse_name("organization", data.get("organization"), problems)
+    obeya = _parse_name("obeya", data.get("obeya"), problems)
     if not isinstance(default, str):
         return None
     return Config(
@@ -380,7 +388,7 @@ def _parse_shared(root: Path, data: dict[object, object], problems: list[str]) -
         workstreams=workstreams,
         metadata=base,
         agent_providers=providers,
-        organization=organization,
+        obeya=obeya,
         processes={key: value for key, value in data.items() if isinstance(key, str) and key in PROCESSES},
     )
 
@@ -460,7 +468,7 @@ def _parse_repos_dir(declaration: object, problems: list[str]) -> str | None:
     if not isinstance(declaration, str) or not declaration.strip():
         problems.append(
             "repos_dir must be a non-empty string naming the folder of the repositories: "
-            "absolute, starting with ~, or relative to the tasks repo root"
+            "absolute, starting with ~, or relative to the obeya root"
         )
         return None
     return declaration

@@ -193,7 +193,7 @@ class ReadConfigTest(unittest.TestCase):
 
 class RemovalTest(unittest.TestCase):
     ROOT = Path("/repo/harnesses/support/2026-09-30-SUP-1-login-fails")
-    INSIDE = "the working directory is inside the harness: run the command from outside it, such as the tasks repo root"
+    INSIDE = "the working directory is inside the harness: run the command from outside it, such as the obeya root"
 
     HEAD = (
         "harnesses/support/2026-09-30-SUP-1-login-fails\n"
@@ -429,24 +429,24 @@ class RenderGuideTest(unittest.TestCase):
     def test_section_text_kept_verbatim(self):
         text = "Write for the client.\n\n- Name the ticket.\n  - Quote it.\n"
         self.assertTrue(harness.render_guide(GUIDE, None, text, None).endswith(f"## Your workstream\n\n{text}"))
-        self.assertTrue(harness.render_guide(GUIDE, text, None, None).endswith(f"## Your organization\n\n{text}"))
+        self.assertTrue(harness.render_guide(GUIDE, text, None, None).endswith(f"## Your obeya\n\n{text}"))
 
-    def test_with_an_organization_section(self):
+    def test_with_an_obeya_section(self):
         self.assertEqual(
             harness.render_guide(GUIDE, "Open the harness through its workspace.\n", None, None),
             "# Working in this harness\n\nRead `task.md`.\n\n"
-            "## Your organization\n\nOpen the harness through its workspace.\n",
+            "## Your obeya\n\nOpen the harness through its workspace.\n",
         )
 
-    def test_organization_section_before_the_workstream_section(self):
+    def test_obeya_section_before_the_workstream_section(self):
         self.assertEqual(
             harness.render_guide(GUIDE, "Open the harness through its workspace.", "Write for the client.", None),
             "# Working in this harness\n\nRead `task.md`.\n\n"
-            "## Your organization\n\nOpen the harness through its workspace.\n\n"
+            "## Your obeya\n\nOpen the harness through its workspace.\n\n"
             "## Your workstream\n\nWrite for the client.\n",
         )
 
-    def test_blank_organization_text(self):
+    def test_blank_obeya_text(self):
         self.assertEqual(harness.render_guide(GUIDE, "  \n", None, None), GUIDE)
         self.assertEqual(
             harness.render_guide(GUIDE, "  \n", "Write for the client.", None),
@@ -463,7 +463,7 @@ class RenderGuideTest(unittest.TestCase):
 
     def test_every_combination_of_the_three_texts(self):
         sections = (
-            ("## Your organization", "Open the harness through its workspace."),
+            ("## Your obeya", "Open the harness through its workspace."),
             ("## Your workstream", "Write for the client."),
             ("## Your user", "Answer me in Spanish."),
         )

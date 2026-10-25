@@ -153,10 +153,10 @@ commit the repository as part of creation.
 - **WHEN** the command creates `tasks/support/2026-09-30-SUP-1-login-fails-on-safari.md`
 - **THEN** the user is told that path and the ref `SUP-1`, and the repository is left uncommitted
 
-### Requirement: Skill contains no organization-specific value
+### Requirement: Skill contains no configured value
 The `gemba-create` skill SHALL contain only the process: how to resolve the config, how
 to choose the workstream, how to gather metadata, how to run the command and how to
-report. It SHALL NOT name any workstream, prefix, metadata field or organization-specific
+report. It SHALL NOT name any workstream, prefix, metadata field or configured
 rule.
 
 #### Scenario: Config change without skill change

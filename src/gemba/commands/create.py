@@ -32,7 +32,7 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         help="metadata value, converted by the declared type of its field (null for none); "
         "repeat a key of a text field to build a list",
     )
-    parser.add_argument("--root", type=Path, help="tasks repo root (default: walk up to the nearest gemba.yaml)")
+    parser.add_argument("--root", type=Path, help="obeya root (default: walk up to the nearest gemba.yaml)")
     parser.set_defaults(handler=run)
 
 

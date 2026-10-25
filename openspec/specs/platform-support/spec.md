@@ -4,7 +4,7 @@
 
 The promises that belong to no single command: which platforms Gemba runs on and
 with what prerequisites, the text contract every command honours, and the
-portability of what gemba names and writes, so that a tasks repo and a harness move
+portability of what gemba names and writes, so that an obeya and a harness move
 between platforms.
 
 ## Requirements
@@ -13,15 +13,15 @@ between platforms.
 The gemba CLI SHALL run on Linux, macOS and Windows 10 or later, needing only Python
 3.11 or later and `git` on PATH, with no administrator rights, no developer mode and
 no particular shell, and SHALL behave the same on every platform: same commands,
-same output, same exit codes. A tasks repo or a harness created on one platform
+same output, same exit codes. An obeya or a harness created on one platform
 SHALL be usable on another.
 
 #### Scenario: Suite passes on every platform
 - **WHEN** a commit is pushed or a pull request is opened
 - **THEN** the full test suite passes on Linux, on macOS and on Windows
 
-#### Scenario: Tasks repo used across platforms
-- **WHEN** a tasks repo created on Linux, with its tasks and its config, is cloned on Windows
+#### Scenario: Obeya used across platforms
+- **WHEN** an obeya created on Linux, with its tasks and its config, is cloned on Windows
 - **THEN** every command reads its tasks, creates and marks tasks in it, and launches a harness, with no edit to any file
 
 ### Requirement: Lines written end with LF

@@ -1,4 +1,4 @@
-name: init in a half-made tasks repo keeps the config, appends the three ignore lines and the missing attribute line, and writes what is missing
+name: init in a half-made obeya keeps the config, appends the three ignore lines and the missing attribute line, and writes what is missing
 scenario: "repo-initialization: Missing pieces completed"
 config: |
   # Edited by hand.
@@ -28,7 +28,7 @@ stdout: |
   written .claude/skills/gemba-init/SKILL.md
   written .claude/skills/gemba-config/SKILL.md
   written .claude/skills/gemba-migrate/SKILL.md
-  next step: open this tasks repo with your agent and ask it to configure gemba (the gemba-init skill)
+  next step: open this obeya with your agent and ask it to configure gemba (the gemba-init skill)
 files:
   gemba.yaml: |
     # Edited by hand.
