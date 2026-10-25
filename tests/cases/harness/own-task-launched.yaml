@@ -1,0 +1,37 @@
+name: the member of the clone launches a task of their own folder, whose task.md reaches it there
+scenario: "task-ownership: Own task launched"
+config:
+  default_workstream: support
+  agent_providers: [claude]
+  metadata:
+    - { name: hours, type: number }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  me: manuel
+tree:
+  tasks/manuel/support/2026-10-20-MR-SUP-1-export-times-out.md: |
+    ---
+    status: open
+    ref: MR-SUP-1
+    updated_at: 2026-10-20
+    metadata:
+      hours: null
+    ---
+
+    ## Updates
+run: [harness, launch, MR-SUP-1, --no-open]
+exit: 0
+stdout: |
+  harnesses/support/2026-10-20-MR-SUP-1-export-times-out
+  status: open -> in-progress
+links:
+  harnesses/support/2026-10-20-MR-SUP-1-export-times-out/task.md: ../../../tasks/manuel/support/2026-10-20-MR-SUP-1-export-times-out.md
+files_contain:
+  tasks/manuel/support/2026-10-20-MR-SUP-1-export-times-out.md: ["\nstatus: in-progress\n"]
+  harnesses/support/2026-10-20-MR-SUP-1-export-times-out/harness.yaml:
+    - "task: tasks/manuel/support/2026-10-20-MR-SUP-1-export-times-out.md\n"
+    - "ref: MR-SUP-1\n"

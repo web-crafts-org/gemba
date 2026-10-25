@@ -29,7 +29,7 @@ def decode(data: bytes) -> str:
 
 
 def is_reserved_name(name: str) -> bool:
-    """Whether `name`, a workstream identifier or a slug, is a device name Windows reserves."""
+    """Whether `name`, a workstream identifier, a member folder name or a slug, is a device name Windows reserves."""
     return name.lower() in RESERVED_NAMES
 
 

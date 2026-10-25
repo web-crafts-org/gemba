@@ -9,7 +9,7 @@ import sys
 import textwrap
 from pathlib import Path, PurePosixPath
 
-from gemba import config, harness, platform, skills, tasks, values
+from gemba import config, harness, platform, skills, tasks, team, values
 from gemba.commands import harness as harness_command
 
 
@@ -92,7 +92,7 @@ def run(args: argparse.Namespace) -> int:
         base = root
         assert ref is not None, "a record with no harness and no ref was refused"
         try:
-            task = tasks.find_by_ref(root, gemba_config.workstreams, ref)
+            task = tasks.find_by_ref(root, gemba_config.workstreams, ref, gemba_config.members)
         except tasks.TaskError as exc:
             errors.append(str(exc))
         else:
@@ -107,12 +107,14 @@ def run(args: argparse.Namespace) -> int:
                 f"was not found there, under {root}"
             )
         archived = PurePosixPath(identity.task).parent.name == tasks.ARCHIVE_DIR
+        owner = None if gemba_config.team is None else tasks.owner_of(identity.task)
         try:
-            task = tasks.read(task_file, root, identity.workstream, archived)
+            task = tasks.read(task_file, root, identity.workstream, archived, owner)
         except tasks.TaskError as exc:
             return fail(f"record not done: {identity.task} is not a valid task: {exc}")
         if ref is not None and (problem := harness.ref_problem(ref, identity)):
             errors.append(problem)
+    errors.extend(team.write_problems(gemba_config.team, gemba_config.me, task, config.LOCAL_FILENAME))
     text = None if task is None else platform.decode((root / task.path).read_bytes())
 
     today = datetime.date.today()

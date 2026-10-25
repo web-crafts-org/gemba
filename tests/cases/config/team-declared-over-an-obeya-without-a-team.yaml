@@ -1,0 +1,31 @@
+name: a team declared while tasks/ holds the workstream folder of an obeya without a team stops every process
+scenario: "gemba-config: Team declared over an obeya without a team"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  me: manuel
+tree:
+  tasks/support/.gitkeep: ""
+  tasks/support/archive/.gitkeep: ""
+  tasks/support/2026-10-20-SUP-1-export-times-out.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-10-20
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list]
+exit: 1
+stderr_contains:
+  - "invalid gemba config:\n"
+  - "gemba.yaml: team is declared, but tasks/ holds tasks/support, the folder of an obeya without a team"
+  - "a team starts in a new obeya, and the gemba-migrate skill brings earlier tasks into it"
+unchanged: true

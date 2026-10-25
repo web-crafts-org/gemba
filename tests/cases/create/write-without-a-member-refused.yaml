@@ -1,0 +1,17 @@
+name: in an obeya with a team, a clone that declares no me creates nothing and is told to add me to gemba.local.yaml
+scenario: "task-ownership: Write without a member refused"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  ide: code -n
+run: [create, --workstream, support, --slug, export-times-out]
+exit: 1
+stderr_contains:
+  - "gemba create: task not created:\n"
+  - "- no member declared for this clone: add me to gemba.local.yaml, the personal config (members: manuel, ana)"
+unchanged: true

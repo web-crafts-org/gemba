@@ -156,5 +156,8 @@ holds `gemba.yaml`.
   only what the user told you, and never the notes of a harness. When in doubt,
   leave it out.
 - One draft and one run per date, oldest date first.
+- In an obeya with a team, only the owner of a task records it. When the command refuses
+  a task because it belongs to another member, relay the refusal, suggest asking its
+  owner to record it, and never edit the task file to get around it.
 - When `gemba.yaml` changes, follow the new content. This skill never needs an edit when
   a workstream or a rule is added, changed or removed.

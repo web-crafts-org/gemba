@@ -21,8 +21,11 @@ ARCHIVE_DIR = "archive"
 GITKEEP = ".gitkeep"
 
 SLUG_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+# A ref is `<PREFIX>-<N>`, or `<INITIALS>-<PREFIX>-<N>` in an obeya with a team; both are read in any obeya, since
+# the source of a copied history may come from an obeya of the other kind. The slug is lowercase, so the ref ends
+# where it starts.
 FILENAME_PATTERN = re.compile(
-    r"^(?P<date>\d{4}-\d{2}-\d{2})-(?P<ref>[A-Z]+-[1-9][0-9]*)-(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)\.md$"
+    r"^(?P<date>\d{4}-\d{2}-\d{2})-(?P<ref>(?:[A-Z]+-)?[A-Z]+-[1-9][0-9]*)-(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)\.md$"
 )
 STATUSES = ("open", "in-progress", "blocked", "done")
 DONE = "done"
@@ -32,6 +35,16 @@ UPDATES_HEADING = "## Updates"
 SECTION_PREFIX = "## "
 # A heading under `## Updates`; its text must be the ISO date of the subsection.
 SUBSECTION_HEADING = re.compile(r"^### (?P<text>.*?)\s*$")
+# What a scan reports for a stray entry, a folder then anything else: directly under tasks/ or under a member's
+# folder, where a workstream is expected, and directly under tasks/ in an obeya with a team, where a member is.
+STRAY_WORKSTREAM = (
+    "folder is not a workstream of the config; its files are not listed",
+    "entry is not a workstream folder of the config",
+)
+STRAY_MEMBER = (
+    "folder is not a member of the team; its files are not listed",
+    "entry is not a member folder of the team",
+)
 BULLET_PREFIX = "- "
 CONTINUATION_PREFIX = "  "
 FRONTMATTER_DELIMITER = "---"
@@ -43,9 +56,13 @@ class TaskError(Exception):
 
 @dataclass(frozen=True)
 class Task:
-    """A task read from disk, with the fields of its listing record in record order."""
+    """A task read from disk, with the fields of its listing record in record order.
+
+    `owner` is the member whose folder holds the task in an obeya with a team, else None.
+    """
 
     path: str
+    owner: str | None
     workstream: str
     archived: bool
     ref: str
@@ -120,9 +137,15 @@ def filename(created: datetime.date, ref: str, slug: str) -> str:
     return f"{created.isoformat()}-{ref}-{slug}.md"
 
 
-def next_ref(root: Path, prefix: str) -> str:
-    """Allocate `<prefix>-<N>` from the highest N used anywhere under tasks/, archives included."""
-    pattern = re.compile(rf"^\d{{4}}-\d{{2}}-\d{{2}}-{re.escape(prefix)}-(\d+)-")
+def next_ref(root: Path, prefix: str, initials: str | None = None) -> str:
+    """Allocate `<prefix>-<N>`, or `<initials>-<prefix>-<N>` when `initials` are given, from the highest N used with
+    that start anywhere under tasks/, archives included.
+
+    A ref with initials never matches the start of a bare prefix, nor one member's
+    initials another's, so each member and prefix has a counter of its own.
+    """
+    start = prefix if initials is None else f"{initials}-{prefix}"
+    pattern = re.compile(rf"^\d{{4}}-\d{{2}}-\d{{2}}-{re.escape(start)}-(\d+)-")
     highest = 0
     tasks_dir = root / TASKS_DIR
     if tasks_dir.is_dir():
@@ -130,7 +153,7 @@ def next_ref(root: Path, prefix: str) -> str:
             match = pattern.match(path.name)
             if match and path.is_file():
                 highest = max(highest, int(match.group(1)))
-    return f"{prefix}-{highest + 1}"
+    return f"{start}-{highest + 1}"
 
 
 class FrontmatterDumper(yaml.SafeDumper):
@@ -181,44 +204,64 @@ def scan(
     workstream_ids: Iterable[str],
     include_archived: bool,
     configured: Collection[str] | None = None,
+    owners: Sequence[str] | None = None,
 ) -> tuple[list[Task], list[Problem]]:
     """Read the `.md` files of the given workstream folders, archives only on request.
 
-    Tasks come ordered by date, workstream and filename; problems by path. When
-    `configured` holds the workstream ids of the config, every other non-hidden entry
-    under tasks/ is a problem, so that tasks never disappear silently.
+    With `owners`, the folders of an obeya with a team: the workstream folders of each
+    of those members, `tasks/<owner>/<workstream>/`, each task with its owner. Tasks come
+    ordered by date, workstream and filename; problems by path. When `configured` holds
+    the workstream ids of the config, every other non-hidden entry under tasks/, or with
+    `owners` every entry under tasks/ that is not one of them and every entry under
+    their folders that is not configured, is a problem, so that tasks never disappear
+    silently.
     """
     found: list[Task] = []
     problems: list[Problem] = []
     tasks_dir = root / TASKS_DIR
-    for workstream in workstream_ids:
-        folders = [(tasks_dir / workstream, False)]
-        if include_archived:
-            folders.append((tasks_dir / workstream / ARCHIVE_DIR, True))
-        for folder, archived in folders:
-            for path in _task_files(folder):
-                try:
-                    found.append(read(path, root, workstream, archived))
-                except TaskError as exc:
-                    problems.append(Problem(path.relative_to(root).as_posix(), str(exc)))
-    if configured is not None and tasks_dir.is_dir():
-        for entry in tasks_dir.iterdir():
-            if entry.name.startswith(".") or entry.name in configured:
-                continue
-            problem = (
-                "folder is not a workstream of the config; its files are not listed"
-                if entry.is_dir()
-                else "entry is not a workstream folder of the config"
-            )
-            problems.append(Problem(entry.relative_to(root).as_posix(), problem))
+    holders: list[tuple[Path, str | None]] = (
+        [(tasks_dir, None)] if owners is None else [(tasks_dir / owner, owner) for owner in owners]
+    )
+    workstreams = list(workstream_ids)
+    for holder, owner in holders:
+        for workstream in workstreams:
+            folders = [(holder / workstream, False)]
+            if include_archived:
+                folders.append((holder / workstream / ARCHIVE_DIR, True))
+            for folder, archived in folders:
+                for path in _task_files(folder):
+                    try:
+                        found.append(read(path, root, workstream, archived, owner))
+                    except TaskError as exc:
+                        problems.append(Problem(path.relative_to(root).as_posix(), str(exc)))
+    if configured is not None:
+        if owners is not None:
+            problems.extend(_strays(root, tasks_dir, owners, *STRAY_MEMBER))
+        for holder, _owner in holders:
+            problems.extend(_strays(root, holder, configured, *STRAY_WORKSTREAM))
     found.sort(key=lambda task: (task.date, task.workstream, PurePosixPath(task.path).name, task.path))
     problems.sort(key=lambda problem: problem.path)
     return found, problems
 
 
-def find_by_ref(root: Path, workstream_ids: Iterable[str], ref: str) -> Task | None:
-    """The readable task whose ref is `ref`, archives included, or None when no task has it."""
-    found, _problems = scan(root, workstream_ids, include_archived=True)
+def _strays(root: Path, folder: Path, expected: Collection[str], for_folder: str, for_entry: str) -> list[Problem]:
+    """A problem for every non-hidden entry directly under `folder` whose name is not in `expected`: `for_folder`
+    for a folder, `for_entry` for anything else."""
+    if not folder.is_dir():
+        return []
+    return [
+        Problem(entry.relative_to(root).as_posix(), for_folder if entry.is_dir() else for_entry)
+        for entry in folder.iterdir()
+        if not entry.name.startswith(".") and entry.name not in expected
+    ]
+
+
+def find_by_ref(
+    root: Path, workstream_ids: Iterable[str], ref: str, owners: Sequence[str] | None = None
+) -> Task | None:
+    """The readable task whose ref is `ref`, archives included, or None when no task has it; `owners` are the members
+    of the team, whose folders are scanned, in an obeya with a team."""
+    found, _problems = scan(root, workstream_ids, include_archived=True, owners=owners)
     holders = [task for task in found if task.ref == ref]
     if len(holders) > 1:
         raise TaskError(f"ref '{ref}' is held by several tasks: {', '.join(task.path for task in holders)}")
@@ -301,8 +344,15 @@ def start(text: str, today: datetime.date) -> tuple[str, Transition]:
 
 
 def archive_destination(task: Task) -> PurePosixPath:
-    """Where `gemba archive` moves the task file: the same name under `archive/` of its workstream folder."""
-    return PurePosixPath(TASKS_DIR, task.workstream, ARCHIVE_DIR, PurePosixPath(task.path).name)
+    """Where `gemba archive` moves the task file: the same name under `archive/` of the folder that holds it, the
+    workstream folder of the obeya or of its owner."""
+    path = PurePosixPath(task.path)
+    return path.parent / ARCHIVE_DIR / path.name
+
+
+def owner_of(path: str) -> str:
+    """The member whose folder holds the task at `path`, relative to the obeya root, in an obeya with a team."""
+    return PurePosixPath(path).parts[1]
 
 
 def archive_problem(task: Task, harness_folder: str | None, destination_exists: bool) -> str | None:
@@ -621,11 +671,12 @@ def _task_files(folder: Path) -> list[Path]:
     )
 
 
-def read(path: Path, root: Path, workstream: str, archived: bool) -> Task:
+def read(path: Path, root: Path, workstream: str, archived: bool, owner: str | None = None) -> Task:
     """Read the task file at `path`, applying every reading rule of the task file format.
 
     Metadata keys are not checked against the schema: a task written under an earlier
-    schema stays readable after the config changes.
+    schema stays readable after the config changes. `owner` is the member whose folder
+    holds the file, in an obeya with a team.
     """
     try:
         text = path.read_text(encoding="utf-8")
@@ -633,7 +684,7 @@ def read(path: Path, root: Path, workstream: str, archived: bool) -> Task:
         raise TaskError("the file is not UTF-8 text") from None
     except OSError as exc:
         raise TaskError(f"the file cannot be read: {exc.strerror}") from None
-    return _parse(path.name, text, path.relative_to(root).as_posix(), workstream, archived)
+    return _parse(path.name, text, path.relative_to(root).as_posix(), workstream, archived, owner)
 
 
 def read_source(path: Path) -> tuple[str | None, list[str]]:
@@ -652,15 +703,15 @@ def read_source(path: Path) -> tuple[str | None, list[str]]:
     except OSError as exc:
         return None, [f"cannot be read: {exc.strerror}"]
     try:
-        _parse(path.name, text, path.name, workstream="", archived=False)
+        _parse(path.name, text, path.name, workstream="", archived=False, owner=None)
     except TaskError as exc:
         return None, [f"is not a valid task: {exc}"]
     return text, []
 
 
-def _parse(name: str, text: str, path: str, workstream: str, archived: bool) -> Task:
+def _parse(name: str, text: str, path: str, workstream: str, archived: bool, owner: str | None) -> Task:
     """The task named `name` whose content is `text`, by the reading rules of the task file format; `path`,
-    `workstream` and `archived` only locate it."""
+    `workstream`, `archived` and `owner` only locate it."""
     match = FILENAME_PATTERN.match(name)
     if match is None:
         raise TaskError("filename does not match YYYY-MM-DD-<ref>-<slug>.md")
@@ -691,6 +742,7 @@ def _parse(name: str, text: str, path: str, workstream: str, archived: bool) -> 
 
     return Task(
         path=path,
+        owner=owner,
         workstream=workstream,
         archived=archived,
         ref=ref,

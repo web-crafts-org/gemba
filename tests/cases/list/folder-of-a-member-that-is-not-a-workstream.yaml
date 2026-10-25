@@ -1,0 +1,34 @@
+name: a folder under a member's folder that the config does not declare is reported, its files not listed
+scenario: "task-listing: Folder of a member that is not a workstream"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  me: manuel
+tree:
+  tasks/ana/support/2026-10-20-AG-SUP-1-export-times-out.md: "---\nstatus: open\nref: AG-SUP-1\nupdated_at: 2026-10-20\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/ana/legacy/2026-07-01-AG-LEG-1-old-work.md: "---\nstatus: open\nref: AG-LEG-1\nupdated_at: 2026-07-01\nmetadata: {}\n---\n\n## Updates\n"
+run: [list]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/ana/support/2026-10-20-AG-SUP-1-export-times-out.md
+      owner: ana
+      workstream: support
+      archived: false
+      ref: AG-SUP-1
+      date: 2026-10-20
+      title: Export times out
+      status: open
+      updated_at: 2026-10-20
+      done_at: null
+      metadata: {}
+      description: null
+  problems:
+    - path: tasks/ana/legacy
+      problem: folder is not a workstream of the config; its files are not listed
+unchanged: true

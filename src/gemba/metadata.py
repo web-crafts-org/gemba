@@ -22,8 +22,8 @@ NUMBER = "number"
 BOOLEAN = "boolean"
 DATE = "date"
 TYPES = (TEXT, NUMBER, BOOLEAN, DATE)
-# Names every task is grouped by in a report, so no field may take them.
-RESERVED = ("workstream", "status")
+# Names a report groups tasks by, so no field may take them.
+RESERVED = ("workstream", "status", "owner")
 
 FIELD_NAME_PATTERN = re.compile(r"^[a-z0-9]+(_[a-z0-9]+)*$")
 FIELD_KEYS = ("name", "type", "required", "description")

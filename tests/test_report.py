@@ -11,14 +11,28 @@ WORKSTREAMS = ("support", "operations")
 DAY = datetime.date(2026, 9, 30)
 
 
-def task(ref, workstream="support", status="open", **metadata):
+TEAM = ("manuel", "ana")
+
+
+def task(ref, workstream="support", status="open", owner=None, **metadata):
     return tasks.Task(
-        f"tasks/{workstream}/2026-09-30-{ref}-t.md", workstream, False, ref, DAY, "T", status, DAY, None, metadata, None
+        f"tasks/{workstream}/2026-09-30-{ref}-t.md",
+        owner,
+        workstream,
+        False,
+        ref,
+        DAY,
+        "T",
+        status,
+        DAY,
+        None,
+        metadata,
+        None,
     )
 
 
-def aggregate(selected, by=(), sums=()):
-    return report.aggregate(selected, list(by), list(sums), TYPES, WORKSTREAMS)
+def aggregate(selected, by=(), sums=(), team=None):
+    return report.aggregate(selected, list(by), list(sums), TYPES, WORKSTREAMS, team)
 
 
 def keys(result):
@@ -32,12 +46,25 @@ class InputsTest(unittest.TestCase):
                 self.assertIsNone(report.grouping_problem(key, TYPES))
         self.assertEqual(
             report.grouping_problem("hours", TYPES),
-            "cannot group by 'hours', a number field: group by workstream, status, or a text or boolean field",
+            "cannot group by 'hours', a number field: group by workstream, status, owner, or a text or boolean field",
         )
         self.assertIn("cannot group by 'due', a date field", report.grouping_problem("due", TYPES) or "")
         self.assertEqual(
             report.grouping_problem("ticket", TYPES),
-            "cannot group by 'ticket': it is not workstream, status or a field the config declares",
+            "cannot group by 'ticket': it is not workstream, status, owner or a field the config declares",
+        )
+
+    def test_owner_only_with_a_team(self):
+        self.assertIsNone(report.grouping_problem("owner", TYPES, TEAM))
+        self.assertEqual(
+            report.grouping_problem("owner", TYPES), "cannot group by 'owner': this obeya declares no team"
+        )
+        self.assertEqual(
+            report.problems(["owner", "owner"], [], TYPES),
+            [
+                "cannot group by 'owner': this obeya declares no team",
+                "'owner' is given more than once as a grouping",
+            ],
         )
 
     def test_sums(self):
@@ -54,7 +81,8 @@ class InputsTest(unittest.TestCase):
         self.assertEqual(
             report.problems(["hours", "client", "client"], ["client", "hours", "hours"], TYPES),
             [
-                "cannot group by 'hours', a number field: group by workstream, status, or a text or boolean field",
+                "cannot group by 'hours', a number field: "
+                "group by workstream, status, owner, or a text or boolean field",
                 "'client' is given more than once as a grouping",
                 "cannot sum 'client', a text field: only a number field is summed",
                 "'hours' is given more than once as a sum",
@@ -97,6 +125,26 @@ class OrderTest(unittest.TestCase):
         ]
         self.assertEqual(
             [key["client"] for key in keys(aggregate(selected, ["client"]))], ["Globex", "acme", "é", None]
+        )
+
+    def test_owners_in_the_order_of_the_team(self):
+        selected = [
+            task("AG-SUP-1", owner="ana", hours=3),
+            task("MR-SUP-1", owner="manuel", hours=2),
+            task("AG-OPS-1", "operations", owner="ana", hours=1),
+        ]
+        result = aggregate(selected, ["owner"], ["hours"], team=TEAM)
+        self.assertEqual(keys(result), [{"owner": "manuel"}, {"owner": "ana"}])
+        self.assertEqual([group.refs for group in result.groups], [["MR-SUP-1"], ["AG-SUP-1", "AG-OPS-1"]])
+        self.assertEqual([group.sums["hours"] for group in result.groups], [Sum(2, 0), Sum(4, 0)])
+        result = aggregate(selected, ["workstream", "owner"], team=TEAM)
+        self.assertEqual(
+            keys(result),
+            [
+                {"workstream": "support", "owner": "manuel"},
+                {"workstream": "support", "owner": "ana"},
+                {"workstream": "operations", "owner": "ana"},
+            ],
         )
 
     def test_refs_in_listing_order(self):

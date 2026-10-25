@@ -86,5 +86,8 @@ folder that holds `harness.yaml` is the harness root.
 - Marking does not touch the harness. A task reopened to `open` moves to `in-progress`
   by itself the next time its harness is launched; a `done` task cannot be launched
   until it is marked `open` or `in-progress`.
+- In an obeya with a team, only the owner of a task marks it. When the command refuses a
+  task because it belongs to another member, relay the refusal, suggest asking its
+  owner, and never edit the task file to get around it.
 - When `gemba.yaml` changes, follow the new content. This skill never needs an edit when
   a workstream or a rule is added, changed or removed.

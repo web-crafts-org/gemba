@@ -1,0 +1,33 @@
+name: a task of another member is not launched, and neither a harness folder nor a change to the task is left
+scenario: "task-ownership: Another member's task not launched"
+config:
+  default_workstream: support
+  agent_providers: [claude]
+  metadata:
+    - { name: hours, type: number }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  me: manuel
+tree:
+  tasks/ana/support/2026-10-20-AG-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: AG-SUP-1
+    updated_at: 2026-10-20
+    metadata:
+      hours: null
+    ---
+
+    ## Updates
+run: [harness, launch, AG-SUP-1]
+exit: 1
+stderr_contains:
+  - "gemba harness launch: harness not launched:\n"
+  - "- AG-SUP-1 belongs to ana: only its owner writes it"
+absent:
+  - harnesses
+unchanged: true

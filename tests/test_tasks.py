@@ -57,6 +57,7 @@ class ReadTest(ReadTestCase):
             task,
             tasks.Task(
                 path=f"tasks/support/{NAME}",
+                owner=None,
                 workstream="support",
                 archived=False,
                 ref="SUP-1",
@@ -94,6 +95,19 @@ class ReadTest(ReadTestCase):
         ):
             with self.subTest(name=name):
                 self.assertRefused(VALID, "filename does not match YYYY-MM-DD-<ref>-<slug>.md", name=name)
+
+    def test_ref_with_initials(self):
+        text = VALID.replace("ref: SUP-1", "ref: MR-SUP-1")
+        task = self.read(text, name="2026-09-30-MR-SUP-1-login-fails-on-safari.md")
+        self.assertEqual((task.ref, task.title), ("MR-SUP-1", "Login fails on safari"))
+        for name in ("2026-09-30-mr-SUP-1-login.md", "2026-09-30-MR-SUP-01-login.md", "2026-09-30-A-B-C-1-login.md"):
+            with self.subTest(name=name):
+                self.assertRefused(text, "filename does not match YYYY-MM-DD-<ref>-<slug>.md", name=name)
+
+    def test_owner_given_by_the_caller(self):
+        path = self.write(VALID)
+        self.assertIsNone(tasks.read(path, self.root, "support", archived=False).owner)
+        self.assertEqual(tasks.read(path, self.root, "support", archived=False, owner="manuel").owner, "manuel")
 
     def test_filename_date(self):
         self.assertRefused(
@@ -288,6 +302,110 @@ class ScanTest(ReadTestCase):
         self.assertEqual([task.ref for task in found], ["OPS-1", "OPS-2", "OPS-3", "SUP-1"])
 
 
+class NextRefTest(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.root = Path(self._tmp.name).resolve()
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def touch(self, *paths):
+        for relative in paths:
+            path = self.root / tasks.TASKS_DIR / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("", encoding="utf-8")
+
+    def test_no_task_yet(self):
+        self.assertEqual(tasks.next_ref(self.root, "SUP"), "SUP-1")
+        self.assertEqual(tasks.next_ref(self.root, "SUP", "MR"), "MR-SUP-1")
+
+    def test_bare_prefix_and_initials_counted_apart(self):
+        self.touch(
+            "support/2026-09-01-SUP-7-a.md",
+            "manuel/support/archive/2026-09-02-MR-SUP-2-b.md",
+            "ana/support/2026-09-03-AG-SUP-5-c.md",
+            "ana/operations/2026-09-04-AG-OPS-9-d.md",
+        )
+        self.assertEqual(tasks.next_ref(self.root, "SUP"), "SUP-8")
+        self.assertEqual(tasks.next_ref(self.root, "SUP", "MR"), "MR-SUP-3")
+        self.assertEqual(tasks.next_ref(self.root, "SUP", "AG"), "AG-SUP-6")
+        self.assertEqual(tasks.next_ref(self.root, "OPS", "MR"), "MR-OPS-1")
+
+    def test_initials_never_match_a_prefix(self):
+        # A workstream whose prefix is another member's initials keeps a counter of its own.
+        self.touch("manuel/research/2026-09-01-MR-4-a.md", "ana/support/2026-09-02-AG-MR-6-b.md")
+        self.assertEqual(tasks.next_ref(self.root, "MR"), "MR-5")
+        self.assertEqual(tasks.next_ref(self.root, "MR", "AG"), "AG-MR-7")
+        self.assertEqual(tasks.next_ref(self.root, "MR", "MR"), "MR-MR-1")
+
+
+class TeamScanTest(ReadTestCase):
+    put = ScanTest.put
+    MEMBER_NAME = "2026-09-30-MR-SUP-1-login-fails-on-safari.md"
+    MEMBER_TASK = VALID.replace("ref: SUP-1", "ref: MR-SUP-1")
+
+    def test_member_folders_scanned_with_their_owner(self):
+        self.put(f"tasks/manuel/support/{self.MEMBER_NAME}", self.MEMBER_TASK)
+        ana = "2026-09-29-AG-OPS-1-renew-domain.md"
+        self.put(f"tasks/ana/operations/archive/{ana}", VALID.replace("ref: SUP-1", "ref: AG-OPS-1"))
+        found, problems = tasks.scan(self.root, ["support", "operations"], False, owners=["manuel", "ana"])
+        self.assertEqual([(task.ref, task.owner) for task in found], [("MR-SUP-1", "manuel")])
+        self.assertEqual(problems, [])
+        found, _problems = tasks.scan(self.root, ["support", "operations"], True, owners=["manuel", "ana"])
+        self.assertEqual(
+            [(task.path, task.owner, task.archived) for task in found],
+            [
+                (f"tasks/ana/operations/archive/{ana}", "ana", True),
+                (f"tasks/manuel/support/{self.MEMBER_NAME}", "manuel", False),
+            ],
+        )
+
+    def test_only_the_owners_given_are_scanned(self):
+        self.put(f"tasks/manuel/support/{self.MEMBER_NAME}", self.MEMBER_TASK)
+        self.put("tasks/ana/support/2026-09-29-AG-SUP-2-broken.md", "no frontmatter\n")
+        found, problems = tasks.scan(self.root, ["support"], False, owners=["manuel"])
+        self.assertEqual([task.ref for task in found], ["MR-SUP-1"])
+        self.assertEqual(problems, [])
+
+    def test_strays_of_a_team(self):
+        self.put(f"tasks/bob/support/{self.MEMBER_NAME}", self.MEMBER_TASK)
+        self.put("tasks/notes.txt", "loose notes")
+        self.put(f"tasks/support/{NAME}")
+        self.put(f"tasks/ana/legacy/{NAME}")
+        self.put("tasks/ana/todo.txt", "loose notes")
+        self.put("tasks/ana/.hidden/whatever.md")
+        self.put("tasks/.hidden/whatever.md")
+        found, problems = tasks.scan(self.root, ["support"], False, configured=["support"], owners=["manuel", "ana"])
+        self.assertEqual(found, [])
+        self.assertEqual(
+            problems,
+            [
+                tasks.Problem("tasks/ana/legacy", "folder is not a workstream of the config; its files are not listed"),
+                tasks.Problem("tasks/ana/todo.txt", "entry is not a workstream folder of the config"),
+                tasks.Problem("tasks/bob", "folder is not a member of the team; its files are not listed"),
+                tasks.Problem("tasks/notes.txt", "entry is not a member folder of the team"),
+                tasks.Problem("tasks/support", "folder is not a member of the team; its files are not listed"),
+            ],
+        )
+
+    def test_found_by_ref_in_a_member_folder(self):
+        self.put(f"tasks/ana/support/archive/{self.MEMBER_NAME}", self.MEMBER_TASK)
+        task = tasks.find_by_ref(self.root, ["support"], "MR-SUP-1", ["manuel", "ana"])
+        assert task is not None
+        self.assertEqual((task.owner, task.archived), ("ana", True))
+        self.assertIsNone(tasks.find_by_ref(self.root, ["support"], "MR-SUP-1"))
+
+    def test_owner_of_a_task_path(self):
+        self.assertEqual(tasks.owner_of(f"tasks/ana/support/archive/{self.MEMBER_NAME}"), "ana")
+
+    def test_archive_destination_in_the_folder_of_the_owner(self):
+        path = f"tasks/ana/support/{self.MEMBER_NAME}"
+        self.put(path, self.MEMBER_TASK)
+        task = tasks.read(self.root / path, self.root, "support", False, "ana")
+        self.assertEqual(str(tasks.archive_destination(task)), f"tasks/ana/support/archive/{self.MEMBER_NAME}")
+
+
 class FindByRefTest(ReadTestCase):
     put = ScanTest.put
 
@@ -444,6 +562,7 @@ class ArchiveTest(unittest.TestCase):
     def task(self, path=f"tasks/support/{NAME}", archived=False, status="done"):
         return tasks.Task(
             path=path,
+            owner=None,
             workstream="support",
             archived=archived,
             ref="SUP-1",
@@ -708,7 +827,7 @@ class MatchesTest(unittest.TestCase):
     def task(self, **metadata):
         day = datetime.date(2026, 9, 30)
         return tasks.Task(
-            f"tasks/support/{NAME}", "support", False, "SUP-1", day, "T", "open", day, None, metadata, None
+            f"tasks/support/{NAME}", None, "support", False, "SUP-1", day, "T", "open", day, None, metadata, None
         )
 
     def filters(self, declared, **equalities):

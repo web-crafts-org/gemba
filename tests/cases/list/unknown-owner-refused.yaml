@@ -1,0 +1,19 @@
+name: an owner who is not a member lists nothing, in one message with the other invalid filters
+scenario: "task-listing: Unknown owner refused"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  me: manuel
+run: [list, --owner, bob, --status, closed]
+exit: 1
+stdout: ""
+stderr_contains:
+  - "gemba list: nothing listed:\n"
+  - "- unknown member 'bob' (members: manuel, ana)"
+  - "- invalid status 'closed'"
+unchanged: true

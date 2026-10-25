@@ -1,0 +1,35 @@
+name: the counter of a member and prefix ignores the refs of another member, and counts the member's archive
+scenario: "task-creation: Counters of two members"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  me: manuel
+tree:
+  tasks/manuel/support/.gitkeep: ""
+  tasks/manuel/support/archive/.gitkeep: ""
+  tasks/manuel/support/archive/2026-10-01-MR-SUP-2-old-export.md: "---\nstatus: done\nref: MR-SUP-2\nupdated_at: 2026-10-02\ndone_at: 2026-10-02\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/ana/support/2026-10-03-AG-SUP-5-login-fails.md: "---\nstatus: open\nref: AG-SUP-5\nupdated_at: 2026-10-03\nmetadata: {}\n---\n\n## Updates\n"
+run: [create, --workstream, support, --slug, export-times-out, --date, 2026-10-25]
+exit: 0
+stdout: |
+  tasks/manuel/support/2026-10-25-MR-SUP-3-export-times-out.md
+  MR-SUP-3
+files:
+  tasks/manuel/support/2026-10-25-MR-SUP-3-export-times-out.md: |
+    ---
+    status: open
+    ref: MR-SUP-3
+    updated_at: 2026-10-25
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/ana/support/2026-10-03-AG-SUP-5-login-fails.md: "---\nstatus: open\nref: AG-SUP-5\nupdated_at: 2026-10-03\nmetadata: {}\n---\n\n## Updates\n"
+absent:
+  - tasks/ana/support/archive
+  - tasks/ana/support/*MR-SUP-3*

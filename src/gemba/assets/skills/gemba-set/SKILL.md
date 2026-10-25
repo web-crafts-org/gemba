@@ -102,5 +102,8 @@ folder that holds `harness.yaml` is the harness root.
   `## Updates`, through the `gemba-record` skill; the status belongs to the `gemba-mark`
   skill.
 - Choose the assignment by the declared `type` of a field, never by its name.
+- In an obeya with a team, only the owner of a task sets its values. When the command
+  refuses a task because it belongs to another member, relay the refusal, suggest asking
+  its owner, and never edit the task file to get around it.
 - When `gemba.yaml` changes, follow the new content. This skill never needs an edit when
   a workstream, field or rule is added, changed or removed.

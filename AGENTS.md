@@ -31,10 +31,17 @@ One word for one thing, in the specs, the skills, the code and the chat.
   agrees on; and the **personal config**, `gemba.local.yaml`, optional, private to the
   clone and ignored by git, what belongs to one person on one machine. `config.py` says
   which file each key belongs in.
+- A **team** is the members the `team` of the shared config declares, who share one
+  obeya. A **member** is one person of the team, with a folder under `tasks/` and
+  initials; the personal config of each clone names its member as `me`. A member who
+  leaves is marked inactive, never removed, so their initials are never reused. The
+  **owner** of a task is the one member it belongs to, the one whose folder holds it.
 - A **task** is one unit of work, recorded in one **task file** under
-  `tasks/<workstream>/`, identified by its **ref** (`PREFIX-N`). A **workstream** is a
-  folder under `tasks/` plus its block in the gemba config. An **update** is one dated
-  entry under `## Updates`; recording it is the process, `record`.
+  `tasks/<workstream>/`, or `tasks/<member>/<workstream>/` in an obeya with a team,
+  identified by its **ref** (`PREFIX-N`, or `INITIALS-PREFIX-N` with a team, such as
+  `MR-SUP-3`). A **workstream** is a folder under `tasks/` plus its block in the gemba
+  config. An **update** is one dated entry under `## Updates`; recording it is the
+  process, `record`.
 - A **run** is the execution of a task, from launch to removal. A **harness** is the
   folder of one run under `harnesses/<workstream>/<stem>/`: its own local git
   repository, where the agent executes, and the root the IDE opens. The **harness
@@ -94,6 +101,11 @@ subcommand; the README explains each process.
   writes, the git commands, the clock and the output. `cli.py` only dispatches. New
   logic goes into a domain module; every public function is fully type-annotated, and
   each module's docstring says what it owns.
+- **One writer per folder.** In an obeya with a team, the commands that write a task
+  write only the tasks of `me`, under `tasks/<me>/`, and every member reads every task,
+  so the obeya needs no backend: git carries it, and a pull almost never conflicts. The
+  guard stops accidents, not a determined person: access control belongs to the git
+  host.
 - **Every problem at once, nothing written on refusal.** Validation problems are
   accumulated and reported in one message so the agent fixes a call in one round.
   Every error path exits 1, argparse usage errors included, and writes no file.

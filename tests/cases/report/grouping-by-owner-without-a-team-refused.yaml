@@ -1,0 +1,15 @@
+name: a report grouped by owner in an obeya without a team prints nothing and says the obeya declares no team
+scenario: "task-reporting: Grouping by owner without a team refused"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+tree:
+  tasks/support/2026-10-20-SUP-1-export-times-out.md: "---\nstatus: open\nref: SUP-1\nupdated_at: 2026-10-20\nmetadata: {}\n---\n\n## Updates\n"
+run: [report, --by, owner]
+exit: 1
+stdout: ""
+stderr_contains:
+  - "gemba report: nothing reported:\n"
+  - "- cannot group by 'owner': this obeya declares no team"
+unchanged: true

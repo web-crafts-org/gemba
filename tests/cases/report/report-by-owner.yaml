@@ -1,0 +1,35 @@
+name: a report grouped by owner puts each task in the group of its owner, the groups in the order of the team
+scenario: "task-reporting: Report by owner"
+config:
+  default_workstream: support
+  metadata:
+    - { name: hours, type: number }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  me: manuel
+tree:
+  tasks/manuel/support/2026-10-22-MR-SUP-1-export-times-out.md: "---\nstatus: open\nref: MR-SUP-1\nupdated_at: 2026-10-22\nmetadata:\n  hours: 2\n---\n\n## Updates\n"
+  tasks/ana/support/2026-10-20-AG-SUP-1-login-fails.md: "---\nstatus: open\nref: AG-SUP-1\nupdated_at: 2026-10-20\nmetadata:\n  hours: 3\n---\n\n## Updates\n"
+  tasks/ana/operations/2026-10-21-AG-OPS-1-renew-domain.md: "---\nstatus: open\nref: AG-OPS-1\nupdated_at: 2026-10-21\nmetadata:\n  hours: 1\n---\n\n## Updates\n"
+run: [report, --by, owner, --sum, hours]
+exit: 0
+stdout_json:
+  by: [owner]
+  sum: [hours]
+  groups:
+    - key: { owner: manuel }
+      tasks: 1
+      refs: [MR-SUP-1]
+      sums: { hours: { total: 2, missing: 0 } }
+    - key: { owner: ana }
+      tasks: 2
+      refs: [AG-SUP-1, AG-OPS-1]
+      sums: { hours: { total: 4, missing: 0 } }
+  total: { tasks: 3, sums: { hours: { total: 6, missing: 0 } } }
+  problems: []
+unchanged: true

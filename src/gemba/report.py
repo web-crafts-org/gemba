@@ -1,7 +1,8 @@
 """Report rules: the groupings, counts and sums over tasks already selected.
 
 The one module that knows tasks and metadata together: a task is grouped by its own
-workstream and status, and by its metadata values read by the type of their field.
+workstream, status and, in an obeya with a team, owner, and by its metadata values read
+by the type of their field.
 """
 
 import itertools
@@ -13,6 +14,8 @@ from gemba.tasks import STATUSES, Task
 
 # Properties of every task a report may group by; no metadata field may take these names.
 BUILT_IN = metadata.RESERVED
+# The property only a task of an obeya with a team has.
+OWNER = "owner"
 # The types a report groups by: a number is summed and a date bounds a selection.
 GROUPED = (metadata.TEXT, metadata.BOOLEAN)
 SUMMED = (metadata.NUMBER,)
@@ -43,8 +46,10 @@ class Report:
     sums: dict[str, Sum]
 
 
-def grouping_problem(key: str, types: Mapping[str, str]) -> str | None:
-    """Why a report cannot group by `key`, or None when it can."""
+def grouping_problem(key: str, types: Mapping[str, str], team: Sequence[str] | None = None) -> str | None:
+    """Why a report cannot group by `key`, or None when it can; `team` holds the members, None without a team."""
+    if key == OWNER and team is None:
+        return f"cannot group by '{key}': this obeya declares no team"
     if key in BUILT_IN:
         return None
     if key not in types:
@@ -65,12 +70,16 @@ def sum_problem(key: str, types: Mapping[str, str]) -> str | None:
     return None
 
 
-def problems(by: Sequence[str], sums: Sequence[str], types: Mapping[str, str]) -> list[str]:
-    """Every grouping and sum a report cannot take, a key given twice to either included."""
+def problems(
+    by: Sequence[str], sums: Sequence[str], types: Mapping[str, str], team: Sequence[str] | None = None
+) -> list[str]:
+    """Every grouping and sum a report cannot take, a key given twice to either included; `team` holds the members,
+    None without a team."""
     found = []
-    for keys, problem, role in ((by, grouping_problem, "grouping"), (sums, sum_problem, "sum")):
+    for keys, role in ((by, "grouping"), (sums, "sum")):
         for key in dict.fromkeys(keys):
-            if reason := problem(key, types):
+            reason = grouping_problem(key, types, team) if role == "grouping" else sum_problem(key, types)
+            if reason:
                 found.append(reason)
             if keys.count(key) > 1:
                 found.append(f"'{key}' is given more than once as a {role}")
@@ -83,14 +92,15 @@ def aggregate(
     sums: Sequence[str],
     types: Mapping[str, str],
     workstreams: Sequence[str],
+    team: Sequence[str] | None = None,
 ) -> Report:
     """The groups of the selected tasks, in listing order, and the total.
 
     A task belongs to one group per combination of its grouping values: a null, missing
     or mistyped value groups under null, and a text list under each distinct item, or
     under null when empty. Groups are ordered grouping after grouping: workstreams in
-    the order of `workstreams`, statuses in their order, false before true, text by code
-    point and null last.
+    the order of `workstreams`, owners in the order of the members in `team`, statuses
+    in their order, false before true, text by code point and null last.
     """
     members: dict[tuple[object, ...], list[Task]] = {}
     for task in selected:
@@ -98,7 +108,9 @@ def aggregate(
             members.setdefault(combination, []).append(task)
     order = sorted(
         members,
-        key=lambda combination: [_rank(key, value, workstreams) for key, value in zip(by, combination, strict=True)],
+        key=lambda combination: [
+            _rank(key, value, workstreams, team or ()) for key, value in zip(by, combination, strict=True)
+        ],
     )
     groups = [
         Group(
@@ -117,6 +129,8 @@ def _grouping_values(task: Task, key: str, types: Mapping[str, str]) -> list[obj
         return [task.workstream]
     if key == "status":
         return [task.status]
+    if key == OWNER:
+        return [task.owner]
     value = task.metadata.get(key)
     if metadata.value_problem(types[key], value) is not None:
         return [None]
@@ -125,12 +139,14 @@ def _grouping_values(task: Task, key: str, types: Mapping[str, str]) -> list[obj
     return [value]
 
 
-def _rank(key: str, value: object, workstreams: Sequence[str]) -> tuple[int, object]:
+def _rank(key: str, value: object, workstreams: Sequence[str], team: Sequence[str]) -> tuple[int, object]:
     """Where a grouping value sorts: the order of its grouping, null last."""
     if value is None:
         return (1, 0)
     if key == "workstream":
         return (0, workstreams.index(str(value)))
+    if key == OWNER:
+        return (0, team.index(str(value)))
     if key == "status":
         return (0, STATUSES.index(str(value)))
     if isinstance(value, bool):

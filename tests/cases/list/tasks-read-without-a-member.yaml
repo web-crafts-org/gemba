@@ -1,0 +1,66 @@
+name: in an obeya with a team, a clone that declares no me lists every member's tasks
+scenario: "task-ownership: Tasks read without a member"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+tree:
+  tasks/manuel/support/2026-10-20-MR-SUP-1-export-times-out.md: "---\nstatus: open\nref: MR-SUP-1\nupdated_at: 2026-10-20\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/ana/support/2026-10-21-AG-SUP-1-login-fails.md: "---\nstatus: open\nref: AG-SUP-1\nupdated_at: 2026-10-21\nmetadata: {}\n---\n\n## Updates\n"
+run: [list]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/manuel/support/2026-10-20-MR-SUP-1-export-times-out.md
+      owner: manuel
+      workstream: support
+      archived: false
+      ref: MR-SUP-1
+      date: 2026-10-20
+      title: Export times out
+      status: open
+      updated_at: 2026-10-20
+      done_at: null
+      metadata: {}
+      description: null
+    - path: tasks/ana/support/2026-10-21-AG-SUP-1-login-fails.md
+      owner: ana
+      workstream: support
+      archived: false
+      ref: AG-SUP-1
+      date: 2026-10-21
+      title: Login fails
+      status: open
+      updated_at: 2026-10-21
+      done_at: null
+      metadata: {}
+      description: null
+  problems: []
+unchanged: true
+---
+name: in an obeya with a team, a clone that declares no me reports every member's tasks grouped by owner
+scenario: "task-ownership: Tasks read without a member"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+tree:
+  tasks/manuel/support/2026-10-20-MR-SUP-1-export-times-out.md: "---\nstatus: open\nref: MR-SUP-1\nupdated_at: 2026-10-20\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/ana/support/2026-10-21-AG-SUP-1-login-fails.md: "---\nstatus: open\nref: AG-SUP-1\nupdated_at: 2026-10-21\nmetadata: {}\n---\n\n## Updates\n"
+run: [report, --by, owner]
+exit: 0
+stdout_json:
+  by: [owner]
+  sum: []
+  groups:
+    - { key: { owner: manuel }, tasks: 1, refs: [MR-SUP-1], sums: {} }
+    - { key: { owner: ana }, tasks: 1, refs: [AG-SUP-1], sums: {} }
+  total: { tasks: 2, sums: {} }
+  problems: []
+unchanged: true

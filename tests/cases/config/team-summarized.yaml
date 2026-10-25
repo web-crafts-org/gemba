@@ -1,0 +1,23 @@
+name: check of an obeya with a team prints the members right after the default workstream, then the member of the clone
+scenario: "config-maintenance: Team summarized"
+config:
+  default_workstream: support
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG, active: false }
+local_config:
+  me: manuel
+run: [config, check]
+exit: 0
+stdout: |
+  gemba.yaml is valid
+  gemba.local.yaml is valid
+  workstreams: support (SUP)
+  default workstream: support
+  team: manuel (MR), ana (AG, inactive)
+  me: manuel
+  agent providers: claude
+unchanged: true

@@ -22,11 +22,13 @@ DATE_OPTIONS = (
 
 @dataclass(frozen=True)
 class Scope:
-    """The workstream folders a selection scans; unless they were filtered, every stray entry under tasks/ too."""
+    """The workstream folders a selection scans, of every member or those of the owner filter in an obeya with a
+    team (`owners`, None without one); unless they were filtered, every stray entry under tasks/ too."""
 
     workstreams: tuple[str, ...]
     include_archived: bool
     filtered: bool
+    owners: tuple[str, ...] | None = None
 
 
 def add_options(parser: argparse.ArgumentParser) -> None:
@@ -46,6 +48,14 @@ def add_options(parser: argparse.ArgumentParser) -> None:
         default=[],
         metavar="STATUS",
         help="open, in-progress, blocked or done; repeat for several (default: every status)",
+    )
+    parser.add_argument(
+        "--owner",
+        dest="owners",
+        action="append",
+        default=[],
+        metavar="MEMBER",
+        help="folder name of a member of the team, in an obeya with a team; repeat for several (default: every member)",
     )
     parser.add_argument("--ref", help="exact task ref, such as SUP-1")
     parser.add_argument(
@@ -101,6 +111,14 @@ def build(args: argparse.Namespace, gemba_config: config.Config) -> tuple[Scope,
             errors.append(
                 f"unknown workstream '{workstream}' (valid workstreams: {', '.join(gemba_config.workstreams)})"
             )
+    owners = list(dict.fromkeys(args.owners))
+    members = gemba_config.members
+    if owners and members is None:
+        errors.append("--owner needs a team: this obeya declares none")
+    elif members is not None:
+        errors.extend(
+            f"unknown member '{owner}' (members: {', '.join(members)})" for owner in owners if owner not in members
+        )
     for status in dict.fromkeys(args.statuses):
         if problem := tasks.status_problem(status):
             errors.append(problem)
@@ -115,8 +133,13 @@ def build(args: argparse.Namespace, gemba_config: config.Config) -> tuple[Scope,
     )
     errors.extend(condition_errors)
 
-    # A workstream filter is the scan scope: no other folder is read or reported.
-    scope = Scope(tuple(workstreams or gemba_config.workstreams), args.include_archived, bool(workstreams))
+    # A workstream or owner filter is the scan scope: no other folder is read or reported.
+    scope = Scope(
+        tuple(workstreams or gemba_config.workstreams),
+        args.include_archived,
+        bool(workstreams or owners),
+        None if members is None else tuple(owners or members),
+    )
     filters = tasks.Filters(
         statuses=args.statuses,
         ref=args.ref,
@@ -149,6 +172,7 @@ def select(
         scope.workstreams,
         scope.include_archived,
         configured=None if scope.filtered else list(gemba_config.workstreams),
+        owners=scope.owners,
     )
     types = gemba_config.types()
     for task in found:

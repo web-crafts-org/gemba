@@ -1,0 +1,105 @@
+name: in an obeya with a team, the active tasks of every member are listed, each with its owner
+scenario: "task-listing: Tasks of every member listed"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  me: manuel
+tree:
+  tasks/manuel/support/2026-10-20-MR-SUP-1-export-times-out.md: "---\nstatus: open\nref: MR-SUP-1\nupdated_at: 2026-10-20\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/ana/operations/2026-10-21-AG-OPS-1-renew-domain.md: "---\nstatus: in-progress\nref: AG-OPS-1\nupdated_at: 2026-10-22\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/ana/support/archive/2026-10-15-AG-SUP-1-login-fails.md: "---\nstatus: done\nref: AG-SUP-1\nupdated_at: 2026-10-16\ndone_at: 2026-10-16\nmetadata: {}\n---\n\n## Updates\n"
+run: [list]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/manuel/support/2026-10-20-MR-SUP-1-export-times-out.md
+      owner: manuel
+      workstream: support
+      archived: false
+      ref: MR-SUP-1
+      date: 2026-10-20
+      title: Export times out
+      status: open
+      updated_at: 2026-10-20
+      done_at: null
+      metadata: {}
+      description: null
+    - path: tasks/ana/operations/2026-10-21-AG-OPS-1-renew-domain.md
+      owner: ana
+      workstream: operations
+      archived: false
+      ref: AG-OPS-1
+      date: 2026-10-21
+      title: Renew domain
+      status: in-progress
+      updated_at: 2026-10-22
+      done_at: null
+      metadata: {}
+      description: null
+  problems: []
+unchanged: true
+---
+name: with the archived switch, the archived tasks of every member are listed too
+scenario: "task-listing: Tasks of every member listed"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  me: manuel
+tree:
+  tasks/manuel/support/2026-10-20-MR-SUP-1-export-times-out.md: "---\nstatus: open\nref: MR-SUP-1\nupdated_at: 2026-10-20\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/ana/operations/2026-10-21-AG-OPS-1-renew-domain.md: "---\nstatus: in-progress\nref: AG-OPS-1\nupdated_at: 2026-10-22\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/ana/support/archive/2026-10-15-AG-SUP-1-login-fails.md: "---\nstatus: done\nref: AG-SUP-1\nupdated_at: 2026-10-16\ndone_at: 2026-10-16\nmetadata: {}\n---\n\n## Updates\n"
+run: [list, --include-archived]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/ana/support/archive/2026-10-15-AG-SUP-1-login-fails.md
+      owner: ana
+      workstream: support
+      archived: true
+      ref: AG-SUP-1
+      date: 2026-10-15
+      title: Login fails
+      status: done
+      updated_at: 2026-10-16
+      done_at: 2026-10-16
+      metadata: {}
+      description: null
+    - path: tasks/manuel/support/2026-10-20-MR-SUP-1-export-times-out.md
+      owner: manuel
+      workstream: support
+      archived: false
+      ref: MR-SUP-1
+      date: 2026-10-20
+      title: Export times out
+      status: open
+      updated_at: 2026-10-20
+      done_at: null
+      metadata: {}
+      description: null
+    - path: tasks/ana/operations/2026-10-21-AG-OPS-1-renew-domain.md
+      owner: ana
+      workstream: operations
+      archived: false
+      ref: AG-OPS-1
+      date: 2026-10-21
+      title: Renew domain
+      status: in-progress
+      updated_at: 2026-10-22
+      done_at: null
+      metadata: {}
+      description: null
+  problems: []
+unchanged: true

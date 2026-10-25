@@ -1,0 +1,37 @@
+name: a team written as a list is refused, saying it is a map keyed by the folder name of each member
+scenario: "gemba-config: Malformed team refused"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    - { name: manuel, initials: MR }
+run: [list]
+exit: 1
+stderr_contains:
+  - "invalid gemba config:\n"
+  - "gemba.yaml: team must be a non-empty map keyed by the folder name of each member"
+unchanged: true
+---
+name: every fault of the members of a team is refused in one message that names each member and each key
+scenario: "gemba-config: Malformed team refused"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    Ana: { initials: AG }
+    manuel: { initials: mr }
+    bea: { active: true }
+    carl: { initials: CR, active: "yes" }
+    dana: { initials: DN, email: dana@example.com }
+run: [list]
+exit: 1
+stderr_contains:
+  - "invalid gemba config:\n"
+  - "team member 'Ana': folder name must be kebab-case"
+  - "team member 'manuel': initials must be one or more uppercase ASCII letters (got 'mr'"
+  - "team member 'bea': initials must be one or more uppercase ASCII letters (got None"
+  - "team member 'carl': active must be true or false (got 'yes')"
+  - "team member 'dana': email is not a key of a member (allowed: initials, active)"
+unchanged: true
