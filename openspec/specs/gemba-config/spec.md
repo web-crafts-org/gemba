@@ -12,14 +12,12 @@ so that processes and their commands stay free of such values.
 ## Requirements
 
 ### Requirement: Config file location and format
-The obeya SHALL hold its customization, the gemba config, in two YAML files at
-its root: `gemba.yaml`, the shared config, committed with the obeya, and
-`gemba.local.yaml`, the personal config, optional and private to the clone, which git
-ignores. Processes and commands SHALL locate the root by walking up from the current
-working directory to the nearest `gemba.yaml`, so they work from any folder inside the
-obeya, including the harnesses, and SHALL read the personal config at that root
-when it exists. A `gemba.local.yaml` with no `gemba.yaml` beside it SHALL never be
-read. An empty personal config SHALL be read as one that declares nothing.
+The gemba config SHALL be two YAML files at the obeya root: `gemba.yaml`, the shared
+config, committed, and `gemba.local.yaml`, the personal config, optional, private to
+the clone, ignored by git. Commands SHALL take as root the nearest folder up from the
+working directory holding `gemba.yaml`, so they work anywhere inside the obeya,
+harnesses included, and SHALL read the personal config at that root when it exists, an
+empty one as declaring nothing, never one without a `gemba.yaml` beside it.
 
 #### Scenario: Command run from a subfolder
 - **WHEN** a gemba command is started from any folder below the obeya root
@@ -53,14 +51,12 @@ from the config at runtime and SHALL NOT embed them.
 - **THEN** the create process refuses that workstream identifier, while task files already stored in its folder are left untouched
 
 ### Requirement: Workstream catalogue
-The config SHALL declare its workstreams under a top-level `workstreams` map keyed by
-workstream identifier. Each identifier SHALL be kebab-case (lowercase letters, digits
-and single hyphens) and SHALL NOT be a reserved device name of Windows (`con`, `prn`,
-`aux`, `nul`, `com0` to `com9`, `lpt0` to `lpt9`), because it is also the folder name
-under `tasks/` on every platform. Each workstream block SHALL contain a `prefix` (one
-or more uppercase ASCII letters, unique across the catalogue) and a non-empty
-`description` that tells an agent which work belongs there. A workstream block MAY
-contain a `metadata` list and a `create` block as defined below.
+The config SHALL declare its workstreams in a top-level `workstreams` map keyed by
+identifier: kebab-case (lowercase letters, digits and single hyphens) and not a
+reserved device name of Windows (`con`, `prn`, `aux`, `nul`, `com0` to `com9`, `lpt0`
+to `lpt9`), since it names a folder of `tasks/`. Each block SHALL hold a `prefix`, one
+or more uppercase ASCII letters unique in the catalogue, and a non-empty `description`
+of the work that belongs there, and MAY hold `metadata` and process blocks.
 
 #### Scenario: Valid catalogue
 - **WHEN** the config declares `code-reviews` with `prefix: CR` and `description: Review a merge request before it is merged`
@@ -95,15 +91,12 @@ catalogue. It is the workstream for work that fits no other description.
 - **THEN** any process that reads the config refuses to proceed and reports the invalid default
 
 ### Requirement: Metadata field declaration
-A metadata field declaration SHALL be a map with a `name` (required, snake_case: lowercase
-letters, digits and single underscores), a `type` (required, one of `text`, `number`,
-`boolean` and `date`), an optional boolean `required` that defaults to `false`, and an
-optional `description` used only when the name alone does not convey what value is
-expected. The type tells every process how to read, write, compare and operate on a
-value of the field; it says nothing of what the field means, which belongs to the
-person who declared it. Declarations SHALL NOT carry allowed values or defaults, and any
-key other than the four SHALL be refused. The names `workstream` and `status` SHALL be
-refused, because the report groups every task by them.
+A metadata field declaration SHALL be a map of `name`, required, in snake_case;
+`type`, required, one of `text`, `number`, `boolean` and `date`; `required`, a
+boolean, `false` by default; and `description`, optional, when the name alone does not
+say what is expected. The type sets how a value is handled, never what it means. Any
+other key, allowed values and defaults included, SHALL be refused, and so SHALL the
+names `workstream` and `status`, by which the report groups every task.
 
 #### Scenario: Minimal declaration
 - **WHEN** a declaration is `{ name: client, type: text }`
@@ -130,16 +123,12 @@ refused, because the report groups every task by them.
 - **THEN** any process that reads the config refuses to proceed and says the name is reserved
 
 ### Requirement: Base metadata and effective schema
-The config MAY declare a top-level `metadata` list of field declarations shared by every
-workstream. The effective metadata schema of a workstream SHALL be the union by field
-name of the base list and the workstream's own `metadata` list. When the same name
-appears in both, the workstream declaration SHALL replace the base declaration
-entirely (the most specific definition wins). A field name SHALL have one type across
-the whole config: every list that declares a name, the base list and any workstream
-list, SHALL give it the same type, so that a value of that field is read, compared and
-added the same way in every workstream, and any process that reads the config SHALL
-refuse a config where two declarations of one name differ in type, naming the field
-and the two lists. Within a single list, a repeated name is an error.
+The config MAY declare a top-level `metadata` list shared by every workstream. The
+effective schema of a workstream SHALL be the union by name of that list and its own,
+its declaration of a name replacing the base one entirely. A name SHALL have one type
+in every list that declares it, so its values read, compare and add alike everywhere:
+a config where two declarations of a name differ in type SHALL be refused, naming the
+field and the two lists. A name repeated in one list SHALL be refused.
 
 #### Scenario: Union of base and workstream fields
 - **WHEN** the base list declares `client` and `hours`, and workstream `support` declares `project`
@@ -161,22 +150,13 @@ and the two lists. Within a single list, a repeated name is an error.
 - **WHEN** the base list declares `{ name: hours, type: number }` and workstream `support` declares `{ name: hours, type: text }`, or two workstreams declare `due` as a `date` and as a `text`
 - **THEN** any process that reads the config refuses to proceed, names the field and the two lists that disagree
 
-### Requirement: Per-process customization block
-A workstream block MAY contain a block named after a Gemba process: `create`, `list`,
-`record`, `report`, `mark`, `archive` and `set`, whose process is one verb, and
-`harness` and `worktree`, whose process is a group. A verb block MAY contain `rules`,
-a list of non-empty strings the agent must follow while running that verb for that
-workstream, and `context`, a string of background the agent reads before running it.
-The `harness` block MAY contain one verb block per verb of the group (`launch`,
-`note`, `resolve`, `remove`), each with `rules` and `context` as above, and `guide`, a
-non-empty string that `launch` renders into the guide of the harness; any other key
-inside `harness` SHALL be refused. The `worktree` block MAY contain one verb block per
-verb of the group (`add`, `list`, `remove`), each with `rules` and `context` as above;
-any other key inside `worktree`, `guide` included, SHALL be refused. Any process that
-reads the config SHALL validate the shape of every known process block, and a process
-SHALL read only its own block, a verb of a group only its own verb block, and SHALL
-ignore blocks it does not know, so that later changes can add processes without
-invalidating existing configs.
+### Requirement: Process blocks of a workstream
+A workstream block MAY hold a block per Gemba process: `create`, `list`, `record`,
+`report`, `mark`, `archive` and `set`, each one verb, and the groups `harness` and
+`worktree`. A verb block MAY hold `rules`, non-empty strings the agent follows while
+running that verb for that workstream, and `context`, background it reads first. Every
+process SHALL validate the shape of every known block, read only its own, a verb of a
+group only its verb's, and ignore the blocks it does not know.
 
 #### Scenario: Create rules applied
 - **WHEN** workstream `deployments` declares `create.rules` containing "environment is production or staging; ask if not stated"
@@ -193,22 +173,6 @@ invalidating existing configs.
 #### Scenario: Malformed process block
 - **WHEN** a workstream declares `list.rules` as a string instead of a list, or `list.context` as a list instead of a string
 - **THEN** any process that reads the config refuses to proceed and names the workstream and the block
-
-#### Scenario: Harness verb blocks accepted
-- **WHEN** workstream `code-reviews` declares `harness.guide`, `harness.note.rules`, `harness.resolve.context` and `harness.remove.rules`
-- **THEN** every process that reads the config accepts it, and launching a `code-reviews` task renders the guide text
-
-#### Scenario: Malformed harness block
-- **WHEN** a workstream declares `harness.guide` as a list, `harness.note.rules` as a string, or a key inside `harness` that is neither `guide` nor a verb of the group, such as `harness.rules`
-- **THEN** any process that reads the config refuses to proceed and names the workstream and the offending key
-
-#### Scenario: Worktree verb blocks accepted
-- **WHEN** workstream `code-reviews` declares `worktree.add.rules`, `worktree.list.context` and `worktree.remove.rules`
-- **THEN** every process that reads the config accepts it, and a task is created in `code-reviews` as before
-
-#### Scenario: Malformed worktree block
-- **WHEN** a workstream declares `worktree.add.rules` as a string, `worktree.guide`, or a key inside `worktree` that is not a verb of the group, such as `worktree.rules`
-- **THEN** any process that reads the config refuses to proceed and names the workstream and the offending key
 
 #### Scenario: Record and report blocks accepted
 - **WHEN** workstream `support` declares `record.rules` and `report.context`
@@ -234,30 +198,36 @@ invalidating existing configs.
 - **WHEN** a workstream declares `set.rules` as a string, or `set.context` as a list
 - **THEN** any process that reads the config refuses to proceed and names the workstream and the block
 
-### Requirement: Base process blocks and the effective block
+### Requirement: Blocks of the harness and worktree groups
+The `harness` block MAY hold a verb block for each of `launch`, `note`, `resolve` and
+`remove`, and `guide`, a non-empty string that `launch` renders into the guide of the
+harness. The `worktree` block MAY hold a verb block for each of `add`, `list` and
+`remove`. Any other key inside either group, `guide` inside `worktree` included, SHALL
+be refused.
+
+#### Scenario: Harness verb blocks accepted
+- **WHEN** workstream `code-reviews` declares `harness.guide`, `harness.note.rules`, `harness.resolve.context` and `harness.remove.rules`
+- **THEN** every process that reads the config accepts it, and launching a `code-reviews` task renders the guide text
+
+#### Scenario: Malformed harness block
+- **WHEN** a workstream declares `harness.guide` as a list, `harness.note.rules` as a string, or a key inside `harness` that is neither `guide` nor a verb of the group, such as `harness.rules`
+- **THEN** any process that reads the config refuses to proceed and names the workstream and the offending key
+
+#### Scenario: Worktree verb blocks accepted
+- **WHEN** workstream `code-reviews` declares `worktree.add.rules`, `worktree.list.context` and `worktree.remove.rules`
+- **THEN** every process that reads the config accepts it, and a task is created in `code-reviews` as before
+
+#### Scenario: Malformed worktree block
+- **WHEN** a workstream declares `worktree.add.rules` as a string, `worktree.guide`, or a key inside `worktree` that is not a verb of the group, such as `worktree.rules`
+- **THEN** any process that reads the config refuses to proceed and names the workstream and the offending key
+
+### Requirement: Base process blocks
 Each file of the config MAY declare at its top level any process block a workstream
-block may contain, `create`, `list`, `record`, `report`, `mark`, `archive`, `set`,
-`harness` and `worktree`, with the same keys and the same shapes: these are the base
-blocks, shared by every workstream. Any process that reads the config SHALL validate
-every base block as it validates the block of a workstream, and SHALL refuse a
-malformed one, naming its file, the top level and the offending key. The effective
-block of a process, or of a verb of a group, for a workstream SHALL combine four
-levels in this order: the base block of the shared config, the workstream's block in
-the shared config, the base block of the personal config and the workstream's block in
-the personal config. Its `context` is the context of every level that declares one, in
-that order, one empty line apart; its `rules` are every rule of every level, in that
-order; and the `harness.guide` texts are rendered as the harness guide specifies. The
-CLI SHALL compute the effective block and the effective metadata schema of every
-workstream and print them through `gemba config show`, as the config maintenance
-capability specifies, and a skill that has the agent read the block of a process for a
-workstream, or the schema of a workstream, SHALL have it read from that command rather
-than combine the levels of the files itself. The agent SHALL follow every rule of the
-effective block, and when two rules contradict, the agent SHALL follow the later one:
-the rule of the workstream over the base rule of the same file, and any rule of the
-personal config over any rule of the shared config. When a process runs over several
-workstreams, the base blocks SHALL apply once, alongside the blocks of each
-workstream. A config with no base block and no personal config SHALL behave exactly as
-before.
+block may hold, with the same keys and shapes: the base blocks, shared by every
+workstream. A malformed base block SHALL be refused, naming its file, the top level
+and the offending key. When a process runs over several workstreams, the base blocks
+SHALL apply once, alongside the blocks of each. A config with no base block and no
+personal config SHALL behave as before.
 
 #### Scenario: Base blocks accepted
 - **WHEN** the top level of the config declares `create.context`, `harness.guide`, `harness.note.rules` and `worktree.add.rules`, and no workstream declares a process block
@@ -267,9 +237,22 @@ before.
 - **WHEN** the top level of the config declares `list.rules` as a string, `harness.guide` as a list, or a key inside `harness` that is neither `guide` nor a verb of the group, such as `harness.rules`
 - **THEN** any process that reads the config refuses to proceed, names the top level and the offending key, and writes nothing
 
+### Requirement: The effective block of a process
+The effective block of a process, or of a verb of a group, for a workstream SHALL join
+four levels in order: the shared base block, the workstream's shared block, the
+personal base block and the workstream's personal block. Its `context` is the context
+of every level, one empty line apart; its `rules`, the rules of every level.
+`gemba config show` SHALL print the effective blocks and metadata schemas, and a skill
+SHALL have the agent read them there, never combining the levels of the files.
+
 #### Scenario: Base and workstream blocks followed together
 - **WHEN** the top level declares `create.context` and `create.rules` containing "ask who requested the work if not stated", and workstream `deployments` declares `create.rules` containing "environment is production or staging; ask if not stated"
 - **THEN** an agent creating a task in `deployments` reads the effective `create` block of `deployments` from `gemba config show`, the base context first and both rules, the base one first, and follows both before creating the file
+
+### Requirement: The later rule wins
+The agent SHALL follow every rule of the effective block. When two rules contradict,
+it SHALL follow the later one: the rule of the workstream over the base rule of the
+same file, and any rule of the personal config over any rule of the shared config.
 
 #### Scenario: Workstream rule wins over a base rule
 - **WHEN** the top level declares `worktree.add.rules` containing "start from the default branch of origin" and workstream `support` declares `worktree.add.rules` containing "start from the branch deployed to production"
@@ -280,15 +263,12 @@ before.
 - **THEN** an agent adding a worktree in a `support` harness reads both rules in that order from `gemba config show` and starts from the default branch of origin
 
 ### Requirement: Config validation precedes any write
-A process that reads the config SHALL validate both files against the rules above
-before performing any action. When validation fails, it SHALL refuse, writing nothing,
-with one message that starts with `invalid gemba config` and lists every problem of
-both files, each on its own line with the path of its file. A check that needs another
-value SHALL run only when that value is valid, so that one mistake is reported once:
-the default workstream is checked against the catalogue, a workstream of the personal
-config against the shared catalogue, and the type of a field name across lists, only
-for what parsed. A file that is not valid YAML SHALL be reported with its parse error,
-and the other file SHALL still be checked.
+A process that reads the config SHALL validate both files before any action and, when
+they fail, refuse, writing nothing, with one message that starts with
+`invalid gemba config` and lists every problem of both files, one per line with the
+path of its file; a file that is not valid YAML with its parse error, the other file
+still checked. A check that needs another value SHALL run only on what parsed, so that
+one mistake is reported once.
 
 #### Scenario: Malformed YAML
 - **WHEN** `gemba.yaml` cannot be parsed as YAML
@@ -306,23 +286,31 @@ and the other file SHALL still be checked.
 - **WHEN** `gemba.local.yaml` cannot be parsed as YAML and `gemba.yaml` declares two workstreams with the same prefix
 - **THEN** the process refuses to proceed with one message that names `gemba.local.yaml` with its parse error and the two workstreams of `gemba.yaml`, and writes nothing
 
-### Requirement: Agent providers
-Each file of the config MAY declare a top-level `agent_providers` list. The list of
-the shared config names the providers of the people who share the obeya: the
-skills of the obeya are written for them, and a harness is launched for them
-unless the personal config declares its own list. The list of the personal config
-names the providers of the person and replaces the shared one for the harnesses
-launched from that clone, and for nothing else. In either file, each entry SHALL be the
-identifier of a provider the CLI knows (`claude` and `agents` in this change), the
-list SHALL be non-empty when present, and no identifier SHALL appear twice. Any process
-that reads the config SHALL refuse to proceed when a list is malformed, names an
-unknown provider or repeats one, naming its file and the known providers in its error.
-A process that does not need the providers SHALL proceed when no list is declared; a
-process that needs them reports the absence itself.
+### Requirement: Agent providers of each file
+Each file of the config MAY declare a top-level `agent_providers` list. The shared
+list names the providers of the people who share the obeya: its skills are written for
+them, and a harness is launched for them unless the personal config declares a list,
+which then replaces it for the harnesses launched from that clone and for nothing
+else. A process that does not need the providers SHALL proceed when no list is
+declared; one that needs them reports the absence.
 
 #### Scenario: Known providers accepted
 - **WHEN** the config declares `agent_providers: [claude, agents]`
 - **THEN** every process that reads the config accepts it and the skills process writes for both providers
+
+#### Scenario: Providers absent for a process that does not need them
+- **WHEN** the config has no `agent_providers` key and a task is created
+- **THEN** the create process proceeds exactly as before
+
+#### Scenario: Providers declared in both files
+- **WHEN** `gemba.yaml` declares `agent_providers: [claude, agents]` and `gemba.local.yaml` declares `agent_providers: [claude]`
+- **THEN** every process that reads the config accepts it, and `gemba config show` prints `agent_providers` as `[claude, agents]` and `harness_providers` as `[claude]`
+
+### Requirement: Agent providers are validated
+In either file, `agent_providers` SHALL be a non-empty list of providers the CLI
+knows, `claude` and `agents`, none of them twice. Any process that reads the config
+SHALL refuse a list that is malformed, names an unknown provider or repeats one,
+naming its file and the known providers.
 
 #### Scenario: Unknown provider refused
 - **WHEN** the config declares `agent_providers: [claude, cursor]` and `cursor` is not a known provider
@@ -336,31 +324,17 @@ process that needs them reports the absence itself.
 - **WHEN** `agent_providers` is a string, an empty list, or a list holding something other than strings
 - **THEN** any process that reads the config refuses to proceed and names `agent_providers`
 
-#### Scenario: Providers absent for a process that does not need them
-- **WHEN** the config has no `agent_providers` key and a task is created
-- **THEN** the create process proceeds exactly as before
-
-#### Scenario: Providers declared in both files
-- **WHEN** `gemba.yaml` declares `agent_providers: [claude, agents]` and `gemba.local.yaml` declares `agent_providers: [claude]`
-- **THEN** every process that reads the config accepts it, and `gemba config show` prints `agent_providers` as `[claude, agents]` and `harness_providers` as `[claude]`
-
 #### Scenario: Unknown personal provider refused
 - **WHEN** `gemba.local.yaml` declares `agent_providers: [cursor]`
 - **THEN** any process that reads the config refuses to proceed and names `gemba.local.yaml`, `cursor` and the known providers
 
 ### Requirement: IDE command
-The personal config MAY declare a top-level `ide`, the command that opens a folder in
-the person's IDE, to which `launch` appends the harness path as the last argument. It
-SHALL be either a non-empty string, split into a command and its arguments as a POSIX
-shell would, so that a path holding spaces or backslashes goes between quotes, or a
-map holding `command`, a non-empty string naming the executable, and optionally
-`args`, a list of strings. The string `"code -n"` and the map `{command: code,
-args: [-n]}` SHALL mean the same. Any process that reads the config SHALL refuse to
-proceed when `ide` is present and is neither form: an empty string, a list, a map
-without `command`, a `command` that is not a non-empty string, or `args` that is not
-a list of strings. The shared config SHALL NOT declare `ide`, as the layer of each key
-says, so that no command a teammate wrote runs on the person's machine. A process that
-does not open the IDE SHALL proceed when the key is absent.
+The personal config MAY declare `ide`, the command that opens a folder in the person's
+IDE, to which `launch` appends the harness path. It SHALL be a non-empty string, split
+into a command and its arguments as a POSIX shell would, or a map of `command`, a
+non-empty string, and optional `args`, a list of strings: `"code -n"` and
+`{command: code, args: [-n]}` mean the same. Any other value SHALL be refused, naming
+`ide` and its file. A process that does not open the IDE SHALL proceed without it.
 
 #### Scenario: IDE command accepted
 - **WHEN** the personal config declares `ide: "code -n"`
@@ -379,18 +353,12 @@ does not open the IDE SHALL proceed when the key is absent.
 - **THEN** the create process proceeds exactly as before
 
 ### Requirement: Obeya, repositories folder and branch prefix
-The shared config MAY declare a top-level `obeya`, the name of the obeya, a
-kebab-case name (lowercase letters, digits and single hyphens) which is a segment of
-every branch the worktree process creates. The personal config
-MAY declare a top-level `repos_dir`, a non-empty string naming the folder of the
-person's machine whose immediate subfolders are the repositories a run may check out,
-absolute, starting with `~`, or relative to the obeya root; and a top-level
-`branch_prefix`, a kebab-case name that is the first segment of those branches,
-`gemba` when absent. Any process that reads the config SHALL refuse to proceed when
-`obeya` or `branch_prefix` is present and is not kebab-case, or when
-`repos_dir` is present and is not a non-empty string, naming the key and its file. A
-process that does not need them SHALL proceed when they are absent; the worktree
-process reports the absence itself.
+The shared config MAY declare `obeya`, the name of the obeya, and the personal config
+`branch_prefix`, `gemba` when absent: kebab-case names, segments of the branch of a
+run. The personal config MAY declare `repos_dir`, a non-empty string, the folder whose
+immediate subfolders are the repositories a run may check out: absolute, starting with
+`~`, or relative to the obeya root. Other values SHALL be refused, naming the key and
+its file; a process that does not need a key SHALL proceed without it.
 
 #### Scenario: Obeya and repositories folder accepted
 - **WHEN** the shared config declares `obeya: nakatomi` and the personal config declares `repos_dir: ~/projects` and `branch_prefix: nk`
@@ -409,14 +377,12 @@ process reports the absence itself.
 - **THEN** the create process proceeds exactly as before
 
 ### Requirement: Keys of each layer
-Each top-level key of the gemba config SHALL belong to a layer. Only the shared config
-SHALL hold `metadata`, `default_workstream`, `obeya` and the catalogue of
-workstreams; only the personal config SHALL hold `ide`, `repos_dir` and
-`branch_prefix`; both MAY hold `agent_providers` and the process blocks, which the
-personal config gives a workstream under `workstreams`. A key in the wrong file SHALL
-be refused, naming the key and the file it goes in. `organization`, the key `obeya`
-replaces, SHALL be refused in either file, naming it and saying that it was renamed
-`obeya`, which belongs in `gemba.yaml`. Any other key SHALL be ignored.
+Each top-level key SHALL have a layer: only the shared config holds `metadata`,
+`default_workstream`, `obeya` and the workstream catalogue; only the personal config
+holds `ide`, `repos_dir` and `branch_prefix`; both may hold `agent_providers` and
+process blocks, at top level or under `workstreams`. A key in the wrong file SHALL be
+refused, naming the file it goes in. `organization` SHALL be refused in either file as
+renamed `obeya`, which belongs in `gemba.yaml`. Other keys SHALL be ignored.
 
 #### Scenario: Personal keys refused in the shared config
 - **WHEN** `gemba.yaml` declares `ide: "code -n"`, `repos_dir: ~/projects` and `branch_prefix: nk`, as a config written for an earlier version may

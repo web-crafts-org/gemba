@@ -50,15 +50,12 @@ period.
 - **THEN** the report shows it as created, or as finished, in the period, without inventing bullets
 
 ### Requirement: Composition of the report
-The agent SHALL compose the report in the language the user converses in, grouped by
-workstream unless the user asks for another grouping, with one entry per task that has
-a signal for the period: its title, ref and current status, then the bullets of the
-period, condensed rather than transcribed. The candidates with nothing recorded for the
-period SHALL be listed at the end, under a heading saying they were updated recently
-with nothing recorded for that period, so the user can record what is missing. When no
-candidate has a signal for the period, the report SHALL say so plainly. Several periods
-SHALL give one report per period, oldest first. The layout is guidance: it adapts to
-the question asked and no process depends on it.
+The agent SHALL write the report in the user's language, by workstream unless asked
+otherwise, with one entry per task that has a signal for the period: its title, ref
+and status, then the period's bullets, condensed rather than transcribed. The
+candidates with nothing recorded for the period SHALL be listed at the end, under a
+heading that says so; with no signal at all, the report SHALL say so plainly. Several
+periods SHALL give one report each, oldest first. The layout is guidance only.
 
 #### Scenario: Report grouped by workstream
 - **WHEN** two `support` tasks and one `development` task have a subsection in the period
@@ -73,12 +70,12 @@ the question asked and no process depends on it.
 - **THEN** the report says that nothing was recorded for the period and lists the candidates as having nothing recorded
 
 ### Requirement: The report is read-only and invents nothing
-The agent SHALL NOT edit any task file, write any file or commit while reporting, and
-SHALL NOT state any activity that a subsection of the period, a creation date or a
-`done_at` does not support, nor any number that `gemba report` did not print. It SHALL
-report every problem returned by the listing or by the report command alongside the
-report. To record what is missing, it SHALL point the user to the `gemba-record`
-skill, used inside the harness of the task for the work of its run, or from the obeya for work done outside one, rather than editing the task itself.
+While reporting, the agent SHALL NOT edit a task file, write any file or commit, nor
+state any activity that no subsection of the period, creation date or `done_at`
+supports, nor any number `gemba report` did not print. It SHALL report every problem
+the listing or the report returned. For what is missing it SHALL point to the
+`gemba-record` skill, inside the task's harness for the work of its run or from the
+obeya for work outside one, recording nothing itself.
 
 #### Scenario: Nothing written
 - **WHEN** a report is produced
@@ -121,13 +118,11 @@ task files for the work of the period and compose the report.
 
 ### Requirement: Report inputs
 `gemba report` SHALL take the selection filters of `gemba list`, with the same names,
-values, validation and semantics, and MAY take groupings, `--by` (repeatable, each
-`workstream`, `status` or a declared metadata key of type `text` or `boolean`), and
-sums, `--sum` (repeatable, each a declared metadata key of type `number`). It SHALL
-validate every filter, grouping and sum before scanning and, when any is invalid, SHALL
-print nothing on standard output, exit with a non-zero status, and report every invalid
-input in a single message. A key given twice to `--by`, or twice to `--sum`, is
-invalid.
+values, validation and semantics, and MAY take groupings, `--by`, each `workstream`,
+`status` or a declared `text` or `boolean` metadata key, and sums, `--sum`, each a
+declared `number` key, both repeatable, a key given twice to either being invalid. It
+SHALL validate every input before scanning and, when any is invalid, print nothing,
+exit non-zero and report every invalid input in one message.
 
 #### Scenario: Selection as in the listing
 - **WHEN** `gemba report --done-from 2026-09-01 --done-to 2026-09-30 --where client=acme` runs over tasks done in August and September for `acme` and for `globex`
@@ -137,23 +132,23 @@ invalid.
 - **WHEN** one call gives `--by hours` on a number field, `--sum client` on a text field, `--by ticket` with no such field declared, and `--status closed`
 - **THEN** nothing is printed on standard output, the exit status is non-zero, and one message names the four problems
 
-### Requirement: Report output document
-On success the command SHALL print one JSON object with: `by`, the groupings in the
-order given; `sum`, the summed keys in the order given; `groups`, one entry per
-combination of grouping values found among the selected tasks, each with `key`, a map
-from each grouping to its value, `tasks`, the number of selected tasks in the group,
-`refs`, their refs in the order of the listing, and `sums`, a map from each summed key
-to its `total` and to `missing`, the number of tasks of the group without a value to
-add; `total`, with `tasks` and `sums` over every selected task, each task counted once;
-and `problems`, the problems of the scan and the values of another type, as `gemba
-list` reports them. Without `--by` there SHALL be one group, with an empty key, holding
-every selected task; when no task is selected, `groups` SHALL be empty and every total
-zero. The exit status SHALL be zero whenever the inputs and the config are valid, even
-when problems were found or no task was selected.
+### Requirement: The report document
+On success the command SHALL print one JSON object with `by` and `sum`, the groupings
+and summed keys in the order given; `groups`, one per combination of grouping values
+found, each with `key`, a map of each grouping to its value, `tasks`, their number,
+`refs`, in listing order, and `sums`, each summed key's `total` and `missing`, the
+tasks with no value to add; `total`, with `tasks` and `sums` over every selected task,
+counted once; and `problems`, as `gemba list` reports them.
 
 #### Scenario: Sums by group
 - **WHEN** `gemba report --by client --sum hours` runs over `SUP-1` (`client: acme`, `hours: 3`), `SUP-2` (`client: acme`, `hours: null`), `SUP-3` (`client: globex`, `hours: 2.5`) and `OPS-1` (`client: null`, `hours: 1`)
 - **THEN** the groups are `acme` with 2 tasks, refs `SUP-1` and `SUP-2`, `hours` total 3 and missing 1; `globex` with 1 task, total 2.5 and missing 0; `null` with 1 task, total 1 and missing 0; and the total holds 4 tasks, `hours` total 6.5 and missing 1
+
+### Requirement: A report with no grouping or no task
+Without `--by` there SHALL be one group, with an empty key, holding every selected
+task; when no task is selected, `groups` SHALL be empty and every total zero. The exit
+status SHALL be zero whenever the inputs and the config are valid, even when problems
+were found or no task was selected.
 
 #### Scenario: No grouping
 - **WHEN** `gemba report --sum hours` runs over three selected tasks
@@ -163,17 +158,13 @@ when problems were found or no task was selected.
 - **WHEN** no task matches the selection
 - **THEN** `groups` is empty, the total holds 0 tasks and, per summed key, a total of 0 and 0 missing, and the exit status is zero
 
-### Requirement: Grouping and sums
-Every selected task SHALL belong to one group per combination of its grouping values.
-The value of `workstream` and of `status` SHALL be the task's own. A metadata value of
-`null`, a missing key and a value of another type than the key's declared type SHALL
-group under `null`; a text list SHALL place the task in one group per distinct item,
-and an empty list under `null`. Groups SHALL be ordered by their key, grouping after
-grouping in the order given: workstreams in the order of the config, statuses as
-`open`, `in-progress`, `blocked`, `done`, `false` before `true`, text by code point,
-and `null` last. A sum SHALL add the values of its key exactly in decimal, writing a
-total with no fractional part as an integer; a task whose value is `null`, missing or
-of another type SHALL add nothing and SHALL be counted in `missing`.
+### Requirement: How tasks are grouped
+Every selected task SHALL belong to one group per combination of its grouping values:
+its own `workstream` and `status`; for a metadata key, `null` for a `null`, missing or
+mistyped value, and one group per distinct item of a text list, `null` for an empty
+one. Groups SHALL be ordered by key, grouping after grouping as given: workstreams in
+config order, statuses as `open`, `in-progress`, `blocked`, `done`, `false` before
+`true`, text by code point, `null` last.
 
 #### Scenario: Several groupings
 - **WHEN** `gemba report --by workstream --by status` runs over `support` and `operations` tasks with several statuses, `support` declared first in the config
@@ -182,6 +173,11 @@ of another type SHALL add nothing and SHALL be counted in `missing`.
 #### Scenario: Task in several groups
 - **WHEN** `gemba report --by project --sum hours` runs and one task carries `project: [checkout, landing]` and `hours: 2`
 - **THEN** the task is counted, with its 2 hours, in the `checkout` group and in the `landing` group, and once in the total
+
+### Requirement: How values are summed
+A sum SHALL add the values of its key exactly in decimal, a total with no fractional
+part written as an integer; a task whose value is `null`, missing or of another type
+SHALL add nothing and SHALL be counted in `missing`.
 
 #### Scenario: Tasks without a value counted
 - **WHEN** `gemba report --by client --sum hours` runs over a task with `hours: null`, a task created before `hours` was declared, and a task with `hours: "two"` and `client: 7`
@@ -192,14 +188,13 @@ of another type SHALL add nothing and SHALL be counted in `missing`.
 - **THEN** the totals are 0.3 and 2
 
 ### Requirement: Numbers come from the command
-Whenever the report states a count, a sum or a total, the agent SHALL run `gemba
-report` and state the numbers it printed, never numbers it computed itself, together
-with the count of tasks without a value when it is not zero. A number field holds one
-total per task, so the agent SHALL select the tasks whose totals belong to the period
-by their completion date, `--done-from F --done-to T`, unless the user asks for another
-selection or the `report.rules` of the workstreams involved say otherwise, and SHALL
-say which selection it used. It SHALL group with `--by` when the user asks for amounts
-per workstream, per status or per field.
+Whenever the report states a count, a sum or a total, the agent SHALL run
+`gemba report` and state the numbers it printed, never its own, with the count of
+tasks without a value when not zero. A number field holds one total per task, so the
+agent SHALL select the tasks of a period by completion date,
+`--done-from F --done-to T`, unless the user or the workstreams' `report.rules` say
+otherwise, and say which selection it used, grouping with `--by` for amounts per
+workstream, status or field.
 
 #### Scenario: Amount of a period
 - **WHEN** the user asks how many hours went to each client in September 2026, `hours` being a number field and `client` a text field

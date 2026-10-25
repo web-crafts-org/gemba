@@ -44,13 +44,12 @@ title and no separate title field exists.
 - **THEN** it strips the date, the known ref and the extension, replaces hyphens with spaces and capitalizes the first letter, yielding `Login fails on safari`
 
 ### Requirement: Task ref
-Every task SHALL carry a ref of the form `<PREFIX>-<N>`, where `<PREFIX>` is the prefix
-of the workstream the task was created in and `<N>` is a positive integer without
-leading zeros. The ref SHALL be unique across the whole repository, SHALL be allocated
-by Gemba (never chosen by the user or the agent), and SHALL be internal: it is
-never an external identifier such as a ticket key or merge request number. External
-identifiers, when they exist, belong in metadata or as links in the body. The ref
-written in the frontmatter SHALL equal the ref in the filename.
+Every task SHALL carry a ref `<PREFIX>-<N>`, `<PREFIX>` being the prefix of the
+workstream it was created in and `<N>` a positive integer without leading zeros. The
+ref SHALL be unique across the obeya, allocated by Gemba, never chosen by the user or
+the agent, and internal: an external identifier, such as a ticket key or a merge
+request number, belongs in metadata or as a link in the body. The ref in the
+frontmatter SHALL equal the ref in the filename.
 
 #### Scenario: Consecutive refs within a workstream
 - **WHEN** the highest existing ref with prefix `CR` anywhere under `tasks/` (including archive folders) is `CR-12`
@@ -69,14 +68,12 @@ written in the frontmatter SHALL equal the ref in the filename.
 - **THEN** Gemba still allocates an internal ref and records the ticket key in metadata or in the body, never as the ref
 
 ### Requirement: Built-in frontmatter fields
-The frontmatter SHALL be a YAML block delimited by `---` lines at the start of the file
-containing exactly these top-level keys, in this order: `status`, `ref`, `updated_at`,
-`done_at` (present only when status is `done`), and `metadata`. `status` SHALL be one
-of `open`, `in-progress`, `blocked`, `done`. `updated_at` SHALL be an ISO date equal to
-the creation date at creation and SHALL only ever move forward afterwards. `done_at`
-SHALL be the ISO date the task reached `done`, and SHALL be removed when the task
-leaves `done`, so that it always means "done since this date" and never "was once
-done".
+The frontmatter SHALL be a YAML block between `---` lines at the start of the file
+holding exactly, in this order, `status`, `ref`, `updated_at`, `done_at` (only when
+the status is `done`) and `metadata`. `status` SHALL be `open`, `in-progress`,
+`blocked` or `done`. `updated_at` SHALL be an ISO date, the creation date at creation,
+that only moves forward. `done_at` SHALL be the ISO date the task reached `done`,
+removed when it leaves `done`, so it means "done since" and never "was once done".
 
 #### Scenario: Frontmatter of a new task
 - **WHEN** a task is created on 2026-09-30 in a workstream whose effective metadata schema declares `client` and `project`, with `client` supplied as `acme`
@@ -101,13 +98,12 @@ done".
 - **THEN** its frontmatter reads `status: blocked`, `updated_at: 2026-10-02` and holds no `done_at` key, with every other key as it was
 
 ### Requirement: Metadata contract
-`metadata` SHALL always be present as a flat map. A gemba command that writes it SHALL
-write every field name of the effective metadata schema of the task's workstream, with
-`null` when no value was given, SHALL admit no undeclared key in its input, and SHALL
-keep as it was a key the schema no longer declares. Each value SHALL be `null` or a
-value of the declared type of its field: a string for `text`, a number for `number`,
-`true` or `false` for `boolean`, an ISO date for `date`. Only a `text` field MAY hold a
-list, of strings. Nested maps are not allowed. Keys are snake_case.
+`metadata` SHALL always be a flat map with snake_case keys. A gemba command that
+writes it SHALL write every field of the effective schema of the task's workstream,
+`null` when no value was given, admit no undeclared key in its input, and keep a key
+the schema no longer declares. Each value SHALL be `null` or of its field's type: a
+string for `text`, a number for `number`, `true` or `false` for `boolean`, an ISO date
+for `date`; only a `text` field MAY hold a list, of strings.
 
 #### Scenario: All declared keys present
 - **WHEN** the effective schema declares `client`, `hours` and `billed` and only `client` is supplied
@@ -126,13 +122,12 @@ list, of strings. Nested maps are not allowed. Keys are snake_case.
 - **THEN** the file is not a valid task and is reported naming the key
 
 ### Requirement: Metadata meaning belongs to the user
-The built-in processes and commands of Gemba SHALL treat metadata as typed data: they
-write it, preserve it, convert it, compare it, filter it, group it and sum it by the
-declared type of its field, and SHALL NOT branch on the meaning of any key or present
-metadata to the agent as an input for deciding a process's flow. A built-in skill MAY
-branch on the declared type of a field, never on its name. Only the customization
-(workstream config) that declared a key MAY consume its value. Meaning belongs to the
-user who declared the field.
+The built-in processes and commands SHALL treat metadata as typed data, written,
+preserved, converted, compared, filtered, grouped and summed by its field's declared
+type, and SHALL NOT branch on the meaning of a key or give metadata to the agent as an
+input to a process's flow. A built-in skill MAY branch on a field's type, never on its
+name. Only the workstream config that declared a key MAY consume its value: meaning
+belongs to the user who declared the field.
 
 #### Scenario: Built-in process ignores meaning
 - **WHEN** a task carries `metadata.billed: false`
@@ -143,15 +138,12 @@ user who declared the field.
 - **THEN** that is allowed, because the consumer and the declarer are the same customization
 
 ### Requirement: Frontmatter ownership
-Only gemba commands SHALL write the frontmatter, including at creation and including
-`metadata`. Agents SHALL edit the body only and SHALL NOT modify the frontmatter by
-hand. Any change to a frontmatter field after creation SHALL go through a gemba
-command: `gemba mark` moves `status`, `done_at` and `updated_at` through one rule
-table, `gemba harness launch` moves `open` to `in-progress` through that same table
-when work starts, `gemba record` moves `updated_at` when a day is recorded, `gemba set`
-writes `metadata` and nothing else, and the commands of later sprints move the fields
-their process owns. Only `gemba archive` SHALL move a task file into `archive/`, and it
-SHALL change no byte of it.
+Only gemba commands SHALL write the frontmatter, `metadata` and creation included;
+agents SHALL edit the body only. After creation, `gemba mark` moves `status`,
+`done_at` and `updated_at` through one rule table, which `gemba harness launch` also
+applies to move `open` to `in-progress`; `gemba record` moves `updated_at` when a day
+is recorded; and `gemba set` writes `metadata` alone. Only `gemba archive` SHALL move
+a task file into `archive/`, changing no byte of it.
 
 #### Scenario: Agent records progress
 - **WHEN** an agent records work on a task
@@ -170,13 +162,12 @@ SHALL change no byte of it.
 - **THEN** only `status`, `updated_at` and, when it applies, `done_at` differ; the metadata is written as it was and the body is byte for byte what it was
 
 ### Requirement: Body structure
-The body SHALL start with a short description of the task, optionally followed by links
-to external references the user provided, and SHALL end with a `## Updates` section.
-`## Updates` SHALL contain one `### YYYY-MM-DD` subsection per day with activity, in
-chronological order, with bullets inside, and SHALL be empty at creation. A subsection
-as a gemba command writes it SHALL be the `### YYYY-MM-DD` heading, a blank line and
-the bullets, separated from the `## Updates` heading and from the neighbouring
-subsections by one blank line.
+The body SHALL start with a short description of the task, optionally followed by
+links to external references the user gave, and SHALL end with a `## Updates` section,
+empty at creation, holding one `### YYYY-MM-DD` subsection per day with activity, in
+chronological order. A command SHALL write a subsection as its heading, a blank line
+and the bullets, one blank line apart from the `## Updates` heading and from its
+neighbours.
 
 #### Scenario: Body of a new task
 - **WHEN** a task is created with the description "Login fails on Safari for the checkout app"
@@ -190,21 +181,13 @@ subsections by one blank line.
 - **WHEN** a day is recorded on a task whose `## Updates` holds one earlier subsection
 - **THEN** the body ends with `## Updates`, a blank line, the earlier subsection, a blank line, `### YYYY-MM-DD`, a blank line and the bullets, and the file ends with one newline
 
-### Requirement: Reading a task file
-A process that reads tasks SHALL accept a `.md` file as a task only when: its filename
-matches `YYYY-MM-DD-<ref>-<slug>.md` with a valid date; it starts with a YAML
-frontmatter block that parses to a map; `status` is one of the allowed values; `ref` is
-a string equal to the ref in the filename; `updated_at` is an ISO date; `done_at`,
-when present, is an ISO date; and `metadata` is present as a map whose values are
-scalars or lists of scalars. The reader SHALL NOT check the metadata keys against the
-effective schema of the workstream, nor the values against the declared types of their
-fields, so a task written under an earlier schema stays readable after the config
-changes; a value that does not match its type is reported by the processes that
-operate on metadata, never by refusing the task. The description SHALL be the first
-paragraph of the body, that is the text before the first blank line after the
-frontmatter, or `null` when the body starts with the `## Updates` heading. A file that
-fails any check SHALL be reported with its path and the failing rule and SHALL never be
-read as a task.
+### Requirement: A file read as a task
+A process that reads tasks SHALL accept a `.md` file as a task only when its filename
+matches `YYYY-MM-DD-<ref>-<slug>.md` with a valid date, it starts with a YAML
+frontmatter that parses to a map, `status` is allowed, `ref` is a string equal to the
+filename's, `updated_at` and any `done_at` are ISO dates, and `metadata` is a map of
+scalars or lists of scalars. A file that fails a check SHALL be reported with its path
+and the rule, and never read as a task.
 
 #### Scenario: Valid file read
 - **WHEN** a file conforms to every rule above
@@ -226,6 +209,13 @@ read as a task.
 - **WHEN** `metadata` is missing, or is a list or a scalar
 - **THEN** the file is reported as invalid, naming `metadata`
 
+### Requirement: Metadata read whatever the schema
+The reader SHALL NOT check the metadata keys against the effective schema of the
+workstream, nor the values against their declared types, so that a task written under
+an earlier schema stays readable after the config changes; a value that does not match
+its type is reported by the processes that operate on metadata, never by refusing the
+task.
+
 #### Scenario: Metadata keys outside the current schema
 - **WHEN** a task carries `metadata.ticket_id` and the config no longer declares `ticket_id` for its workstream
 - **THEN** the task is still read and listed with `ticket_id` in its metadata
@@ -233,6 +223,11 @@ read as a task.
 #### Scenario: Value of another type still read
 - **WHEN** a task carries `hours: "3"` as a string and the config declares `hours` as a `number`
 - **THEN** the task is read and listed with `hours: "3"` in its metadata, and the listing reports the value as a problem
+
+### Requirement: The description of a task
+The description SHALL be the first paragraph of the body, the text before the first
+blank line after the frontmatter, or `null` when the body starts with the `## Updates`
+heading.
 
 #### Scenario: Description extracted
 - **WHEN** the body is "Login fails on Safari for the checkout app", a blank line, a link line, a blank line and `## Updates`
@@ -243,14 +238,12 @@ read as a task.
 - **THEN** the description is `null`
 
 ### Requirement: Updates section structure
-A body SHALL hold exactly one line equal to `## Updates`, no `## ` heading after it,
-and under it only `### ` headings that are valid ISO dates, in strictly increasing
-order. A command that writes the section SHALL check these rules first and SHALL
-refuse, changing nothing, when the heading is missing or repeated, when another `## `
-heading follows it, when a `### ` heading under it is not an ISO date, or when the
-dates repeat or are out of order, naming the task path and the rule broken, instead of
-guessing where to write. Lines under a date heading are not checked: they are the
-agent's and the command's bullets as written over time.
+A body SHALL hold exactly one `## Updates` line, no `## ` heading after it, and under
+it only `### ` headings that are ISO dates in strictly increasing order. A command
+that writes the section SHALL check this first and refuse, changing nothing, naming
+the task path and the rule broken, when the heading is missing or repeated, when a
+`## ` heading follows it, or when a date heading is invalid, repeated or out of order,
+instead of guessing where to write. The lines under a date are not checked.
 
 #### Scenario: Updates heading missing
 - **WHEN** the body has no `## Updates` line and a day is recorded

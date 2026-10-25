@@ -10,16 +10,13 @@ renders it for the user and opens the listed files when more detail is needed.
 ## Requirements
 
 ### Requirement: Listing inputs
-Listing SHALL take zero or more filters and SHALL validate all of them before scanning:
-workstream identifiers (repeatable, each present in the gemba config), statuses
-(repeatable, each one of `open`, `in-progress`, `blocked`, `done`), an exact ref, an
-inclusive creation date range (`from`, `to`), an inclusive update date range
-(`updated-from`, `updated-to`), an inclusive completion date range (`done-from`,
-`done-to`), an archived switch, and metadata conditions: equalities (repeatable,
-`key=value`) and inclusive bounds (`where-from` and `where-to`, repeatable,
-`key=value`). Dates SHALL be ISO `YYYY-MM-DD`. On any invalid filter the command SHALL
-print nothing on standard output, exit with a non-zero status and report every invalid
-filter in a single message.
+Listing SHALL take zero or more filters and validate them all before scanning:
+workstreams of the config; statuses of `open`, `in-progress`, `blocked` and `done`; an
+exact ref; inclusive ISO date ranges of creation (`from`, `to`), update
+(`updated-from`, `updated-to`) and completion (`done-from`, `done-to`); an archived
+switch; and metadata equalities and bounds (`where-from`, `where-to`). On any invalid
+filter it SHALL print nothing, exit non-zero and report every invalid filter in one
+message.
 
 #### Scenario: Unknown workstream filter
 - **WHEN** a workstream filter names an identifier that is not in the config
@@ -42,14 +39,13 @@ filter in a single message.
 - **THEN** nothing is listed, the exit status is non-zero and the config problem is reported
 
 ### Requirement: Scan scope
-The command SHALL scan only the folders under `tasks/` that are workstreams of the
-gemba config, restricted to the workstreams named by the workstream filter when one is
-given. It SHALL read the `.md` files directly under each workstream folder, and the
-`.md` files directly under its `archive/` folder only when the archived switch is on.
-Hidden entries and files without the `.md` extension SHALL be ignored. A configured
-workstream whose folder does not exist SHALL contribute no tasks and no problem. A
-non-hidden entry directly under `tasks/` that is not a configured workstream folder
-SHALL be reported as a problem so that tasks never disappear silently.
+The command SHALL scan only the folders under `tasks/` of the workstreams of the
+config, those of the workstream filter when given: the `.md` files directly under
+each, and those directly under its `archive/` only with the archived switch, ignoring
+hidden entries and other files. A configured workstream without a folder SHALL
+contribute nothing; a non-hidden entry directly under `tasks/` that is not a
+configured workstream SHALL be reported as a problem, so that no task disappears
+silently.
 
 #### Scenario: Archived tasks excluded by default
 - **WHEN** `tasks/support/` holds one task and `tasks/support/archive/` holds another, and the listing is run without the archived switch
@@ -75,19 +71,28 @@ SHALL be reported as a problem so that tasks never disappear silently.
 - **WHEN** a workstream folder holds `.gitkeep`, a hidden file and a `notes.txt` beside a task file
 - **THEN** only the task file is listed and none of the others is reported
 
-### Requirement: Output document
-On success the command SHALL print to standard output a single JSON object with two
-keys: `tasks`, the list of matching task records, and `problems`, the list of problems
-found while scanning. A task record SHALL carry exactly: `path` (relative to the
-obeya root, POSIX separators), `workstream`, `archived` (boolean), `ref`, `date`
-(the creation date from the filename), `title` (the display title derived from the
-filename), `status`, `updated_at`, `done_at` (`null` when absent), `metadata` (the
-frontmatter map as written, values uninterpreted) and `description` (the first
-paragraph of the body, `null` when the body has none). Dates SHALL be ISO strings. A
-problem SHALL carry `path` and `problem`, a sentence naming what is wrong. Records SHALL
-be ordered by `date`, then `workstream`, then filename. The exit status SHALL be zero
-whenever the filters and the config are valid, even when problems were found or no task
-matched.
+### Requirement: The listing document
+On success the command SHALL print one JSON object with two keys: `tasks`, the
+matching task records ordered by `date`, then `workstream`, then filename, and
+`problems`, those found while scanning, each with `path` and `problem`, a sentence
+naming what is wrong. The exit status SHALL be zero whenever the filters and the
+config are valid, even when problems were found or no task matched.
+
+#### Scenario: Empty result
+- **WHEN** no task matches the filters
+- **THEN** the output is `{"tasks": [], "problems": []}` and the exit status is zero
+
+#### Scenario: Fixed order
+- **WHEN** tasks exist with creation dates 2026-09-10 in `support`, 2026-09-05 in `operations` and 2026-09-10 in `operations`
+- **THEN** the records appear in the order 2026-09-05 `operations`, 2026-09-10 `operations`, 2026-09-10 `support`
+
+### Requirement: A task record
+A task record SHALL carry exactly `path` (relative to the obeya root, with POSIX
+separators), `workstream`, `archived` (a boolean), `ref`, `date` (the creation date of
+the filename), `title` (the display title derived from the filename), `status`,
+`updated_at`, `done_at` (`null` when absent), `metadata` (the frontmatter map as
+written, uninterpreted) and `description` (the first paragraph of the body, or
+`null`), dates as ISO strings.
 
 #### Scenario: Complete record
 - **WHEN** `tasks/support/2026-09-30-SUP-1-login-fails-on-safari.md` has `status: open`, `ref: SUP-1`, `updated_at: 2026-09-30`, `metadata` with `client: acme` and `project: null`, and the body "Login fails on Safari for the checkout app" above `## Updates`
@@ -100,14 +105,6 @@ matched.
 #### Scenario: Metadata values keep their type
 - **WHEN** a task's frontmatter has `hours: 3`, `billed: false` and `project: [checkout, landing]`
 - **THEN** the record's `metadata` carries the number `3`, the boolean `false` and the two-item list
-
-#### Scenario: Empty result
-- **WHEN** no task matches the filters
-- **THEN** the output is `{"tasks": [], "problems": []}` and the exit status is zero
-
-#### Scenario: Fixed order
-- **WHEN** tasks exist with creation dates 2026-09-10 in `support`, 2026-09-05 in `operations` and 2026-09-10 in `operations`
-- **THEN** the records appear in the order 2026-09-05 `operations`, 2026-09-10 `operations`, 2026-09-10 `support`
 
 ### Requirement: Invalid task files are reported and skipped
 A `.md` file in a scanned folder that is not a valid task under the task file format
@@ -124,12 +121,11 @@ scanned folder regardless of the status, ref, date and metadata filters.
 - **THEN** that file appears in `problems` even though it could not have matched the filter
 
 ### Requirement: Filter semantics
-Values given for the same filter SHALL combine as alternatives (a task matches when it
-matches any of them); different filters SHALL combine as conditions (a task matches only
-when it matches all of them). The creation date range SHALL compare the filename date;
-the update date range SHALL compare `updated_at`; the completion date range SHALL
-compare `done_at`, and a task without `done_at` SHALL NOT match it; every range end
-SHALL be inclusive. The ref filter SHALL match the frontmatter ref exactly.
+Values of the same filter SHALL combine as alternatives, a task matching any of them;
+different filters SHALL combine as conditions, a task matching all of them. The
+creation range SHALL compare the filename date, the update range `updated_at`, and the
+completion range `done_at`, which a task without `done_at` never matches; every range
+end SHALL be inclusive. The ref filter SHALL match the frontmatter ref exactly.
 
 #### Scenario: Several statuses
 - **WHEN** the status filter is given as `open` and as `blocked`
@@ -163,24 +159,29 @@ SHALL be inclusive. The ref filter SHALL match the frontmatter ref exactly.
 - **WHEN** the creation range ends on 2026-09-15 and the update range starts on 2026-09-15
 - **THEN** every task created on or before 2026-09-15 and updated on or after 2026-09-15 is listed, which is the superset of tasks that can hold an update for that day
 
-### Requirement: Metadata conditions
+### Requirement: A metadata condition and its value
 A metadata condition SHALL name a key declared in some metadata schema of the config
-and SHALL be an equality, `key=value`, or an inclusive bound, `key=value` given as
-`where-from` or `where-to`. The value SHALL be converted by the declared type of the
-key, as the create process converts metadata values, and `null` stands for no value. A
-key in the effective schema of a task's workstream that the task's `metadata` lacks
-SHALL read as `null`. An equality matches when the task value equals the converted
-value or is a list that contains it, and `key=null` matches a `null` value. A bound
-SHALL be given only for a key of type `number` or `date`, and matches a value of that
-type on the right side of it, the bound included; a `null` value never matches a
-bound. A task whose workstream's effective schema does not declare the key never
-matches a condition on it, and a value that does not match the key's declared type
-never matches. Equalities on the same key combine as alternatives; a key SHALL take at
-most one `where-from` and one `where-to`; every other combination of conditions, on
-one key or on several, combines as conditions. A condition whose key no metadata
-schema declares, whose value does not convert to the key's type, that bounds a key of
-another type than `number` or `date`, or that repeats a bound SHALL be refused as an
-invalid filter.
+and be an equality, `key=value`, or an inclusive bound, `key=value` given as
+`where-from` or `where-to`. Its value SHALL be converted by the key's declared type,
+as creation converts it, `null` standing for no value. A condition whose key no schema
+declares, whose value does not convert, that bounds a key of a type other than
+`number` or `date`, or that repeats a bound SHALL be refused as an invalid filter.
+
+#### Scenario: Undeclared key refused
+- **WHEN** the condition names a key that no metadata schema of the config declares
+- **THEN** nothing is listed and the message names the key as undeclared
+
+#### Scenario: Invalid metadata conditions reported together
+- **WHEN** one call gives `hours=three` on a number field, `where-from client=a` on a text field, and `where-from hours=1` twice
+- **THEN** nothing is listed and one message names the three problems
+
+### Requirement: How an equality matches
+An equality SHALL match when the task value equals the converted value or is a list
+that holds it, and `key=null` a `null` value, a key of the task's schema missing from
+its `metadata` reading as `null`. A task whose workstream's schema does not declare
+the key, or whose value does not match the key's type, SHALL never match. Equalities
+on the same key SHALL combine as alternatives, and every other combination of
+conditions as conditions.
 
 #### Scenario: Scalar equality
 - **WHEN** the condition is `client=acme` and tasks carry `client: acme`, `client: globex` and `client: null`
@@ -206,13 +207,14 @@ invalid filter.
 - **WHEN** `merge_url` is declared only by `code-reviews` and the condition is `merge_url=https://example.com/mr/1` without a workstream filter
 - **THEN** the matching `code-reviews` task is listed and tasks of other workstreams, which lack the key, are not
 
-#### Scenario: Undeclared key refused
-- **WHEN** the condition names a key that no metadata schema of the config declares
-- **THEN** nothing is listed and the message names the key as undeclared
-
 #### Scenario: Same key as alternatives
 - **WHEN** the conditions are `client=acme` and `client=globex`
 - **THEN** tasks with either client are listed
+
+### Requirement: How a bound matches
+A bound SHALL match a value of the key's type on its side of it, the bound included,
+and never a `null` value. A key SHALL take at most one `where-from` and one
+`where-to`.
 
 #### Scenario: Range on a number
 - **WHEN** the bounds are `where-from hours=2` and `where-to hours=5` and tasks carry `hours` 1, 2, 5, 6 and `null`
@@ -222,24 +224,11 @@ invalid filter.
 - **WHEN** the bounds are `where-from invoiced=2026-09-01` and `where-to invoiced=2026-09-30` and tasks carry `invoiced` 2026-08-31, 2026-09-01, 2026-09-30, 2026-10-01 and `null`
 - **THEN** only the tasks invoiced on 2026-09-01 and 2026-09-30 are listed
 
-#### Scenario: Invalid metadata conditions reported together
-- **WHEN** one call gives `hours=three` on a number field, `where-from client=a` on a text field, and `where-from hours=1` twice
-- **THEN** nothing is listed and one message names the three problems
-
-### Requirement: Listing by the agent
-The agent SHALL translate the user's request into filters of the command, choosing
-workstreams by their config descriptions, mapping a conversational "open" or "pending"
-to every status other than `done` unless the user names a status, and mapping metadata
-mentions to conditions on declared fields, equalities for a value and bounds for a span
-of numbers or dates, each value written in the form of its field's declared type. It
-SHALL run the command rather than reading task files to build the list, SHALL open a
-listed file only when the user wants detail the record does not carry, SHALL report
-every problem the command returned, and SHALL NOT edit any file or commit. It SHALL
-read the chosen workstreams' `list.context` and follow their `list.rules` when present.
-
-#### Scenario: Conversational open
-- **WHEN** the user asks what they have open
-- **THEN** the agent lists tasks with status `open`, `in-progress` and `blocked`, archives excluded
+### Requirement: The agent lists through the command
+The agent SHALL list by running the command, never by reading task files to build the
+list, open a listed file only when the user wants detail the record does not carry,
+report every problem the command returned, and edit and commit nothing. It SHALL read
+the chosen workstreams' `list.context` and follow their `list.rules` when present.
 
 #### Scenario: Detail beyond the record
 - **WHEN** the user asks what happened last on a listed task
@@ -248,6 +237,17 @@ read the chosen workstreams' `list.context` and follow their `list.rules` when p
 #### Scenario: Problems relayed
 - **WHEN** the command returns a non-empty `problems` list
 - **THEN** the agent tells the user each path and its problem alongside the listing
+
+### Requirement: The agent turns a request into filters
+The agent SHALL turn the user's request into filters: workstreams chosen by their
+config descriptions; a conversational "open" or "pending" as every status other than
+`done` unless the user names a status; and metadata mentions as conditions on declared
+fields, equalities for a value and bounds for a span of numbers or dates, each value
+written in the form of its field's declared type.
+
+#### Scenario: Conversational open
+- **WHEN** the user asks what they have open
+- **THEN** the agent lists tasks with status `open`, `in-progress` and `blocked`, archives excluded
 
 #### Scenario: Span of a field asked in words
 - **WHEN** the user asks for the tasks invoiced in September and `invoiced` is a date field

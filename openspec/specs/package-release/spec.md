@@ -43,14 +43,12 @@ what the next version holds.
 - **THEN** `CHANGELOG.md` holds a section with that version and its date, and the `Unreleased` section above it is empty
 
 ### Requirement: Release from a tag
-A tag `v<version>` pushed to the repository SHALL trigger the release, and nothing else
-SHALL publish. The release SHALL refuse, publishing nothing, when `<version>` is not
-the version declared in `pyproject.toml` or when `CHANGELOG.md` has no section for
-`<version>` or that section is empty. Otherwise it SHALL build the wheel and the
-source distribution once, publish them to TestPyPI and, only when that succeeded, to
-PyPI, both through trusted publishing, with no token stored in the repository, and
-then create the GitHub Release `v<version>`, titled with the version, whose notes
-are that section of the changelog.
+A tag `v<version>` pushed SHALL trigger the release, and nothing else SHALL publish.
+The release SHALL refuse, publishing nothing, when `<version>` is not the version of
+`pyproject.toml`, or `CHANGELOG.md` has no section for it or an empty one. Otherwise
+it SHALL build both distributions once, publish them to TestPyPI and then, only on
+success, to PyPI, by trusted publishing, no token stored, and create the GitHub
+Release `v<version>`, titled with the version, with that section as notes.
 
 #### Scenario: Tag matches the version
 - **WHEN** `pyproject.toml` declares `0.1.0` and the tag `v0.1.0` is pushed
@@ -78,12 +76,11 @@ are that section of the changelog.
 
 ### Requirement: Checks on every change
 Every push and every pull request SHALL run the formatter check, the linter, the type
-checker and the full test suite, and SHALL report the result on the commit and on the
-pull request, so that a contribution is checked the same way the hooks check a commit.
-The suite SHALL run on Linux on every supported Python version, and on macOS and on
-Windows on the oldest and the newest supported Python versions, with the git of each
-runner at its defaults, so that what differs by platform and what differs by
-interpreter are both covered.
+checker and the full test suite, and report the result on the commit and the pull
+request, as the hooks check a commit. The suite SHALL run on Linux on every supported
+Python version, and on macOS and Windows on the oldest and the newest, with the git of
+each runner at its defaults, so that both what differs by platform and what differs by
+interpreter are covered.
 
 #### Scenario: Pull request checked
 - **WHEN** a pull request is opened or updated
