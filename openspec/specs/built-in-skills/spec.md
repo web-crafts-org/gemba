@@ -10,19 +10,18 @@ needed to tell an outdated copy from a hand edit.
 
 ### Requirement: Skills are assets of the package
 Every skill of Gemba SHALL ship inside the gemba CLI package, and the package SHALL
-hold a registry naming each built-in skill with its scope: the tasks repo, a harness,
+hold a registry naming each built-in skill with its scope: the obeya, a harness,
 or both. `gemba skills update` SHALL write exactly the registered skills whose scope
 includes its target and SHALL NOT create, modify or delete any other folder or file
 under a provider's skills folder, so that skills of other tools that share the folder
 are left as they are. At this change `gemba-create`, `gemba-list`, `gemba-report`,
-`gemba-archive`, `gemba-init`, `gemba-config` and `gemba-migrate` belong to the tasks
-repo, `gemba-worktree` to the harness, and `gemba-harness`, `gemba-record`,
-`gemba-mark` and `gemba-set` to both. `gemba init` SHALL write the tasks-repo skills through the same
-registry, so a skill added to it reaches a new tasks repo with no other change.
+`gemba-archive`, `gemba-init`, `gemba-config` and `gemba-migrate` belong to the obeya, `gemba-worktree` to the harness, and `gemba-harness`, `gemba-record`,
+`gemba-mark` and `gemba-set` to both. `gemba init` SHALL write the obeya skills through the same
+registry, so a skill added to it reaches a new obeya with no other change.
 
 #### Scenario: Every registered skill is written
-- **WHEN** `gemba skills update` runs in a tasks repo that declares one provider and has no skills folder
-- **THEN** one `SKILL.md` per registered skill whose scope includes the tasks repo appears under that provider's skills folder, each in a folder named after the skill, `gemba-record`, `gemba-init`, `gemba-config` and `gemba-migrate` included, and the command exits 0
+- **WHEN** `gemba skills update` runs in an obeya that declares one provider and has no skills folder
+- **THEN** one `SKILL.md` per registered skill whose scope includes the obeya appears under that provider's skills folder, each in a folder named after the skill, `gemba-record`, `gemba-init`, `gemba-config` and `gemba-migrate` included, and the command exits 0
 
 #### Scenario: Unregistered skills are not touched
 - **WHEN** the provider's skills folder already holds a skill that is not registered, such as one of another tool
@@ -38,7 +37,7 @@ of its target, relative to the target root: the `claude` provider under
 `.claude/skills/` and the `agents` provider under `.agents/skills/`. The provider table
 of the CLI SHALL also name the guide filename of each provider, `CLAUDE.md` for `claude`
 and `AGENTS.md` for `agents`, which `launch` uses. A provider the target does not list
-SHALL get nothing. When the tasks repo is the target and the config declares no
+SHALL get nothing. When the obeya is the target and the config declares no
 `agent_providers`, the command SHALL refuse, name the known providers, and write
 nothing.
 
@@ -62,29 +61,29 @@ nothing.
 `gemba skills update` SHALL resolve its target by walking up from the current working
 directory: the nearest folder holding `harness.yaml` is a harness and the target is
 that harness, with the providers recorded in its `harness.yaml`; otherwise the nearest
-folder holding `gemba.yaml` is the tasks repo and the target is its root, with the
+folder holding `gemba.yaml` is the obeya and the target is its root, with the
 providers of the shared config, never those of the personal config, which choose the
 providers of a launch only. A shared config that declares no `agent_providers` SHALL
 be refused as the previous requirement says, whatever the personal config declares.
 The command SHALL write the skills folders under the target and never under the
 working directory, and SHALL refuse, writing nothing, when no gemba config is found.
-`--root` SHALL name the target explicitly, tasks repo or harness.
+`--root` SHALL name the target explicitly, obeya or harness.
 
 #### Scenario: Run from a subfolder
-- **WHEN** `gemba skills update` runs from a folder below the tasks repo root that is not inside a harness
+- **WHEN** `gemba skills update` runs from a folder below the obeya root that is not inside a harness
 - **THEN** the skills appear under the root, and nothing is written under the folder the command ran from
 
 #### Scenario: Run from inside a harness
 - **WHEN** `gemba skills update` runs from a folder inside a harness whose `harness.yaml` records `agent_providers: [claude]`
-- **THEN** the harness-scoped skills are written or refreshed under the harness's `.claude/skills/`, nothing is written under `.agents/`, and nothing is written at the tasks repo root
+- **THEN** the harness-scoped skills are written or refreshed under the harness's `.claude/skills/`, nothing is written under `.agents/`, and nothing is written at the obeya root
 
 #### Scenario: No obeya
 - **WHEN** no ancestor of the working directory holds `gemba.yaml`
 - **THEN** the command exits 1, reports that no gemba config was found, and writes nothing
 
 #### Scenario: Personal providers leave the obeya skills
-- **WHEN** `gemba.yaml` declares `agent_providers: [claude]`, `gemba.local.yaml` declares `agent_providers: [agents]`, and `gemba skills update` runs at the tasks repo root
-- **THEN** the tasks-repo skills are written under `.claude/skills/` and no `.agents/` folder is created
+- **WHEN** `gemba.yaml` declares `agent_providers: [claude]`, `gemba.local.yaml` declares `agent_providers: [agents]`, and `gemba skills update` runs at the obeya root
+- **THEN** the obeya skills are written under `.claude/skills/` and no `.agents/` folder is created
 
 ### Requirement: Written skill content and provenance
 A written `SKILL.md` SHALL consist of a YAML frontmatter followed by the body of the
@@ -108,7 +107,7 @@ absent or does not match its own content). The command SHALL write a missing ski
 rewrite an outdated one, leave an unchanged one as it is, and leave an edited one as
 it is unless `--force` is passed, in which case it SHALL overwrite it. The command
 SHALL print one line per skill and provider stating the action taken (`written`,
-`updated`, `kept`, `overwritten`) and the path relative to the tasks repo root, and
+`updated`, `kept`, `overwritten`) and the path relative to the obeya root, and
 SHALL say on the `kept` line of an edited skill that `--force` overwrites it. Running
 the command twice SHALL leave the tree identical after the second run.
 

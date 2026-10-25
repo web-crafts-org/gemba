@@ -78,12 +78,11 @@ SHALL NOT state any activity that a subsection of the period, a creation date or
 `done_at` does not support, nor any number that `gemba report` did not print. It SHALL
 report every problem returned by the listing or by the report command alongside the
 report. To record what is missing, it SHALL point the user to the `gemba-record`
-skill, used inside the harness of the task for the work of its run, or from the tasks
-repo for work done outside one, rather than editing the task itself.
+skill, used inside the harness of the task for the work of its run, or from the obeya for work done outside one, rather than editing the task itself.
 
 #### Scenario: Nothing written
 - **WHEN** a report is produced
-- **THEN** the tasks repo working tree is as it was before
+- **THEN** the obeya working tree is as it was before
 
 #### Scenario: Problems relayed
 - **WHEN** the listing or the report command returns a non-empty `problems` list
@@ -91,7 +90,7 @@ repo for work done outside one, rather than editing the task itself.
 
 #### Scenario: Gap pointed to recording
 - **WHEN** a report lists a task with nothing recorded for the period
-- **THEN** the agent says the gap is recorded with the `gemba-record` skill, inside the task's harness for the work of its run or from the tasks repo for work done outside one, and records nothing itself
+- **THEN** the agent says the gap is recorded with the `gemba-record` skill, inside the task's harness for the work of its run or from the obeya for work done outside one, and records nothing itself
 
 ### Requirement: Workstream customization of the report
 The agent SHALL read the `report.context` of each workstream that has tasks in the
@@ -101,16 +100,16 @@ report and follow its `report.rules` when composing the entries of that workstre
 - **WHEN** workstream `support` declares `report.rules` containing "name the client before the title"
 - **THEN** every `support` entry of the report names the client first
 
-### Requirement: Skill contains no organization-specific value
+### Requirement: Skill contains no configured value
 The `gemba-report` skill SHALL contain only the process and SHALL NOT name any
-workstream, prefix, metadata field or organization-specific rule.
+workstream, prefix, metadata field or configured rule.
 
 #### Scenario: Config change without skill change
 - **WHEN** a workstream or a metadata field is added to `gemba.yaml`
 - **THEN** the skill needs no edit for the report to cover it
 
 ### Requirement: The report process owns gemba report
-The report process SHALL be the `gemba-report` skill, scoped to the tasks repo, and the
+The report process SHALL be the `gemba-report` skill, scoped to the obeya, and the
 `gemba report` subcommand. A report SHALL be the summary of a period of work, one day
 or several consecutive days, across every task. The command SHALL compute every count
 and sum over a selection of tasks and print it for the agent; the skill SHALL read the

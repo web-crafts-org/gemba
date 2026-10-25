@@ -13,10 +13,10 @@ the removal of a harness never loses unsaved or unpushed work.
 A repository a run may check out SHALL be a folder directly under the `repos_dir` of
 the personal config that holds a git repository at its root, identified by its folder
 name. `repos_dir` SHALL be absolute, start with `~`, which is expanded to the user's
-home, or be relative to the tasks repo root. No verb SHALL search below that level or
+home, or be relative to the obeya root. No verb SHALL search below that level or
 clone anything. The remote of every operation SHALL be `origin`. Every worktree of a
-run SHALL be on a local branch named `<branch_prefix>/<organization>/<ref>`, with
-`branch_prefix` from the personal config, `organization` from the shared config and
+run SHALL be on a local branch named `<branch_prefix>/<obeya>/<ref>`, with
+`branch_prefix` from the personal config, `obeya` from the shared config and
 `ref` from `harness.yaml`, created with no upstream, so that two runs on the same
 repository never share a branch. No verb of the group SHALL push, delete or otherwise
 change anything on the remote, whatever the flags.
@@ -26,11 +26,11 @@ change anything on the remote, whatever the flags.
 - **THEN** the first creates `worktrees/nakatomi-web` and exits 0, and the second exits 1, says that no repository named `other` is at the root of the folder, names `nakatomi-web` as the one found there, and creates no worktree and no branch
 
 #### Scenario: Repositories folder relative to the obeya
-- **WHEN** the personal config declares `repos_dir: repos` and `repos/nakatomi-web` is a git repository under the tasks repo root
+- **WHEN** the personal config declares `repos_dir: repos` and `repos/nakatomi-web` is a git repository under the obeya root
 - **THEN** `gemba worktree add nakatomi-web` finds it and creates the worktree
 
 #### Scenario: Branch named after the run
-- **WHEN** the shared config declares `organization: nakatomi` and the personal config declares no `branch_prefix`, or `branch_prefix: nk`, and `gemba worktree add nakatomi-web` runs in the harness of `SUP-1`
+- **WHEN** the shared config declares `obeya: nakatomi` and the personal config declares no `branch_prefix`, or `branch_prefix: nk`, and `gemba worktree add nakatomi-web` runs in the harness of `SUP-1`
 - **THEN** the base repository holds the local branch `gemba/nakatomi/SUP-1`, or `nk/nakatomi/SUP-1`, checked out in `worktrees/nakatomi-web`, and `gemba worktree list` shows `upstream: none` for it
 
 #### Scenario: Same repository in two runs
@@ -41,7 +41,7 @@ change anything on the remote, whatever the flags.
 `gemba worktree add <repo> [--from <branch>] [--force]` SHALL run inside a harness,
 resolved as the nearest `harness.yaml` at or above the working directory or as the
 folder given with `--harness`. It SHALL refuse, creating nothing, when the shared
-config declares no `organization` or the personal config no `repos_dir`, naming the
+config declares no `obeya` or the personal config no `repos_dir`, naming the
 missing key and the file it goes in; when no repository named `<repo>` is at the root
 of `repos_dir`, naming the repositories that are; when `origin` has no branch
 `<branch>` after the fetch; when `--from` is not given and the repository records no
@@ -70,7 +70,7 @@ SHALL NOT be committed: `worktrees/` is excluded from it.
 - **THEN** `worktrees/nakatomi-web` holds the file of that commit
 
 #### Scenario: Config without obeya or repositories folder refused
-- **WHEN** the shared config declares no `organization`, or the personal config no `repos_dir`, and `gemba worktree add nakatomi-web` runs
+- **WHEN** the shared config declares no `obeya`, or the personal config no `repos_dir`, and `gemba worktree add nakatomi-web` runs
 - **THEN** the command exits 1, names the missing key and the file it goes in, `gemba.yaml` or `gemba.local.yaml`, and creates no worktree and no branch
 
 #### Scenario: Missing remote branch refused

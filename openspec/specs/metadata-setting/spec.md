@@ -86,7 +86,7 @@ type, quoted when a text would otherwise read as another type.
 fixed key order, and the body SHALL be kept byte for byte. `updated_at` SHALL NOT move:
 metadata is data about the task, not activity on it. The command SHALL NOT touch the
 harness of the task, if one exists, and SHALL run no git. It SHALL work from any folder
-below the tasks repo root, a harness included.
+below the obeya root, a harness included.
 
 #### Scenario: Only the metadata changes
 - **WHEN** `gemba set SUP-1 hours+=2` runs on a `done` task with `done_at`, a description, a link line and two recorded days
@@ -112,7 +112,7 @@ every key it added, and SHALL never remove a key.
 - **THEN** `ticket_id: PROD-1` is written after the declared keys, as it was
 
 ### Requirement: Setting by the agent
-The `gemba-set` skill SHALL have the agent, from the tasks repo or from inside a
+The `gemba-set` skill SHALL have the agent, from the obeya or from inside a
 harness, identify the task by its ref, from `harness.yaml` when inside a harness and
 asking when the request is ambiguous; map what the user says to declared fields by
 their names and descriptions in the gemba config; write each value in the form of the
@@ -136,9 +136,9 @@ frontmatter by hand.
 - **WHEN** workstream `support` declares `set.rules` containing "set invoiced only when the task is done"
 - **THEN** the agent follows that rule before running the command for a `support` task
 
-### Requirement: Skill contains no organization-specific value
+### Requirement: Skill contains no configured value
 The `gemba-set` skill SHALL contain only the process and SHALL NOT name any workstream,
-prefix, metadata field or organization-specific rule. It MAY branch on the declared type
+prefix, metadata field or configured rule. It MAY branch on the declared type
 of a field, never on its name or meaning.
 
 #### Scenario: Config change without skill change

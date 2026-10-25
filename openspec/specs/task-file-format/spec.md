@@ -11,7 +11,7 @@ reads or writes this format.
 
 ### Requirement: Task location
 A task SHALL be a single Markdown file stored directly under `tasks/<workstream>/` in
-the tasks repo, where `<workstream>` is a workstream identifier from the
+the obeya, where `<workstream>` is a workstream identifier from the
 gemba config. Each workstream folder SHALL contain an `archive/` subfolder into which
 finished tasks are moved unchanged. Both folders SHALL exist in version control even
 when empty, holding a `.gitkeep` file.

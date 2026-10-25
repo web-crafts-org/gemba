@@ -10,12 +10,12 @@ cold, without touching the task.
 ## Requirements
 
 ### Requirement: Remove deletes the harness of a task
-`gemba harness remove <ref> [--yes] [--force]` SHALL run from the tasks repo: it SHALL
+`gemba harness remove <ref> [--yes] [--force]` SHALL run from the obeya: it SHALL
 resolve the task with that ref anywhere under `tasks/`, archives included, and the
-harness at `harnesses/<workstream>/<stem>/` under the tasks repo root. It SHALL
+harness at `harnesses/<workstream>/<stem>/` under the obeya root. It SHALL
 refuse, deleting nothing, when no task has that ref, when no folder exists at the
 harness path, or when the folder holds no `harness.yaml`. It SHALL print a manifest of
-the run: the harness path relative to the tasks repo root, then one line each for
+the run: the harness path relative to the obeya root, then one line each for
 `task`, `launched_at`, `notes` (the number of files under `notes/`), `assets` (the
 number of files under `assets/`), `commits` (the number of commits of the harness
 repository), `worktrees` (the number of worktrees under `worktrees/`) and
@@ -33,7 +33,7 @@ then delete the harness folder and everything inside it, `task.md` whatever its 
 and the uncommitted paths included and never the task file `task.md` links or names,
 print `removed`, and exit 0. The remote of every repository SHALL NOT be touched. The
 task file SHALL NOT be touched, whatever its status, and no git command SHALL run
-against the tasks repo.
+against the obeya.
 
 #### Scenario: Manifest shown without deleting
 - **WHEN** `gemba harness remove SUP-1` runs for a launched task whose harness holds two filed notes and one asset
@@ -117,7 +117,7 @@ repository SHALL refuse regardless of `--force`.
 - **THEN** the output holds `harness not removed:` and the line saying the working directory is inside the harness, the exit code is 1 and the tree is unchanged
 
 ### Requirement: Removal confirmed by the agent
-The `gemba-harness` skill SHALL have the agent, from the tasks repo, identify the task
+The `gemba-harness` skill SHALL have the agent, from the obeya, identify the task
 by its ref, run `gemba harness remove <ref>` without `--yes` and without `--force`,
 show the manifest to the user and ask for their confirmation in the chat, remind them
 to close any IDE window open on that folder, and only after a yes run the command

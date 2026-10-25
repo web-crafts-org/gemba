@@ -8,10 +8,10 @@ and pointing to the skill for the rest.
 
 ## Requirements
 
-### Requirement: The guide is a package asset with no organization value
+### Requirement: The guide is a package asset with no configured value
 The guide SHALL ship inside the gemba CLI package as one asset, SHALL be written by
 `launch` under each declared provider's guide filename with identical content, and
-SHALL contain no value specific to an organization: no workstream, prefix, field, tool
+SHALL contain no configured value: no workstream, prefix, field, tool
 or person. The names it uses for the files of the harness SHALL be fixed (`task.md`,
 `harness.yaml`, `notes/`, `assets/`, `worktrees/`) so that no value of the run needs
 to be rendered into it.
@@ -22,7 +22,7 @@ to be rendered into it.
 
 #### Scenario: Guide free of configured values
 - **WHEN** the guide asset is read
-- **THEN** it names no workstream, prefix or field of any organization
+- **THEN** it names no workstream, prefix or field of any obeya
 
 ### Requirement: Guide content
 The guide SHALL state, in this order: where the agent is (the harness of one run of
@@ -69,7 +69,7 @@ skills, nor any rule about how the work of the task is done.
 ### Requirement: The workstream's guide text is rendered at launch
 When the task's workstream declares `harness.guide` in the shared config, `launch`
 SHALL render it into the guide, verbatim, as a section titled `Your workstream`, after
-the `Your organization` section when there is one and before the `Your user` section
+the `Your obeya` section when there is one and before the `Your user` section
 when there is one. When it does not, no `Your workstream` section SHALL appear. The
 guide SHALL be written once; `gemba skills update` SHALL NOT touch it and a relaunch
 SHALL NOT rewrite it.
@@ -84,20 +84,20 @@ SHALL NOT rewrite it.
 
 ### Requirement: The base guide text is rendered at launch
 When the top level of the shared config declares `harness.guide`, `launch` SHALL
-render it into the guide, verbatim, as a section titled `Your organization`, after the
+render it into the guide, verbatim, as a section titled `Your obeya`, after the
 text of the guide asset and before the `Your workstream` and `Your user` sections when
 there are any. When the top level of the shared config declares no `harness.guide`, no
-`Your organization` section SHALL appear. Like the rest of the guide, the section
+`Your obeya` section SHALL appear. Like the rest of the guide, the section
 SHALL be written once; `gemba skills update` SHALL NOT touch it and a relaunch SHALL
 NOT rewrite it.
 
 #### Scenario: Obeya section rendered
 - **WHEN** the top level of the config declares `harness.guide: "Open the harness through its workspace."`, workstream `support` declares no `harness.guide`, and a `support` task is launched
-- **THEN** every guide in the harness holds, right after the text of the guide asset, a `## Your organization` section whose body is `Open the harness through its workspace.`
+- **THEN** every guide in the harness holds, right after the text of the guide asset, a `## Your obeya` section whose body is `Open the harness through its workspace.`
 
 #### Scenario: Obeya and workstream sections rendered
 - **WHEN** the top level of the config declares `harness.guide: "Open the harness through its workspace."`, workstream `support` declares `harness.guide: "Write for the client."`, and a `support` task is launched
-- **THEN** every guide in the harness holds a `## Your organization` section whose body is `Open the harness through its workspace.`, followed by a `## Your workstream` section whose body is `Write for the client.`, which closes the guide
+- **THEN** every guide in the harness holds a `## Your obeya` section whose body is `Open the harness through its workspace.`, followed by a `## Your workstream` section whose body is `Write for the client.`, which closes the guide
 
 ### Requirement: The personal guide text is rendered at launch
 When the personal config declares `harness.guide` at its top level, under the task's
@@ -112,4 +112,4 @@ rest of the guide, the section SHALL be written once.
 
 #### Scenario: Every guide section rendered
 - **WHEN** the top level of `gemba.yaml` declares `harness.guide: "Open the harness through its workspace."`, its workstream `support` declares `harness.guide: "Write for the client."`, the top level of `gemba.local.yaml` declares `harness.guide: "Answer me in Spanish."`, its `workstreams.support` declares `harness.guide: "Quote the ticket in every note."`, and a `support` task is launched
-- **THEN** every guide in the harness holds the `## Your organization`, `## Your workstream` and `## Your user` sections in that order, and the body of the last one, which closes the guide, is `Answer me in Spanish.` and `Quote the ticket in every note.`, one empty line apart
+- **THEN** every guide in the harness holds the `## Your obeya`, `## Your workstream` and `## Your user` sections in that order, and the body of the last one, which closes the guide, is `Answer me in Spanish.` and `Quote the ticket in every note.`, one empty line apart
