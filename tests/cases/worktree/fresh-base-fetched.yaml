@@ -4,7 +4,7 @@ scenario: "harness-worktrees: Fresh base fetched"
 config:
   default_workstream: operations
   agent_providers: [claude]
-  organization: nakatomi
+  obeya: nakatomi
   workstreams:
     support: { prefix: SUP, description: Investigate a client-reported problem }
     operations: { prefix: OPS, description: Anything that does not fit another workstream }

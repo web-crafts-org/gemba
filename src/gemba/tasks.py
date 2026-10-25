@@ -13,8 +13,8 @@ import yaml
 from gemba import metadata, platform, values
 from gemba.metadata import Conditions
 
-# Where a record is made: inside the harness of the task, or from the tasks repo.
-Place = Literal["harness", "repo"]
+# Where a record is made: inside the harness of the task, or from the obeya.
+Place = Literal["harness", "obeya"]
 
 TASKS_DIR = "tasks"
 ARCHIVE_DIR = "archive"
@@ -308,7 +308,7 @@ def archive_destination(task: Task) -> PurePosixPath:
 def archive_problem(task: Task, harness_folder: str | None, destination_exists: bool) -> str | None:
     """Why the task cannot be archived, phrased after its ref, or None when it can.
 
-    `harness_folder` is the harness folder of the task, relative to the tasks repo root,
+    `harness_folder` is the harness folder of the task, relative to the obeya root,
     when a folder exists there: the `task.md` link inside it would break with the move.
     The status is not checked.
     """
@@ -451,7 +451,7 @@ def read_draft(root: Path, given: str, place: Place) -> tuple[list[str], list[st
     """The bullet lines of the draft at `given`, relative to `root`, the resolved root of `place`, and every problem
     found with it.
 
-    Inside a harness the draft lies anywhere in it. From the tasks repo it lies directly
+    Inside a harness the draft lies anywhere in it. From the obeya it lies directly
     in the root, so that neither a task file nor the draft of a run is consumed; the
     parent is compared with `samefile`, so a spelling of the root that differs only in
     case is still the root.
@@ -461,7 +461,7 @@ def read_draft(root: Path, given: str, place: Place) -> tuple[list[str], list[st
         if not path.is_relative_to(root):
             return [], ["is not inside the harness (paths are relative to the harness root)"]
     elif not (path.parent.is_dir() and path.parent.samefile(root)):
-        return [], ["is not directly in the tasks repo root (paths are relative to the tasks repo root)"]
+        return [], ["is not directly in the obeya root (paths are relative to the obeya root)"]
     if not path.is_file():
         return [], ["is not a file" if path.exists() else "does not exist"]
     try:

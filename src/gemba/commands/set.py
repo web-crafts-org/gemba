@@ -30,7 +30,7 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
             "to a number field, null counting as zero; repeat a key of a text field to set a list"
         ),
     )
-    parser.add_argument("--root", type=Path, help="tasks repo root (default: walk up to the nearest gemba.yaml)")
+    parser.add_argument("--root", type=Path, help="obeya root (default: walk up to the nearest gemba.yaml)")
     parser.set_defaults(handler=run)
 
 

@@ -9,7 +9,7 @@ local_config:
 run: [config, show]
 exit: 0
 stdout_json:
-  organization: null
+  obeya: null
   branch_prefix: gemba
   repos_dir: null
   ide: { command: code, args: [-n] }
@@ -30,7 +30,7 @@ stdout_json:
         archive: *empty
         set: *empty
         harness:
-          guide: { organization: null, workstream: null, user: null }
+          guide: { obeya: null, workstream: null, user: null }
           launch: *empty
           note: *empty
           resolve: *empty

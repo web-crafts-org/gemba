@@ -234,12 +234,12 @@ absolute, starting with `~`, or relative to the obeya root; and a top-level
 process that does not need them SHALL proceed when they are absent; the worktree
 process reports the absence itself.
 
-#### Scenario: Organization and repositories folder accepted
+#### Scenario: Obeya and repositories folder accepted
 - **WHEN** the shared config declares `obeya: nakatomi` and the personal config declares `repos_dir: ~/projects` and `branch_prefix: nk`
 - **THEN** every process that reads the config accepts it, and a task is created as before
 - **Cases**: modifies `tests/cases/config/organization-and-repos-dir-accepted.yaml`, renamed `obeya-and-repos-dir-accepted.yaml` (its config declares `obeya` in place of `organization`; its name says obeya; it names its scenario by the new title)
 
-#### Scenario: Malformed organization or branch prefix refused
+#### Scenario: Malformed obeya or branch prefix refused
 - **WHEN** the `obeya` of the shared config is `Nakatomi Corp`, an empty string or a list, or the `branch_prefix` of the personal config is `Gemba/`
 - **THEN** any process that reads the config refuses to proceed and names the key
 - **Cases**: modifies `tests/cases/config/malformed-organization-or-branch-prefix-refused.yaml`, renamed `malformed-obeya-or-branch-prefix-refused.yaml` (its config declares `obeya` in place of `organization`; the message it expects names the obeya; its name says obeya; it names its scenario by the new title)

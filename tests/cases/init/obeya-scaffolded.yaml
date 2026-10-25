@@ -1,5 +1,5 @@
 name: init in an empty folder writes the config, the ignore lines, the LF attributes, the tasks folder and the skills of every provider
-scenario: "repo-initialization: Tasks repo scaffolded in the working directory"
+scenario: "repo-initialization: Obeya scaffolded in the working directory"
 cwd: .
 run: [init]
 exit: 0
@@ -30,10 +30,10 @@ stdout: |
   written .agents/skills/gemba-init/SKILL.md
   written .agents/skills/gemba-config/SKILL.md
   written .agents/skills/gemba-migrate/SKILL.md
-  next step: open this tasks repo with your agent and ask it to configure gemba (the gemba-init skill)
+  next step: open this obeya with your agent and ask it to configure gemba (the gemba-init skill)
 files:
   gemba.yaml: |
-    # The gemba config of this tasks repo, edited by hand: no gemba command rewrites it.
+    # The gemba config of this obeya, edited by hand: no gemba command rewrites it.
     # Ask your agent to configure gemba for the first time (the gemba-init skill) and to
     # change it later (the gemba-config skill, which holds the reference of every key).
 

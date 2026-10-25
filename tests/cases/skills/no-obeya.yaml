@@ -1,5 +1,5 @@
 name: no gemba.yaml above the working directory stops the command
-scenario: "built-in-skills: No tasks repo"
+scenario: "built-in-skills: No obeya"
 tree:
   notes/today.md: nothing here
 cwd: notes

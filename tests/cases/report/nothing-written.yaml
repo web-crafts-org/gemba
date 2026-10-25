@@ -1,4 +1,4 @@
-name: a report leaves the tasks repo as it was
+name: a report leaves the obeya as it was
 scenario: "task-reporting: Nothing written"
 config:
   default_workstream: operations

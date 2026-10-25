@@ -1,10 +1,10 @@
-name: init in a tasks repo made by an earlier version appends the personal config and the draft to the .gitignore and keeps the rest
-scenario: "repo-initialization: Personal config ignored in an earlier tasks repo"
+name: init in an obeya made by the previous version appends the draft to the .gitignore and keeps the rest
+scenario: "repo-initialization: Draft ignored in an earlier obeya"
 cwd: .
 setup:
   - [init, --providers, claude]
 tree_after_setup:
-  .gitignore: "harnesses/\n"
+  .gitignore: "harnesses/\ngemba.local.yaml\n"
 run: [init]
 exit: 0
 stdout: |
@@ -23,7 +23,7 @@ stdout: |
   kept .claude/skills/gemba-init/SKILL.md
   kept .claude/skills/gemba-config/SKILL.md
   kept .claude/skills/gemba-migrate/SKILL.md
-  next step: open this tasks repo with your agent and ask it to configure gemba (the gemba-init skill)
+  next step: open this obeya with your agent and ask it to configure gemba (the gemba-init skill)
 files:
   .gitignore: "harnesses/\ngemba.local.yaml\n/update.md\n"
   .gitattributes: "*.md text eol=lf\n*.yaml text eol=lf\n"

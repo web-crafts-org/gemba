@@ -1,5 +1,5 @@
 """`gemba record`: write the drafted update of a day into a task, or copy the history of another task file into it,
-from its harness or from the tasks repo."""
+from its harness or from the obeya."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
     parser = subparsers.add_parser(
         "record",
         help="write the drafted update of a day into a task, or copy the history of another task file into it, "
-        "from its harness or from the tasks repo",
+        "from its harness or from the obeya",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=textwrap.fill(
             f"Write the bullets of a draft under ### YYYY-MM-DD in the {tasks.UPDATES_HEADING} section of a task, "
@@ -25,20 +25,20 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
             "and delete the draft. With --from, copy instead the whole dated history of another task file, as it "
             f"is, into a task whose {tasks.UPDATES_HEADING} section is empty, and move updated_at to its last date "
             "when it is later; that file is only read. Inside a harness the task is the one of the harness and the "
-            "path of the draft is relative to the harness root. From the tasks repo the task is named by its ref, "
-            "archives included, and the draft lies directly in the tasks repo root. Nothing is committed.",
+            "path of the draft is relative to the harness root. From the obeya the task is named by its ref, "
+            "archives included, and the draft lies directly in the obeya root. Nothing is committed.",
             width=79,
         ),
     )
     parser.add_argument(
         "ref",
         nargs="?",
-        help="ref of the task, such as SUP-1: required from the tasks repo; inside a harness, only the ref of its task",
+        help="ref of the task, such as SUP-1: required from the obeya; inside a harness, only the ref of its task",
     )
     parser.add_argument(
         "file",
         nargs="?",
-        help=f"the draft, such as update.md, relative to the root of the harness or of the tasks repo: lines "
+        help=f"the draft, such as update.md, relative to the root of the harness or of the obeya: lines "
         f"starting with '{tasks.BULLET_PREFIX}', continued by lines indented by two spaces; not with --from",
     )
     parser.add_argument(
@@ -58,7 +58,7 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         "--harness", type=Path, help=f"harness root (default: walk up to the nearest {harness.CONFIG_FILENAME})"
     )
     parser.add_argument(
-        "--root", type=Path, help=f"tasks repo root (default: walk up to the nearest {config.CONFIG_FILENAME})"
+        "--root", type=Path, help=f"obeya root (default: walk up to the nearest {config.CONFIG_FILENAME})"
     )
     parser.set_defaults(handler=run)
 
@@ -88,7 +88,7 @@ def run(args: argparse.Namespace) -> int:
     errors = []
     task: tasks.Task | None = None
     if folder is None or identity is None:
-        place: tasks.Place = "repo"
+        place: tasks.Place = "obeya"
         base = root
         assert ref is not None, "a record with no harness and no ref was refused"
         try:
@@ -218,7 +218,7 @@ def print_updated_at(previous: datetime.date, updated_at: datetime.date) -> None
 
 def harness_root(given: Path | None) -> Path | None:
     """The harness the record is made in: the one `--harness` names, else the nearest one at or above the working
-    directory; None when there is none, and the record is made from the tasks repo."""
+    directory; None when there is none, and the record is made from the obeya."""
     if given is not None:
         return harness_command.locate(given)
     try:

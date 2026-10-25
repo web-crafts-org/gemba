@@ -30,12 +30,12 @@ the path relative to the new root, in the order written, the config, the
 final line naming the next step, the guided configuration through the agent, and
 SHALL exit 0. The command SHALL ask nothing on the terminal.
 
-#### Scenario: Tasks repo scaffolded in the working directory
+#### Scenario: Obeya scaffolded in the working directory
 - **WHEN** `gemba init` runs in an empty folder with no `--providers`
 - **THEN** the folder holds `gemba.yaml` with the `default` workstream as the default and `agent_providers` listing every known provider, `.gitignore` with `harnesses/`, `gemba.local.yaml` and `/update.md`, `.gitattributes` with the two `eol=lf` lines, `tasks/.gitkeep` and the obeya skills under `.claude/skills/` and `.agents/skills/`, `gemba-record` and `gemba-migrate` among them, and no `gemba.local.yaml`; the output lists each path as `written` and ends with the next step, and the command exits 0
 - **Cases**: modifies `tests/cases/init/tasks-repo-scaffolded.yaml`, renamed `obeya-scaffolded.yaml` (the message it expects names the obeya; the skill text it expects says obeya; its comment says obeya; it names its scenario by the new title)
 
-#### Scenario: Tasks repo scaffolded at a given path
+#### Scenario: Obeya scaffolded at a given path
 - **WHEN** `gemba init acme-tasks` runs and `acme-tasks` does not exist
 - **THEN** the folder is created, holds the same files, and nothing is written in the working directory itself
 - **Cases**: modifies `tests/cases/init/scaffolded-at-a-path.yaml` (the skill text it expects says obeya; its name says obeya; its comment says obeya; it names its scenario by the new title)
@@ -72,12 +72,12 @@ it. Running the command twice SHALL leave the tree identical after the second ru
 - **THEN** `gemba.yaml` is kept byte for byte, `harnesses/`, `gemba.local.yaml` and `/update.md` are appended to `.gitignore` in that order, the `*.yaml` line is appended to `.gitattributes`, `tasks/.gitkeep` and the skills of `claude` are written, no `.agents/` folder appears, and the output reports `kept gemba.yaml`, `updated .gitignore`, `updated .gitattributes` and `written` for the rest
 - **Cases**: modifies `tests/cases/init/missing-pieces-completed.yaml` (the message it expects names the obeya; its name says obeya)
 
-#### Scenario: Personal config ignored in an earlier tasks repo
+#### Scenario: Personal config ignored in an earlier obeya
 - **WHEN** `gemba init` runs in an obeya made by an earlier version, whose `.gitignore` holds `harnesses/` alone and whose other files are all in place
 - **THEN** `gemba.local.yaml` and `/update.md` are appended to `.gitignore` in that order, the output reports `updated .gitignore` and every other path as `kept`, and the command exits 0
 - **Cases**: modifies `tests/cases/init/personal-config-ignored-in-an-earlier-tasks-repo.yaml`, renamed `personal-config-ignored-in-an-earlier-obeya.yaml` (the message it expects names the obeya; its name says obeya; it names its scenario by the new title)
 
-#### Scenario: Draft ignored in an earlier tasks repo
+#### Scenario: Draft ignored in an earlier obeya
 - **WHEN** `gemba init` runs in an obeya whose `.gitignore` holds `harnesses/` and `gemba.local.yaml` and whose other files are all in place, as the version before this change left it
 - **THEN** `/update.md` is appended to `.gitignore`, the output reports `updated .gitignore` and every other path as `kept`, and the command exits 0
 - **Cases**: modifies `tests/cases/init/draft-ignored-in-an-earlier-tasks-repo.yaml`, renamed `draft-ignored-in-an-earlier-obeya.yaml` (the message it expects names the obeya; its name says obeya; it names its scenario by the new title)
@@ -102,7 +102,7 @@ When a strict ancestor of the folder to initialize holds `gemba.yaml`, `gemba in
 SHALL exit 1, name the obeya found, and write nothing, so that no obeya is
 ever created inside another one, a harness included.
 
-#### Scenario: Nested tasks repo refused
+#### Scenario: Nested obeya refused
 - **WHEN** `gemba init` runs from a subfolder of an obeya, or `gemba init sub` runs at its root
 - **THEN** the command exits 1, names the root of the obeya found, and the tree is untouched
 - **Cases**: modifies `tests/cases/init/nested-tasks-repo-refused.yaml`, renamed `nested-obeya-refused.yaml` (the message it expects names the obeya; its name says obeya; it names its scenario by the new title)
@@ -140,7 +140,7 @@ report the resulting config, saying that `gemba.local.yaml` stays on this machin
 that git ignores it; and SHALL NOT commit. This skill SHALL be used for the first
 configuration only: any later edit is the `gemba-config` skill.
 
-#### Scenario: Agent configures a new tasks repo
+#### Scenario: Agent configures a new obeya
 - **WHEN** the user asks the agent to configure gemba in an obeya that holds the scaffolded config
 - **THEN** the agent asks the questions in the order above, one per message, proposes the workstreams and the fields from the answers, writes the IDE command and the folder of the repositories into `gemba.local.yaml` and the rest into `gemba.yaml`, verifies both with `gemba config check`, refreshes the skills when the providers changed, and reports the config without committing
 - **Cases**: modifies the entry `repo-initialization: Agent configures a new tasks repo` of `tests/not-automated.yaml` (now `repo-initialization: Agent configures a new obeya`)

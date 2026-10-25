@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Migration brings tasks from another tasks repo, the old one, into the tasks repo it
+Migration brings tasks from another obeya, the old one, into the obeya it
 runs in, the new one, as a translation into the workstreams and fields of the new
 config. The agent decides with the person what goes where; the commands of other
 processes write every task, and the old repo stays intact as history.

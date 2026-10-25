@@ -1,4 +1,4 @@
-name: the organization, workstream and user sections follow one another, and the user section closes every guide
+name: the obeya, workstream and user sections follow one another, and the user section closes every guide
 scenario: "harness-guide: Every guide section rendered"
 config:
   default_workstream: operations
@@ -33,5 +33,5 @@ run: [harness, launch, SUP-1, --no-open]
 exit: 0
 files_contain:
   harnesses/support/2026-09-30-SUP-1-login-fails/CLAUDE.md: &sections
-    - "uncommitted. Do not commit here yourself.\n\n## Your organization\n\nOpen the harness through its workspace.\n\n## Your workstream\n\nWrite for the client.\n\n## Your user\n\nAnswer me in Spanish.\n\nQuote the ticket in every note.\n"
+    - "uncommitted. Do not commit here yourself.\n\n## Your obeya\n\nOpen the harness through its workspace.\n\n## Your workstream\n\nWrite for the client.\n\n## Your user\n\nAnswer me in Spanish.\n\nQuote the ticket in every note.\n"
   harnesses/support/2026-09-30-SUP-1-login-fails/AGENTS.md: *sections

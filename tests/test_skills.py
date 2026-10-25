@@ -153,18 +153,18 @@ class RegistryTest(unittest.TestCase):
         self.assertEqual(
             {skill.name: skill.scope for skill in skills.SKILLS},
             {
-                "gemba-create": "repo",
-                "gemba-list": "repo",
+                "gemba-create": "obeya",
+                "gemba-list": "obeya",
                 "gemba-harness": "both",
                 "gemba-record": "both",
-                "gemba-report": "repo",
+                "gemba-report": "obeya",
                 "gemba-mark": "both",
-                "gemba-archive": "repo",
+                "gemba-archive": "obeya",
                 "gemba-set": "both",
                 "gemba-worktree": "harness",
-                "gemba-init": "repo",
-                "gemba-config": "repo",
-                "gemba-migrate": "repo",
+                "gemba-init": "obeya",
+                "gemba-config": "obeya",
+                "gemba-migrate": "obeya",
             },
         )
         self.assertEqual(len(set(NAMES)), len(NAMES))
@@ -186,8 +186,8 @@ class PlanTest(unittest.TestCase):
         return [skill.name for skill in skills.SKILLS if skill.scope in (scope, "both")]
 
     def test_one_action_per_provider_and_skill(self):
-        names = self.names("repo")
-        actions = skills.plan(self.root, ["agents", "claude"], "9.9.9", "repo")
+        names = self.names("obeya")
+        actions = skills.plan(self.root, ["agents", "claude"], "9.9.9", "obeya")
         self.assertEqual(
             [action.path for action in actions],
             [f".agents/skills/{name}/SKILL.md" for name in names]
@@ -197,7 +197,7 @@ class PlanTest(unittest.TestCase):
         self.assertEqual(actions[0].content, skills.render(names[0], "9.9.9"))
 
     def test_only_the_skills_of_the_target(self):
-        for scope in ("repo", "harness"):
+        for scope in ("obeya", "harness"):
             with self.subTest(scope=scope):
                 actions = skills.plan(self.root, ["claude"], "9.9.9", scope)
                 self.assertEqual(
@@ -206,11 +206,11 @@ class PlanTest(unittest.TestCase):
                 )
 
     def test_states_are_read_from_disk(self):
-        names = self.names("repo")
+        names = self.names("obeya")
         path = self.root / ".claude" / "skills" / names[0] / skills.SKILL_FILE
         path.parent.mkdir(parents=True)
         path.write_text(skills.render(names[0], "1.0.0"), encoding="utf-8")
-        actions = skills.plan(self.root, ["claude"], "9.9.9", "repo")
+        actions = skills.plan(self.root, ["claude"], "9.9.9", "obeya")
         self.assertEqual([action.state for action in actions], ["unchanged"] + ["missing"] * (len(names) - 1))
 
     def test_outcomes(self):

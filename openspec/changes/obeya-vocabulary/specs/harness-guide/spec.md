@@ -20,7 +20,7 @@ to be rendered into it.
 - **THEN** `CLAUDE.md` and `AGENTS.md` have identical content
 - **Cases**: keeps `tests/cases/harness/same-guide-for-every-provider.yaml`
 
-#### Scenario: Guide free of organization values
+#### Scenario: Guide free of configured values
 - **WHEN** the guide asset is read
 - **THEN** it names no workstream, prefix or field of any obeya
 - **Cases**: modifies the entry `harness-guide: Guide free of organization values` of `tests/not-automated.yaml` (now `harness-guide: Guide free of configured values`)
@@ -52,12 +52,12 @@ there are any. When the top level of the shared config declares no `harness.guid
 SHALL be written once; `gemba skills update` SHALL NOT touch it and a relaunch SHALL
 NOT rewrite it.
 
-#### Scenario: Organization section rendered
+#### Scenario: Obeya section rendered
 - **WHEN** the top level of the config declares `harness.guide: "Open the harness through its workspace."`, workstream `support` declares no `harness.guide`, and a `support` task is launched
 - **THEN** every guide in the harness holds, right after the text of the guide asset, a `## Your obeya` section whose body is `Open the harness through its workspace.`
 - **Cases**: modifies `tests/cases/harness/organization-section-rendered.yaml`, renamed `obeya-section-rendered.yaml` (the guide it expects holds `## Your obeya`; it names its scenario by the new title)
 
-#### Scenario: Organization and workstream sections rendered
+#### Scenario: Obeya and workstream sections rendered
 - **WHEN** the top level of the config declares `harness.guide: "Open the harness through its workspace."`, workstream `support` declares `harness.guide: "Write for the client."`, and a `support` task is launched
 - **THEN** every guide in the harness holds a `## Your obeya` section whose body is `Open the harness through its workspace.`, followed by a `## Your workstream` section whose body is `Write for the client.`, which closes the guide
 - **Cases**: modifies `tests/cases/harness/organization-and-workstream-sections-rendered.yaml`, renamed `obeya-and-workstream-sections-rendered.yaml` (the guide it expects holds `## Your obeya`; it names its scenario by the new title)

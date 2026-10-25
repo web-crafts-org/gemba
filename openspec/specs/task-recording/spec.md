@@ -3,12 +3,12 @@
 ## Purpose
 
 Recording writes one day of work into its task file. Inside the harness of the task,
-the agent distills the day's notes of the run into bullets; from the tasks repo, for
+the agent distills the day's notes of the run into bullets; from the obeya, for
 work done outside a run, it drafts what the person tells it. One command writes them as
 the dated subsection of `## Updates` and moves `updated_at` in the same step, so that
 the task file stays the durable record and no update is ever invisible to date-filtered
 listings. The same command copies the whole dated history of another task file, such
-as a task brought from an earlier tasks repo, into a task whose `## Updates` is still
+as a task brought from an earlier obeya, into a task whose `## Updates` is still
 empty, reading that file itself so that the history reaches the task as it was.
 
 ## Requirements
@@ -46,7 +46,7 @@ draft.
 - **WHEN** the `task` path of `harness.yaml` names a file that no longer exists under the tasks repo
 - **THEN** the command exits 1, names the path, says the task file was not found there, and changes nothing
 
-#### Scenario: Task named by ref from the tasks repo
+#### Scenario: Task named by ref from the obeya
 - **WHEN** `update.md` at the tasks repo root holds one bullet, `SUP-1` was created on `2026-09-30` with `updated_at: 2026-09-30` and has no harness, and `gemba record SUP-1 update.md --date 2026-10-01` runs from `tasks/support`
 - **THEN** the task holds the bullet under `### 2026-10-01`, `updated_at` reads `2026-10-01`, `update.md` no longer exists, the output is the task path followed by `updated_at: 2026-09-30 -> 2026-10-01`, and the command exits 0
 
@@ -87,7 +87,7 @@ blank lines dropped, with no rewording or reformatting.
 - **WHEN** the draft does not exist, or is outside the harness, or holds no bullet, or holds a non-blank line that is neither a bullet nor an indented continuation
 - **THEN** the command exits 1, names the rule the draft breaks, and changes nothing, the draft included
 
-#### Scenario: Draft out of place refused in the tasks repo
+#### Scenario: Draft out of place refused in the obeya
 - **WHEN** `gemba record SUP-1 <file>` runs from the tasks repo with a draft of valid bullets at `../outside.md`, outside the tasks repo, or at `tasks/support/update.md`, or at `harnesses/support/2026-09-30-SUP-1-login-fails/update.md`
 - **THEN** the command exits 1, says that the draft does not lie directly in the root of the tasks repo, and changes nothing, the draft included
 
@@ -191,7 +191,7 @@ say that the work of the run is recorded from inside it.
 - **WHEN** the user, in the tasks repo, tells the agent about a review held today on `SUP-1` and asks to record it
 - **THEN** the agent writes `update.md` at the tasks repo root with bullets of what the user said, runs `gemba record SUP-1 update.md` and relays the result
 
-#### Scenario: Task with a harness recorded from the tasks repo
+#### Scenario: Task with a harness recorded from the obeya
 - **WHEN** the user asks, in the tasks repo, to record a day of a task that has a harness
 - **THEN** the agent says that the work of the run is recorded from inside the harness, records only what the user told it, and reads no note of that harness
 

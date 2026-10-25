@@ -51,9 +51,9 @@ class State:
     unpushed: int = 0  # commits of HEAD that are on no remote branch
 
 
-def branch_name(prefix: str, organization: str, ref: str) -> str:
+def branch_name(prefix: str, obeya: str, ref: str) -> str:
     """The local branch of every worktree of the run of `ref`."""
-    return f"{prefix}/{organization}/{ref}"
+    return f"{prefix}/{obeya}/{ref}"
 
 
 def relative_path(repo: str) -> str:
@@ -67,7 +67,7 @@ def worktree_path(harness_root: Path, repo: str) -> Path:
 
 
 def repos_dir(config_root: Path, declared: str) -> Path:
-    """The repositories folder: `declared` with `~` expanded, relative to the tasks repo root unless absolute."""
+    """The repositories folder: `declared` with `~` expanded, relative to the obeya root unless absolute."""
     path = Path(declared).expanduser()
     return path if path.is_absolute() else config_root / path
 

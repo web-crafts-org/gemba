@@ -131,7 +131,7 @@ changed.
 - **WHEN** the edit added or removed an entry of the `agent_providers` of the shared config
 - **THEN** the agent runs `gemba skills update` and, for a removed provider, tells the user which skills folder is left for them to delete
 
-#### Scenario: Reference free of organization values
+#### Scenario: Reference free of configured values
 - **WHEN** the `gemba-config` skill is read
 - **THEN** it names every key of the gemba config with the file it belongs in, and no workstream, prefix, field or value of any organization
 

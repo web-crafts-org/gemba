@@ -9,7 +9,7 @@ config:
     operations: { prefix: SUP, description: Anything that does not fit another workstream }
 local_config:
   ide: ""
-  organization: nakatomi
+  obeya: nakatomi
 tree:
   tasks/operations/.gitkeep: ""
 run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
@@ -19,5 +19,5 @@ stderr_contains:
   - "gemba.yaml: workstreams 'support' and 'operations' declare the same prefix 'SUP'"
   - "gemba.yaml: metadata[0]: field 'hours' has unknown type 'integer'"
   - "gemba.local.yaml: ide must be a non-empty string"
-  - "gemba.local.yaml: organization belongs in gemba.yaml"
+  - "gemba.local.yaml: obeya belongs in gemba.yaml"
 unchanged: true

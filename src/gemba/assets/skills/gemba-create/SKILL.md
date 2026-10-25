@@ -1,6 +1,6 @@
 ---
 name: gemba-create
-description: Register a new task in this tasks repo. Use whenever the user asks to register, create, track or add a task, TODO or work item, whatever the workstream.
+description: Register a new task in this obeya. Use whenever the user asks to register, create, track or add a task, TODO or work item, whatever the workstream.
 ---
 
 # Create a task
@@ -9,10 +9,11 @@ Register one unit of work as a task file. The `gemba create` command validates t
 request, allocates the ref and writes the file. Your part is to choose the workstream,
 gather what the config requires, run the command and complete the body.
 
-Every organization-specific value (workstreams, prefixes, metadata fields, rules) lives
-in `gemba.yaml`. Run `gemba config show` on every run and rely on nothing else you know
-or remember about workstreams or fields: it prints the config resolved, with the fields
-and the blocks shared by every workstream already joined to those of each one.
+Every configured value (workstreams, prefixes, metadata fields, rules) lives in the
+gemba config at the obeya root. Run `gemba config show` on every run and rely on nothing
+else you know or remember about workstreams or fields: it prints the config resolved,
+with the fields and the blocks shared by every workstream already joined to those of
+each one.
 
 ## Prerequisite
 
@@ -24,10 +25,10 @@ Python files directly and do not write the task file by hand.
 ## Process
 
 1. **Locate the config.** Walk up from the current folder to the nearest `gemba.yaml`.
-   That folder is the tasks repo root. If there is none, stop and tell the user that no
+   That folder is the obeya root. If there is none, stop and tell the user that no
    gemba config was found.
-2. **Choose the workstream.** Run `gemba config show` from anywhere inside the tasks
-   repo: it prints the config resolved as one JSON document, or the problem when the
+2. **Choose the workstream.** Run `gemba config show` from anywhere inside the obeya:
+   it prints the config resolved as one JSON document, or the problem when the
    config is invalid, which you relay before stopping. Compare the request with the
    `description` of every entry of `workstreams` in the document:
    - one description clearly covers the work: use that workstream without asking;
@@ -63,7 +64,7 @@ Python files directly and do not write the task file by hand.
 7. **Build the slug** from what the user said. It is the task's title: a few lowercase
    ASCII words or numbers joined by single hyphens, matching `^[a-z0-9]+(-[a-z0-9]+)*$`.
    Transliterate accented letters and drop punctuation.
-8. **Run the command** from anywhere inside the tasks repo root:
+8. **Run the command** from anywhere inside the obeya root:
 
    ```bash
    gemba create --workstream <id> --slug <slug> \
@@ -85,8 +86,8 @@ Python files directly and do not write the task file by hand.
    missing and every undeclared key and every value that is not of its field's type. Fix the call, asking the user when a value is
    missing, and run it again. Never work around a refusal by writing or editing the
    file yourself.
-9. **Complete the body.** The command prints the created path, relative to the tasks
-   repo root, and the ref. If you did not pass `--description`, write a short description
+9. **Complete the body.** The command prints the created path, relative to the obeya
+   root, and the ref. If you did not pass `--description`, write a short description
    above `## Updates` now. Add links to any external references the user gave below
    the description. Edit only the body and leave `## Updates` empty.
 10. **Report** the path, the ref and a one-line summary to the user. Do not commit.

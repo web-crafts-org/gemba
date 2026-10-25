@@ -9,8 +9,8 @@ from typing import Literal
 
 import yaml
 
-Target = Literal["repo", "harness"]
-Scope = Literal["repo", "harness", "both"]
+Target = Literal["obeya", "harness"]
+Scope = Literal["obeya", "harness", "both"]
 State = Literal["missing", "unchanged", "outdated", "edited"]
 Outcome = Literal["written", "updated", "kept", "overwritten"]
 
@@ -25,7 +25,7 @@ class Provider:
 
 @dataclass(frozen=True)
 class Skill:
-    """A built-in skill and the targets it is written into: the tasks repo, a harness or both."""
+    """A built-in skill and the targets it is written into: the obeya, a harness or both."""
 
     name: str
     scope: Scope
@@ -42,18 +42,18 @@ PROVIDERS = {
 
 # Every built-in skill, in writing order; each one ships as assets/skills/<name>/SKILL.md.
 SKILLS = (
-    Skill("gemba-create", "repo"),
-    Skill("gemba-list", "repo"),
+    Skill("gemba-create", "obeya"),
+    Skill("gemba-list", "obeya"),
     Skill("gemba-harness", "both"),
     Skill("gemba-record", "both"),
-    Skill("gemba-report", "repo"),
+    Skill("gemba-report", "obeya"),
     Skill("gemba-mark", "both"),
-    Skill("gemba-archive", "repo"),
+    Skill("gemba-archive", "obeya"),
     Skill("gemba-set", "both"),
     Skill("gemba-worktree", "harness"),
-    Skill("gemba-init", "repo"),
-    Skill("gemba-config", "repo"),
-    Skill("gemba-migrate", "repo"),
+    Skill("gemba-init", "obeya"),
+    Skill("gemba-config", "obeya"),
+    Skill("gemba-migrate", "obeya"),
 )
 
 SKILL_FILE = "SKILL.md"

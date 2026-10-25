@@ -27,7 +27,7 @@ local_config:
 run: [config, show]
 exit: 0
 stdout_json:
-  organization: null
+  obeya: null
   branch_prefix: gemba
   repos_dir: null
   ide: null
@@ -54,7 +54,7 @@ stdout_json:
         archive: *empty
         set: *empty
         harness:
-          guide: { organization: null, workstream: null, user: "Answer me in Spanish.\n\nQuote the ticket in every note." }
+          guide: { obeya: null, workstream: null, user: "Answer me in Spanish.\n\nQuote the ticket in every note." }
           launch: *empty
           note: *empty
           resolve: *empty
@@ -78,7 +78,7 @@ stdout_json:
         archive: *empty
         set: *empty
         harness:
-          guide: { organization: null, workstream: null, user: Answer me in Spanish. }
+          guide: { obeya: null, workstream: null, user: Answer me in Spanish. }
           launch: *empty
           note: *empty
           resolve: *empty

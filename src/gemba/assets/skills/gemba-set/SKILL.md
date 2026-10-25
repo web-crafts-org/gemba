@@ -1,6 +1,6 @@
 ---
 name: gemba-set
-description: Set, change, correct or clear a metadata value of a task, or add to an amount it holds, such as the time it took, from the tasks repo or inside its harness. Use whenever the user gives a value of a task's field after its creation, says a task took more time or more of any amount than recorded, says something happened to a task on a date a field records, or asks to set, change, fix, clear, log or add to a value of a task, whatever the workstream. Recording the day's work is gemba-record and the status of a task is gemba-mark.
+description: Set, change, correct or clear a metadata value of a task, or add to an amount it holds, such as the time it took, from the obeya or inside its harness. Use whenever the user gives a value of a task's field after its creation, says a task took more time or more of any amount than recorded, says something happened to a task on a date a field records, or asks to set, change, fix, clear, log or add to a value of a task, whatever the workstream. Recording the day's work is gemba-record and the status of a task is gemba-mark.
 ---
 
 # Set metadata of a task
@@ -13,8 +13,8 @@ keys of the current schema, and rewrites nothing but `metadata`; `updated_at` do
 move. Your part is to find the task, turn the user's words into assignments of declared
 fields, run the command once and relay what it prints.
 
-Every organization-specific value (workstreams, prefixes, metadata fields, rules) lives
-in `gemba.yaml`, at the tasks repo root. Run `gemba config show` on every run and rely
+Every configured value (workstreams, prefixes, metadata fields, rules) lives in the
+gemba config at the obeya root. Run `gemba config show` on every run and rely
 on nothing else you know or remember about workstreams or fields: it prints the config
 resolved, with the fields and the blocks shared by every workstream already joined to
 those of each one.
@@ -28,12 +28,12 @@ frontmatter of a task by hand.
 
 ## Process
 
-From the tasks repo or from inside the harness of the task. Inside a harness, the
+From the obeya or from inside the harness of the task. Inside a harness, the
 folder that holds `harness.yaml` is the harness root.
 
 1. **Identify the task by its ref**, `<PREFIX>-<N>`. Inside a harness, the task is the
-   one named by `ref` in `harness.yaml`, unless the user names another. From the tasks
-   repo, take the ref the user gives; when they name the task by its title or
+   one named by `ref` in `harness.yaml`, unless the user names another. From the obeya,
+   take the ref the user gives; when they name the task by its title or
    description instead, find it with the `gemba-list` skill. When two or more tasks
    fit, ask the user which one before setting anything.
 2. **Read the schema of the task.** Its workstream is the one whose `prefix` is the
@@ -77,7 +77,7 @@ folder that holds `harness.yaml` is the harness root.
      The `key` of each group is a value in use. When the user means one of them,
      written another way (another case, an abbreviation), use the spelling in use; when
      you cannot tell whether the user means a value in use or a new one, ask.
-5. **Run the command once,** with every assignment, from anywhere inside the tasks repo
+5. **Run the command once,** with every assignment, from anywhere inside the obeya
    or the harness:
 
    ```bash

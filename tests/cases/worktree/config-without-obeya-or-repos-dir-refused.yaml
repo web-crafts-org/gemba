@@ -1,5 +1,5 @@
-name: add refuses a config without organization, naming the key
-scenario: "harness-worktrees: Config without organization or repositories folder refused"
+name: add refuses a config without obeya, naming the key
+scenario: "harness-worktrees: Config without obeya or repositories folder refused"
 config:
   default_workstream: operations
   agent_providers: [claude]
@@ -27,7 +27,7 @@ setup:
   - [harness, launch, SUP-1, --no-open]
 run: [worktree, add, nakatomi-web]
 exit: 1
-stderr_contains: ["worktree not added:", "no organization declared: add organization to gemba.yaml"]
+stderr_contains: ["worktree not added:", "no obeya declared: add obeya to gemba.yaml"]
 absent:
   - harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/*
 git_branches:
@@ -35,11 +35,11 @@ git_branches:
 unchanged: true
 ---
 name: add refuses a config without repos_dir, naming the key
-scenario: "harness-worktrees: Config without organization or repositories folder refused"
+scenario: "harness-worktrees: Config without obeya or repositories folder refused"
 config:
   default_workstream: operations
   agent_providers: [claude]
-  organization: nakatomi
+  obeya: nakatomi
   workstreams:
     support: { prefix: SUP, description: Investigate a client-reported problem }
     operations: { prefix: OPS, description: Anything that does not fit another workstream }

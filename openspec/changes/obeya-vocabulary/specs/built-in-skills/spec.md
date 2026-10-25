@@ -80,12 +80,12 @@ working directory, and SHALL refuse, writing nothing, when no gemba config is fo
 - **THEN** the harness-scoped skills are written or refreshed under the harness's `.claude/skills/`, nothing is written under `.agents/`, and nothing is written at the obeya root
 - **Cases**: keeps `tests/cases/skills/run-from-inside-a-harness.yaml`
 
-#### Scenario: No tasks repo
+#### Scenario: No obeya
 - **WHEN** no ancestor of the working directory holds `gemba.yaml`
 - **THEN** the command exits 1, reports that no gemba config was found, and writes nothing
 - **Cases**: modifies `tests/cases/skills/no-tasks-repo.yaml`, renamed `no-obeya.yaml` (it names its scenario by the new title)
 
-#### Scenario: Personal providers leave the tasks repo skills
+#### Scenario: Personal providers leave the obeya skills
 - **WHEN** `gemba.yaml` declares `agent_providers: [claude]`, `gemba.local.yaml` declares `agent_providers: [agents]`, and `gemba skills update` runs at the obeya root
 - **THEN** the obeya skills are written under `.claude/skills/` and no `.agents/` folder is created
 - **Cases**: modifies `tests/cases/skills/personal-providers-leave-the-tasks-repo-skills.yaml`, renamed `personal-providers-leave-the-obeya-skills.yaml` (its name says obeya; it names its scenario by the new title)

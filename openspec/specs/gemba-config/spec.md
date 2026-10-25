@@ -2,10 +2,10 @@
 
 ## Purpose
 
-The gemba config is the customization of Gemba, in two files at the tasks repo root:
-`gemba.yaml`, the shared config, committed with the tasks repo, and `gemba.local.yaml`,
+The gemba config is the customization of Gemba, in two files at the obeya root:
+`gemba.yaml`, the shared config, committed with the obeya, and `gemba.local.yaml`,
 the personal config, private to the clone. Between them they hold every value specific
-to the organization or to the person (workstreams, metadata schema, per-process
+to one obeya or to the person (workstreams, metadata schema, per-process
 customization, the IDE and the repositories folder), each in the file its layer names,
 so that processes and their commands stay free of such values.
 
@@ -392,11 +392,11 @@ absolute, starting with `~`, or relative to the tasks repo root; and a top-level
 process that does not need them SHALL proceed when they are absent; the worktree
 process reports the absence itself.
 
-#### Scenario: Organization and repositories folder accepted
+#### Scenario: Obeya and repositories folder accepted
 - **WHEN** the shared config declares `organization: nakatomi` and the personal config declares `repos_dir: ~/projects` and `branch_prefix: nk`
 - **THEN** every process that reads the config accepts it, and a task is created as before
 
-#### Scenario: Malformed organization or branch prefix refused
+#### Scenario: Malformed obeya or branch prefix refused
 - **WHEN** the `organization` of the shared config is `Nakatomi Corp`, an empty string or a list, or the `branch_prefix` of the personal config is `Gemba/`
 - **THEN** any process that reads the config refuses to proceed and names the key
 

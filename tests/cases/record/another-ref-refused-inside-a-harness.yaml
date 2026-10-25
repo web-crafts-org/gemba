@@ -36,5 +36,5 @@ run: [record, SUP-2, update.md, --date, 2026-10-01]
 exit: 1
 stderr_contains:
   - record not done
-  - "SUP-2 is not the task of this harness, SUP-1: record SUP-2 from the tasks repo or from its own harness"
+  - "SUP-2 is not the task of this harness, SUP-1: record SUP-2 from the obeya or from its own harness"
 unchanged: true

@@ -10,10 +10,10 @@ IDE opens. The `gemba harness` commands create it, file its notes, record what w
 done on an approved note and remove it. Your part is to write the notes, choose their
 type, run the commands with the right arguments and relay what they print.
 
-Every organization-specific value (workstreams and their rules) lives in `gemba.yaml`,
-at the tasks repo root. Run `gemba config show` on every run and rely on nothing else
-you know or remember about workstreams. It prints the config resolved, from the tasks
-repo or from inside a harness: the entry of each workstream holds, under `processes`,
+Every configured value (workstreams and their rules) lives in the gemba config at the
+obeya root. Run `gemba config show` on every run and rely on nothing else
+you know or remember about workstreams. It prints the config resolved, from the obeya
+or from inside a harness: the entry of each workstream holds, under `processes`,
 the block of every verb that applies to it, such as `processes.harness.note`, with the
 block shared by every workstream already joined to the workstream's. Wherever this
 skill says to read a block, read its `context` as background and follow every entry of
@@ -28,7 +28,7 @@ commit a file of the harness by hand, and never write a frontmatter.
 
 ## Launch
 
-From anywhere inside the tasks repo:
+From anywhere inside the obeya:
 
 1. **Identify the task by its ref**, `<PREFIX>-<N>`. When the request names the task by
    its title or description instead, find it with the `gemba-list` skill; when two or
@@ -121,7 +121,7 @@ When a note filed with `approved: false` is to be acted on:
 When the user wants a run thrown away, to start it over or because its task went cold.
 Removing deletes the harness folder with its notes, assets, history and uncommitted
 files, removes every worktree under `worktrees/` and deletes the local branches of the
-run; the task file and the remotes are not touched. Run it from the tasks repo, outside the harness: the
+run; the task file and the remotes are not touched. Run it from the obeya, outside the harness: the
 command refuses to delete the folder it is run from, so a session inside the harness
 cannot remove it.
 
@@ -173,7 +173,7 @@ tell the user how each one is saved, from a session inside the harness:
   moves it elsewhere if it is needed.
 
 Saving is the user's decision, carried out in a session inside the harness: from the
-tasks repo, never file, commit, push or delete anything yourself to make the removal
+obeya, never file, commit, push or delete anything yourself to make the removal
 pass, and never delete the folder by other means.
 
 **Never force first.** `--force` discards the uncommitted paths and unpushed commits of

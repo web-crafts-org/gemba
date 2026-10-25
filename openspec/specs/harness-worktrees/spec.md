@@ -2,7 +2,7 @@
 
 ## Purpose
 
-A run works on code through git worktrees of the repositories the organization keeps
+A run works on code through git worktrees of the repositories the person keeps
 under one folder, each on a local branch named after the task, created, listed and
 removed by the CLI from inside the harness so that runs never collide on a branch and
 the removal of a harness never loses unsaved or unpushed work.
@@ -25,7 +25,7 @@ change anything on the remote, whatever the flags.
 - **WHEN** `repos_dir` holds `nakatomi-web/` with a `.git` and `group/other/` with a `.git` below one more level, and `gemba worktree add nakatomi-web` and then `gemba worktree add other` run inside a harness
 - **THEN** the first creates `worktrees/nakatomi-web` and exits 0, and the second exits 1, says that no repository named `other` is at the root of the folder, names `nakatomi-web` as the one found there, and creates no worktree and no branch
 
-#### Scenario: Repositories folder relative to the tasks repo
+#### Scenario: Repositories folder relative to the obeya
 - **WHEN** the personal config declares `repos_dir: repos` and `repos/nakatomi-web` is a git repository under the tasks repo root
 - **THEN** `gemba worktree add nakatomi-web` finds it and creates the worktree
 
@@ -69,7 +69,7 @@ SHALL NOT be committed: `worktrees/` is excluded from it.
 - **WHEN** `origin` received a commit on `main` that the base repository has not fetched, and `gemba worktree add nakatomi-web` runs
 - **THEN** `worktrees/nakatomi-web` holds the file of that commit
 
-#### Scenario: Config without organization or repositories folder refused
+#### Scenario: Config without obeya or repositories folder refused
 - **WHEN** the shared config declares no `organization`, or the personal config no `repos_dir`, and `gemba worktree add nakatomi-web` runs
 - **THEN** the command exits 1, names the missing key and the file it goes in, `gemba.yaml` or `gemba.local.yaml`, and creates no worktree and no branch
 

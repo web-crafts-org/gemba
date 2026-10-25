@@ -31,7 +31,7 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         help="create the worktree of a repository, or move it to another base",
         description=textwrap.fill(
             f"Fetch {worktree.REMOTE} with pruning and create {worktree.WORKTREES_DIR}/<repo> on the local branch "
-            f"<branch_prefix>/<organization>/<ref>, started at {worktree.REMOTE}/<branch> or at the default branch "
+            f"<branch_prefix>/<obeya>/<ref>, started at {worktree.REMOTE}/<branch> or at the default branch "
             f"of {worktree.REMOTE}, with no upstream. <repo> is a folder directly under repos_dir that holds a git "
             "repository. When the worktree is already there, nothing changes without --from; with --from its "
             "branch moves to the new base, refused while anything is uncommitted or on no remote branch. The "
@@ -97,8 +97,8 @@ def run_add(args: argparse.Namespace) -> int:
     path = worktree.relative_path(args.repo)
     target = worktree.worktree_path(folder, args.repo)
     errors = []
-    if gemba_config.organization is None:
-        errors.append(f"no organization declared: add organization to {config.CONFIG_FILENAME}")
+    if gemba_config.obeya is None:
+        errors.append(f"no obeya declared: add obeya to {config.CONFIG_FILENAME}")
     repository = None
     if gemba_config.repos_dir is None:
         errors.append(f"no repos_dir declared: add repos_dir to {config.LOCAL_FILENAME}")
@@ -115,7 +115,7 @@ def run_add(args: argparse.Namespace) -> int:
             errors.append(worktree.folder_problem(path, args.repo))
     if errors:
         return fail("add", refusal(worktree.NOT_ADDED_REFUSAL, errors))
-    assert repository is not None and gemba_config.organization is not None, "every failed check appended an error"
+    assert repository is not None and gemba_config.obeya is not None, "every failed check appended an error"
 
     if attached and args.base is None:
         print(f"{path}\n{worktree.ALREADY_ATTACHED}")
@@ -139,7 +139,7 @@ def run_add(args: argparse.Namespace) -> int:
 
     if attached:
         return move(folder, args.repo, base, args.force)
-    branch = worktree.branch_name(gemba_config.branch_prefix, gemba_config.organization, identity.ref)
+    branch = worktree.branch_name(gemba_config.branch_prefix, gemba_config.obeya, identity.ref)
     if problem := harness_command.git(repository, "worktree", "prune"):
         return fail("add", refusal(header, [problem]))
     records = worktree.parse_worktrees(harness_command.git_lines(repository, "worktree", "list", "--porcelain") or [])

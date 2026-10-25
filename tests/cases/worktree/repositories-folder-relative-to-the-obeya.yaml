@@ -1,11 +1,11 @@
-# The command runs from notes/ of the harness: repos_dir is relative to the tasks repo root,
+# The command runs from notes/ of the harness: repos_dir is relative to the obeya root,
 # not to the working directory.
-name: a relative repos_dir is resolved against the tasks repo root
-scenario: "harness-worktrees: Repositories folder relative to the tasks repo"
+name: a relative repos_dir is resolved against the obeya root
+scenario: "harness-worktrees: Repositories folder relative to the obeya"
 config:
   default_workstream: operations
   agent_providers: [claude]
-  organization: nakatomi
+  obeya: nakatomi
   workstreams:
     support: { prefix: SUP, description: Investigate a client-reported problem }
     operations: { prefix: OPS, description: Anything that does not fit another workstream }

@@ -22,7 +22,7 @@ pick up a fix.
 
 Gemba is a local command-line tool. It has no server, no network listener, no daemon,
 no telemetry and no self-update, and it reads no environment variable. It reads and
-writes Markdown and YAML under the tasks repo and the harnesses, with your own user
+writes Markdown and YAML under the obeya and the harnesses, with your own user
 permissions. It runs `git` on the repositories under the `repos_dir` of
 `gemba.local.yaml`, and starts the `ide` command of `gemba.local.yaml` on a harness.
 Both keys are read from that personal config only, which git ignores and every command
@@ -36,7 +36,7 @@ That shapes what is and is not a vulnerability here:
 | In scope | Out of scope |
 | --- | --- |
 | Code execution triggered by parsing a task file, `gemba.yaml`, `gemba.local.yaml`, `harness.yaml` or a note, or a command started from a value of the committed `gemba.yaml` | What the `ide` command of your `gemba.local.yaml` does: you wrote it |
-| Writing or deleting outside the tasks repo, the harnesses and the worktrees of a run, through a ref, a slug, a workstream, a config value or a file name | Reading or writing a path you passed to the CLI yourself |
+| Writing or deleting outside the obeya, the harnesses and the worktrees of a run, through a ref, a slug, a workstream, a config value or a file name | Reading or writing a path you passed to the CLI yourself |
 | Deleting a harness or a worktree that holds uncommitted changes or commits on no remote branch, without `--force` | What an agent does inside a harness: gemba creates the harness, it does not run the agent |
 | A push, or any network access beyond the one fetch | Vulnerabilities in development dependencies that do not ship in the published package |
 | Running any program other than `git` and the configured `ide` command | Denial of service against your own machine using your own input |
@@ -48,7 +48,7 @@ If you think something sits on the boundary, report it and we will work it out t
 | Surface | Behavior |
 | --- | --- |
 | Install scripts | `gemba-cli` is a pure Python wheel built with hatchling and no build hooks, so installing it from PyPI runs no code from Gemba. |
-| Running other programs | `git` is run with an argument array (`git -C <folder> ...`), never through a shell. The `ide` command is split into an argument array with `shlex`, or taken as declared in its `{command, args}` form, its command is resolved on PATH, the harness folder is appended as its last argument, and it is started detached, with no shell and no inherited standard streams. On Windows, an `ide` command that resolves to a `.cmd` or `.bat` file runs through `cmd.exe`, as Windows runs every such script, with the harness path as its only argument beyond those you declared; that path is built from the tasks repo root and validated names. Nothing from a task file, a note or a command-line value is interpolated into a command. |
+| Running other programs | `git` is run with an argument array (`git -C <folder> ...`), never through a shell. The `ide` command is split into an argument array with `shlex`, or taken as declared in its `{command, args}` form, its command is resolved on PATH, the harness folder is appended as its last argument, and it is started detached, with no shell and no inherited standard streams. On Windows, an `ide` command that resolves to a `.cmd` or `.bat` file runs through `cmd.exe`, as Windows runs every such script, with the harness path as its only argument beyond those you declared; that path is built from the obeya root and validated names. Nothing from a task file, a note or a command-line value is interpolated into a command. |
 | Parsing | Every YAML document is read with `yaml.safe_load`. Refs, slugs, workstream identifiers, prefixes, dates and filed names are validated against fixed patterns before any of them becomes part of a path. |
 | Deleting | `gemba harness remove` and `gemba worktree remove` show what they would delete and delete nothing without `--yes`. They refuse while a worktree holds uncommitted changes or commits on no remote branch, or a branch of the run left without a worktree holds such commits. `--force` on `harness remove` discards that work; it never removes a harness the working directory is inside of, nor one whose repository state cannot be read. |
 | Network | One `git fetch --prune origin` during `gemba worktree add`, so that the worktree starts from the current remote branch. It uses git's own configuration and credentials, and is told not to move the recorded default branch. |

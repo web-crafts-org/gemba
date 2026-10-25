@@ -1,0 +1,30 @@
+name: organization in gemba.yaml, as an earlier version wrote it, is refused saying it was renamed obeya
+scenario: "gemba-config: Former organization key refused"
+config:
+  default_workstream: operations
+  organization: nakatomi
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/operations/.gitkeep: ""
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains:
+  - "invalid gemba config:\n"
+  - "gemba.yaml: organization was renamed obeya, which belongs in gemba.yaml, the shared config"
+unchanged: true
+---
+name: organization in gemba.local.yaml is refused under the personal config saying it was renamed obeya
+scenario: "gemba-config: Former organization key refused"
+config:
+  default_workstream: operations
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  organization: nakatomi
+run: [config, check]
+exit: 1
+stderr_contains:
+  - "invalid gemba config:\n"
+  - "gemba.local.yaml: organization was renamed obeya, which belongs in gemba.yaml, the shared config"
+unchanged: true

@@ -19,7 +19,7 @@ change anything on the remote, whatever the flags.
 - **THEN** the first creates `worktrees/nakatomi-web` and exits 0, and the second exits 1, says that no repository named `other` is at the root of the folder, names `nakatomi-web` as the one found there, and creates no worktree and no branch
 - **Cases**: modifies `tests/cases/worktree/repository-resolved-at-the-root.yaml` (its config declares `obeya` in place of `organization`)
 
-#### Scenario: Repositories folder relative to the tasks repo
+#### Scenario: Repositories folder relative to the obeya
 - **WHEN** the personal config declares `repos_dir: repos` and `repos/nakatomi-web` is a git repository under the obeya root
 - **THEN** `gemba worktree add nakatomi-web` finds it and creates the worktree
 - **Cases**: modifies `tests/cases/worktree/repositories-folder-relative-to-the-tasks-repo.yaml`, renamed `repositories-folder-relative-to-the-obeya.yaml` (its config declares `obeya` in place of `organization`; its name says obeya; its comment says obeya; it names its scenario by the new title)
@@ -69,7 +69,7 @@ SHALL NOT be committed: `worktrees/` is excluded from it.
 - **THEN** `worktrees/nakatomi-web` holds the file of that commit
 - **Cases**: modifies `tests/cases/worktree/fresh-base-fetched.yaml` (its config declares `obeya` in place of `organization`)
 
-#### Scenario: Config without organization or repositories folder refused
+#### Scenario: Config without obeya or repositories folder refused
 - **WHEN** the shared config declares no `obeya`, or the personal config no `repos_dir`, and `gemba worktree add nakatomi-web` runs
 - **THEN** the command exits 1, names the missing key and the file it goes in, `gemba.yaml` or `gemba.local.yaml`, and creates no worktree and no branch
 - **Cases**: modifies `tests/cases/worktree/config-without-organization-or-repos-dir-refused.yaml`, renamed `config-without-obeya-or-repos-dir-refused.yaml` (its config declares `obeya` in place of `organization`; the message it expects names the obeya; its name says obeya; it names its scenario by the new title)

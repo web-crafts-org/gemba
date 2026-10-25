@@ -1,6 +1,6 @@
 ---
 name: gemba-mark
-description: Mark a task done, blocked, open or in progress. Use whenever the user says a task is finished, completed, closed or done, that it is stuck, waiting or blocked, or asks to mark, finish, close, complete, block, unblock, reopen or resume a task, from the tasks repo or inside its harness, whatever the workstream.
+description: Mark a task done, blocked, open or in progress. Use whenever the user says a task is finished, completed, closed or done, that it is stuck, waiting or blocked, or asks to mark, finish, close, complete, block, unblock, reopen or resume a task, from the obeya or inside its harness, whatever the workstream.
 ---
 
 # Mark a task
@@ -12,8 +12,8 @@ writes `done_at` when the task reaches `done` and removes it when the task leave
 is to find the task, turn the user's words into one status, run the command and relay
 what it prints.
 
-Every organization-specific value (workstreams and their rules) lives in `gemba.yaml`,
-at the tasks repo root. Run `gemba config show` on every run and rely on nothing else
+Every configured value (workstreams and their rules) lives in the gemba config at the
+obeya root. Run `gemba config show` on every run and rely on nothing else
 you know or remember about workstreams: it prints the config resolved, with the blocks
 shared by every workstream already joined to those of each one.
 
@@ -26,12 +26,12 @@ frontmatter of a task by hand.
 
 ## Process
 
-From the tasks repo or from inside the harness of the task. Inside a harness, the
+From the obeya or from inside the harness of the task. Inside a harness, the
 folder that holds `harness.yaml` is the harness root.
 
 1. **Identify the task by its ref**, `<PREFIX>-<N>`. Inside a harness, the task is the
-   one named by `ref` in `harness.yaml`, unless the user names another. From the tasks
-   repo, take the ref the user gives; when they name the task by its title or
+   one named by `ref` in `harness.yaml`, unless the user names another. From the obeya,
+   take the ref the user gives; when they name the task by its title or
    description instead, find it with the `gemba-list` skill. When two or more tasks
    fit, ask the user which one before marking anything.
 2. **Choose the status** from the user's words:

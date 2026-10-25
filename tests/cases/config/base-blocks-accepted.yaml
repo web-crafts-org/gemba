@@ -58,4 +58,4 @@ run: [harness, launch, SUP-1, --no-open]
 exit: 0
 files_contain:
   harnesses/support/2026-09-30-SUP-1-login-fails/CLAUDE.md:
-    - "\n\n## Your organization\n\nOpen the harness through its workspace.\n"
+    - "\n\n## Your obeya\n\nOpen the harness through its workspace.\n"

@@ -14,7 +14,7 @@ SHALL be usable on another.
 - **THEN** the full test suite passes on Linux, on macOS and on Windows
 - **Cases**: keeps the entry `platform-support: Suite passes on every platform` of `tests/not-automated.yaml`
 
-#### Scenario: Tasks repo used across platforms
+#### Scenario: Obeya used across platforms
 - **WHEN** an obeya created on Linux, with its tasks and its config, is cloned on Windows
 - **THEN** every command reads its tasks, creates and marks tasks in it, and launches a harness, with no edit to any file
 - **Cases**: modifies the entry `platform-support: Tasks repo used across platforms` of `tests/not-automated.yaml` (now `platform-support: Obeya used across platforms`; its reason says obeya)

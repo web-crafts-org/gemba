@@ -360,7 +360,7 @@ class BaseBlocksTest(ConfigTestCase):
         self.assertEqual(self.load(VALID).processes, {})
 
     def test_only_process_keys_kept(self):
-        loaded = self.load(VALID + "organization: nakatomi\nlist:\n  rules: [mention the client]\n")
+        loaded = self.load(VALID + "obeya: nakatomi\nlist:\n  rules: [mention the client]\n")
         self.assertEqual(loaded.processes, {"list": {"rules": ["mention the client"]}})
 
     def test_malformed_verb_block_refused(self):
@@ -397,13 +397,13 @@ class GuideTest(unittest.TestCase):
 class WorktreeKeysTest(ConfigTestCase):
     def test_absent(self):
         loaded = self.load(VALID)
-        self.assertIsNone(loaded.organization)
+        self.assertIsNone(loaded.obeya)
         self.assertIsNone(loaded.repos_dir)
         self.assertEqual(loaded.branch_prefix, "gemba")
 
     def test_accepted(self):
-        loaded = self.load(VALID + "organization: naka-tomi2\n", local="repos_dir: ~/projects\nbranch_prefix: nk\n")
-        self.assertEqual(loaded.organization, "naka-tomi2")
+        loaded = self.load(VALID + "obeya: naka-tomi2\n", local="repos_dir: ~/projects\nbranch_prefix: nk\n")
+        self.assertEqual(loaded.obeya, "naka-tomi2")
         self.assertEqual(loaded.repos_dir, "~/projects")
         self.assertEqual(loaded.branch_prefix, "nk")
 
@@ -413,7 +413,7 @@ class WorktreeKeysTest(ConfigTestCase):
                 self.assertEqual(self.load(VALID, local=f"repos_dir: {declared}\n").repos_dir, declared)
 
     def test_malformed_names(self):
-        for key, filename in (("organization", config.CONFIG_FILENAME), ("branch_prefix", config.LOCAL_FILENAME)):
+        for key, filename in (("obeya", config.CONFIG_FILENAME), ("branch_prefix", config.LOCAL_FILENAME)):
             for declaration in ('"Nakatomi Corp"', '""', "[nakatomi]", "Gemba/", "naka--tomi", "-web", "3", "true"):
                 with self.subTest(key=key, declaration=declaration):
                     declared = f"{key}: {declaration}\n"
@@ -535,17 +535,24 @@ class LayersTest(ConfigTestCase):
             self.assertIn(f"- {shared}: {key} belongs in gemba.local.yaml, the personal config: move it there", message)
 
     def test_shared_keys_refused_in_the_personal_config_all_at_once(self):
-        local = "organization: nakatomi\ndefault_workstream: support\nmetadata: []\nide: code -n\n"
+        local = "obeya: nakatomi\ndefault_workstream: support\nmetadata: []\nide: code -n\n"
         message = self.assertRefused(VALID, local=local)
         personal = self.root / config.LOCAL_FILENAME
-        for key in ("organization", "default_workstream", "metadata"):
+        for key in ("obeya", "default_workstream", "metadata"):
             self.assertIn(f"- {personal}: {key} belongs in gemba.yaml, the shared config: move it there", message)
         self.assertNotIn("ide", message)
 
     def test_misplaced_keys_of_both_files_in_one_refusal(self):
-        message = self.assertRefused(VALID + "ide: code -n\n", local="organization: nakatomi\n")
+        message = self.assertRefused(VALID + "ide: code -n\n", local="obeya: nakatomi\n")
         self.assertIn("ide belongs in gemba.local.yaml", message)
-        self.assertIn("organization belongs in gemba.yaml", message)
+        self.assertIn("obeya belongs in gemba.yaml", message)
+
+    def test_former_key_refused_in_either_file(self):
+        message = self.assertRefused(VALID + "organization: nakatomi\n", local="organization: nakatomi\n")
+        renamed = "organization was renamed obeya, which belongs in gemba.yaml, the shared config"
+        for path in (self.root / config.CONFIG_FILENAME, self.root / config.LOCAL_FILENAME):
+            self.assertIn(f"- {path}: {renamed}", message)
+        self.assertEqual(message.count("organization"), 2)
 
     def test_keys_of_both_files_accepted_in_either(self):
         loaded = self.load(VALID + "agent_providers: [claude]\n", local="agent_providers: [agents]\n")
@@ -604,14 +611,14 @@ class EveryProblemTest(ConfigTestCase):
             + "metadata:\n  - { name: hours, type: integer }\n  - { name: Client, type: text }\n"
             + "agent_providers: [claude, cursor, claude]\n"
         )
-        problems = self.problems(text, local='ide: ""\norganization: nakatomi\nbranch_prefix: Gemba/\n')
+        problems = self.problems(text, local='ide: ""\nobeya: nakatomi\nbranch_prefix: Gemba/\n')
         expected = [
             ("gemba.yaml", "metadata[0]: field 'hours' has unknown type 'integer'"),
             ("gemba.yaml", "metadata[1]: field name 'Client' must be snake_case"),
             ("gemba.yaml", "workstream 'support': description is missing or empty"),
             ("gemba.yaml", "agent_providers: unknown provider 'cursor'"),
             ("gemba.yaml", "agent_providers: provider 'claude' is listed more than once"),
-            ("gemba.local.yaml", "organization belongs in gemba.yaml, the shared config"),
+            ("gemba.local.yaml", "obeya belongs in gemba.yaml, the shared config"),
             ("gemba.local.yaml", "ide must be a non-empty string"),
             ("gemba.local.yaml", "branch_prefix must be kebab-case"),
         ]
@@ -800,7 +807,7 @@ class EffectiveBlockTest(ConfigTestCase):
                 "archive": empty,
                 "set": empty,
                 "harness": {
-                    "guide": {"organization": None, "workstream": None, "user": None},
+                    "guide": {"obeya": None, "workstream": None, "user": None},
                     "launch": empty,
                     "note": empty,
                     "resolve": empty,
@@ -819,7 +826,7 @@ class EffectiveBlockTest(ConfigTestCase):
         harness = processes["harness"]
         assert isinstance(harness, dict)
         self.assertEqual(
-            harness["guide"], {"organization": "Write for the client.", "workstream": "Cite the ticket.", "user": None}
+            harness["guide"], {"obeya": "Write for the client.", "workstream": "Cite the ticket.", "user": None}
         )
         self.assertEqual(harness["note"], {"context": None, "rules": ["name the client"]})
 
@@ -883,7 +890,7 @@ class PersonalBlocksTest(ConfigTestCase):
             "harness"
         ]
         assert isinstance(harness, dict)
-        self.assertEqual(harness["guide"], {"organization": None, "workstream": None, "user": "Answer me in Spanish."})
+        self.assertEqual(harness["guide"], {"obeya": None, "workstream": None, "user": "Answer me in Spanish."})
 
     def test_unknown_workstream_refused_naming_the_valid_ones(self):
         local = "workstreams:\n  billing:\n    create:\n      rules: [name the invoice]\n"

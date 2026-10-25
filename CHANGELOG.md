@@ -7,14 +7,15 @@ All notable changes to the gemba CLI are recorded here. The format follows
 
 ## [Unreleased]
 
-The gemba config becomes two files, so that a tasks repo can be shared: `gemba.yaml`,
-committed, and `gemba.local.yaml`, private to the clone. One change refuses a
-`gemba.yaml` that 0.2 accepted: the keys that moved to the personal config, listed
-under Changed.
+The gemba config becomes two files, so that an obeya can be shared: `gemba.yaml`,
+committed, and `gemba.local.yaml`, private to the clone. The obeya is what earlier
+versions called the tasks repo. Two changes refuse a `gemba.yaml` that 0.2 accepted,
+both listed under Changed: the keys that moved to the personal config, and
+`organization`, renamed `obeya`.
 
 ### Added
 
-- `gemba.local.yaml`, the personal config, beside `gemba.yaml` at the tasks repo root:
+- `gemba.local.yaml`, the personal config, beside `gemba.yaml` at the obeya root:
   optional, ignored by git, never written by a command. It holds `ide`, `repos_dir`
   and `branch_prefix`; it may declare `agent_providers`, which replace the shared ones
   for the harnesses launched from that clone and for nothing else; and it may add
@@ -27,30 +28,29 @@ under Changed.
   line when there is a personal config; `gemba config show` prints `harness_providers`
   and `guide.user`.
 - `gemba init` writes `gemba.local.yaml` into the `.gitignore` and appends it to an
-  existing one: running it again on a tasks repo made before this version adds it.
-- `gemba record <ref> <file>` records a task from the tasks repo, for work done outside
-  a harness, such as a meeting or a review: the task is named by its ref, archives
-  included, and the draft lies directly in the tasks repo root. Inside a harness the
-  ref is optional and, when given, must be the ref of its task, so
-  `gemba record update.md` keeps its meaning.
-- The `gemba-record` skill is written into the tasks repo too: from there the agent
-  records what you tell it was done on a task, such as a meeting or a review, and never
-  the notes of a harness, whose run is recorded from inside it.
+  existing one: running it again on an obeya made before this version adds it.
+- `gemba record <ref> <file>` records a task from the obeya, for work done outside a
+  harness, such as a meeting or a review: the task is named by its ref, archives
+  included, and the draft lies directly in the obeya root. Inside a harness the ref is
+  optional and, when given, must be the ref of its task, so `gemba record update.md`
+  keeps its meaning.
+- The `gemba-record` skill is written into the obeya too: from there the agent records
+  what you tell it was done on a task, such as a meeting or a review, and never the
+  notes of a harness, whose run is recorded from inside it.
 - `gemba record <ref> --from <task file>` copies the whole dated history of another
-  task file, such as a task of an earlier tasks repo, into a task whose `## Updates` is
+  task file, such as a task of an earlier obeya, into a task whose `## Updates` is
   empty, in one call. The command reads that file itself and copies its subsections as
   they are, moves `updated_at` to the last date copied, and never changes the file. It
   refuses with every problem of both files at once: a history that breaks the rules of
   the section, text before its first date, a date before the creation of the task or
   after today, or a task that already holds an update.
-- The `gemba-migrate` skill, written into the tasks repo: ask the agent to migrate tasks
-  from another tasks repo, such as your earlier tasks into a team's tasks repo. It reads
-  the old tasks repo as data, asks which tasks to bring and how its workstreams and
-  fields map to this config, one decision at a time, and writes every task through
-  `gemba create`, `gemba record --from`, `gemba mark` and `gemba archive`. The old tasks
-  repo is never converted: it stays as it was, its migrated tasks archived. A tasks
-  repo made before this version gets the skill with `gemba init` or
-  `gemba skills update`.
+- The `gemba-migrate` skill, written into the obeya: ask the agent to migrate tasks
+  from another obeya, such as your earlier tasks into a team's obeya. It reads the old
+  obeya as data, asks which tasks to bring and how its workstreams and fields map to
+  this config, one decision at a time, and writes every task through `gemba create`,
+  `gemba record --from`, `gemba mark` and `gemba archive`. The old obeya is never
+  converted: it stays as it was, its migrated tasks archived. An obeya made before this
+  version gets the skill with `gemba init` or `gemba skills update`.
 
 ### Changed
 
@@ -59,16 +59,32 @@ under Changed.
   naming each key and the file it goes in. Move them by hand, or ask the agent to fix
   the config (the `gemba-config` skill moves them), then run `gemba init` once and
   commit `gemba.yaml` and `.gitignore`. No command rewrites the config.
+- **Breaking:** the `organization` key of `gemba.yaml` is now `obeya`, the name of the
+  obeya, with the same shape: optional, kebab-case, in the shared config only, and the
+  middle segment of the branch of a run, `<branch_prefix>/<obeya>/<ref>`. Every command
+  refuses `organization` in either file, saying that it was renamed `obeya`, which
+  belongs in `gemba.yaml`, together with every other problem. With the same value the
+  branches keep their names, so no run loses its branches. Rename it by hand, or ask the
+  agent to fix the config: the `gemba-config` skill renames it in the same pass that
+  moves `ide`, `repos_dir` and `branch_prefix`.
+- The tasks repo is now called the obeya (大部屋, "big room": in lean, the room where a
+  team keeps all of its work in sight) everywhere: the help and the messages of every
+  command, the skills, the document of `gemba config show`, which prints `obeya` and
+  `harness.guide.obeya` instead of `organization` and `harness.guide.organization`, and
+  the guide of a harness, whose top-level section of the shared config is titled
+  `Your obeya`; a harness launched earlier keeps its guide. Run `gemba skills update`,
+  or `gemba init`, to refresh the skills of an obeya made by an earlier version.
 - A config refusal reports every problem of both files at once, each on its own line
   with the path of its file, instead of the first one; a check that needs another
   value runs only when that value is valid, so one mistake is reported once.
 - The `gemba-init` skill writes the IDE command and the repositories folder into
-  `gemba.local.yaml`, and the `gemba-config` skill holds the reference of both files
-  and moves the keys of an earlier `gemba.yaml`: `gemba skills update` refreshes them.
+  `gemba.local.yaml`, and the `gemba-config` skill holds the reference of both files,
+  moves the keys of an earlier `gemba.yaml` and renames its `organization`:
+  `gemba skills update` refreshes them.
 - `gemba init` writes `/update.md` into the `.gitignore`, so that a draft left at the
-  tasks repo root by a refused `gemba record` never reaches a commit. Running
-  `gemba init` again on a tasks repo made before this version appends the line and
-  writes the `gemba-record` skill; `gemba skills update` writes the skill alone.
+  obeya root by a refused `gemba record` never reaches a commit. Running `gemba init`
+  again on an obeya made before this version appends the line and writes the
+  `gemba-record` skill; `gemba skills update` writes the skill alone.
 
 ## [0.2.0] - 2026-10-13
 

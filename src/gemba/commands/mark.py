@@ -27,7 +27,7 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         metavar="YYYY-MM-DD",
         help="the day of the transition (default: today); not after today, not before the task was created",
     )
-    parser.add_argument("--root", type=Path, help="tasks repo root (default: walk up to the nearest gemba.yaml)")
+    parser.add_argument("--root", type=Path, help="obeya root (default: walk up to the nearest gemba.yaml)")
     parser.set_defaults(handler=run)
 
 

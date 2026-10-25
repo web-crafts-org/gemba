@@ -32,6 +32,6 @@ exit: 0
 stdout_contains: ["updated .claude/skills/gemba-create/SKILL.md\n"]
 files_contain:
   .claude/skills/gemba-create/SKILL.md:
-    - "---\nname: gemba-create\ndescription: Register a new task in this tasks repo."
+    - "---\nname: gemba-create\ndescription: Register a new task in this obeya."
     - "metadata:\n  generatedBy: \"{version}\"\n  contentHash: \""
     - "\n---\n\n# Create a task\n\nRegister one unit of work as a task file."

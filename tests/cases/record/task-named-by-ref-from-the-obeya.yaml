@@ -1,5 +1,5 @@
-name: record run from the tasks repo with a ref records on that task, the draft relative to the tasks repo root
-scenario: "task-recording: Task named by ref from the tasks repo"
+name: record run from the obeya with a ref records on that task, the draft relative to the obeya root
+scenario: "task-recording: Task named by ref from the obeya"
 config:
   default_workstream: operations
   agent_providers: [claude]

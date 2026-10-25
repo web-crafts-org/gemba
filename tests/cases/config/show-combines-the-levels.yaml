@@ -25,7 +25,7 @@ config:
 run: [config, show]
 exit: 0
 stdout_json:
-  organization: null
+  obeya: null
   branch_prefix: gemba
   repos_dir: null
   ide: null
@@ -48,7 +48,7 @@ stdout_json:
         archive: *empty
         set: *empty
         harness:
-          guide: { organization: Open the harness through its workspace., workstream: Quote the ticket in every note., user: null }
+          guide: { obeya: Open the harness through its workspace., workstream: Quote the ticket in every note., user: null }
           launch: *empty
           note: *empty
           resolve: *empty
@@ -74,7 +74,7 @@ stdout_json:
         archive: *empty
         set: *empty
         harness:
-          guide: { organization: Open the harness through its workspace., workstream: null, user: null }
+          guide: { obeya: Open the harness through its workspace., workstream: null, user: null }
           launch: *empty
           note: *empty
           resolve: *empty

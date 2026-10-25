@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The skills of Gemba are assets of the gemba CLI package, written into the tasks repo
+The skills of Gemba are assets of the gemba CLI package, written into the obeya
 by the CLI for every agent provider the gemba config declares, with the provenance
 needed to tell an outdated copy from a hand edit.
 
@@ -78,11 +78,11 @@ working directory, and SHALL refuse, writing nothing, when no gemba config is fo
 - **WHEN** `gemba skills update` runs from a folder inside a harness whose `harness.yaml` records `agent_providers: [claude]`
 - **THEN** the harness-scoped skills are written or refreshed under the harness's `.claude/skills/`, nothing is written under `.agents/`, and nothing is written at the tasks repo root
 
-#### Scenario: No tasks repo
+#### Scenario: No obeya
 - **WHEN** no ancestor of the working directory holds `gemba.yaml`
 - **THEN** the command exits 1, reports that no gemba config was found, and writes nothing
 
-#### Scenario: Personal providers leave the tasks repo skills
+#### Scenario: Personal providers leave the obeya skills
 - **WHEN** `gemba.yaml` declares `agent_providers: [claude]`, `gemba.local.yaml` declares `agent_providers: [agents]`, and `gemba skills update` runs at the tasks repo root
 - **THEN** the tasks-repo skills are written under `.claude/skills/` and no `.agents/` folder is created
 

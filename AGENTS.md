@@ -6,11 +6,12 @@ with code in this repository. `CLAUDE.md` is a link to it.
 ## What this repository is
 
 This is the product repository of Gemba, a task-based system for working with AI
-agents. It holds the gemba CLI (`src/gemba/`), the skills that drive each process
-(assets of the package under `src/gemba/assets/`), the specification of what the CLI
-does (`openspec/specs/`) and its tests (`tests/`). It holds no `gemba.yaml` and no
-tasks: a tasks repo is what `gemba init` creates somewhere else, and the README
-describes Gemba from that side.
+agents, made for developers to organize their own work, alone or with a team, beside
+the way their company organizes its tasks rather than in its place. It holds the gemba
+CLI (`src/gemba/`), the skills that drive each process (assets of the package under
+`src/gemba/assets/`), the specification of what the CLI does (`openspec/specs/`) and
+its tests (`tests/`). It holds no `gemba.yaml` and no tasks: an obeya is what
+`gemba init` creates somewhere else, and the README describes Gemba from that side.
 
 ## Vocabulary
 
@@ -18,11 +19,15 @@ One word for one thing, in the specs, the skills, the code and the chat.
 
 - **Gemba** is the product. The **gemba CLI** is the package we publish (distribution
   `gemba-cli`, command `gemba`).
-- The **tasks repo** is the repository that holds `gemba.yaml`, `tasks/` and
-  `harnesses/`; `gemba init` creates one. It is the personal traceability layer of
-  someone who works for an organization.
-- The **gemba config** is the customization of the tasks repo, in two files at its root:
-  the **shared config**, `gemba.yaml`, committed, what everyone who uses the tasks repo
+- The **obeya** (大部屋, "big room": in lean, the room where a program, a team or a
+  project keeps all of its work in sight) is the repository that holds `gemba.yaml`,
+  `tasks/` and `harnesses/`; `gemba init` creates one. Whoever creates it draws its
+  boundary: the organization they work for, a project, a team inside a company, or a
+  whole startup. One person may keep it alone, or a team may share it. Its name, the
+  `obeya` of the shared config, is a segment of the branch of every run. Plural
+  *obeyas*, article *an obeya*.
+- The **gemba config** is the customization of the obeya, in two files at its root:
+  the **shared config**, `gemba.yaml`, committed, what everyone who uses the obeya
   agrees on; and the **personal config**, `gemba.local.yaml`, optional, private to the
   clone and ignored by git, what belongs to one person on one machine. `config.py` says
   which file each key belongs in.
@@ -38,19 +43,21 @@ One word for one thing, in the specs, the skills, the code and the chat.
 - Inside a harness: the **guide** (`AGENTS.md`, `CLAUDE.md`, one per agent provider),
   **notes** (filed and dated by gemba), **assets** (raw artifacts), **worktrees** (git
   worktrees of the repositories under the `repos_dir` of the personal config, each on
-  the local **branch of the run**, `<branch_prefix>/<organization>/<ref>`, never pushed
-  under its own name).
+  the local **branch of the run**, `<branch_prefix>/<obeya>/<ref>`, never pushed under
+  its own name). *Repo* alone always means one of those repositories under `repos_dir`,
+  never the obeya.
 - An **agent provider** is the agent tool (Claude Code, Codex...) that decides the
   skills folder and the guide filename, declared in the shared config, which the
   personal config may replace for the harnesses of its clone. The **IDE** is the editor
   that opens the harness, declared in the personal config.
 - A **process** is one capability of Gemba: one skill plus one subcommand or group. A
   **skill** is the agent-facing instructions of a process, a package asset written by
-  the CLI into the tasks repo and into each harness.
+  the CLI into the obeya and into each harness.
 - A **report** is the summary of a period of work across every task, read from the
   task files, every count and sum computed by `gemba report`.
-- Rejected words: *sandbox* and *workspace* for the harness, *ledger* for the tasks
-  repo, *task type*, *daily status* for the report, and *harness* for the tasks repo.
+- Rejected words: *sandbox* and *workspace* for the harness; *ledger*, *tasks repo* and
+  *harness* for the obeya; *organization* for the obeya or its name; *task type*;
+  *daily status* for the report.
 
 ## Commands
 
@@ -76,9 +83,8 @@ subcommand; the README explains each process.
 
 - **Three piles, kept physically separate.** Built-in behaviour (`src/gemba/` and the
   steps in the skills), customization (`gemba.yaml`, `gemba.local.yaml`) and data
-  (`tasks/`, `harnesses/`). No module and no skill contains a value of one
-  organization; everything organization-specific is read from the gemba config at run
-  time.
+  (`tasks/`, `harnesses/`). No module and no skill contains a configured value; every
+  one is read from the gemba config at run time.
 - **Commands own the frontmatter, agents own the body.** Only commands write
   `status`, `ref`, the dates and `metadata` of a task; the skills are forbidden from
   writing frontmatter by hand. Refs are never reused, archives included.
@@ -115,7 +121,7 @@ subcommand; the README explains each process.
 - **Adding a process:** a spec under `openspec/specs/`, its cases, a domain module or
   functions in one, an adapter in `commands/`, its entry in `COMMANDS` of `cli.py`, a
   skill asset at `src/gemba/assets/skills/<name>/SKILL.md` and its entry in `SKILLS` of
-  `skills.py`, with its scope (`repo`, `harness` or `both`).
+  `skills.py`, with its scope (`obeya`, `harness` or `both`).
 - **Adding an agent provider:** one row in `PROVIDERS` of `skills.py`.
 - **Editing a skill:** edit the asset, never a written copy. `gemba skills update`
   writes the copies with their provenance and tells a generation from a hand edit.

@@ -12,8 +12,8 @@ command against the repository a worktree comes from is theirs. Your part is to 
 the repositories and the base branch, run the commands, relay what they print, and do
 the work of the task inside the worktrees.
 
-Every organization-specific value (the repositories folder, the workstreams and their
-rules) lives in `gemba.yaml`, at the tasks repo root. Run
+Every configured value (the repositories folder, the workstreams and their rules) lives
+in the gemba config at the obeya root. Run
 `gemba config show --workstream <id>`, with the `workstream` of `harness.yaml`, on every
 run and rely on nothing else you know or remember about repositories, branches or
 workstreams. It prints the config resolved, from anywhere inside the harness:

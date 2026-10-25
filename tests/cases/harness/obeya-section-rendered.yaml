@@ -1,5 +1,5 @@
 name: the top-level guide text follows the guide asset as its own section
-scenario: "harness-guide: Organization section rendered"
+scenario: "harness-guide: Obeya section rendered"
 config:
   default_workstream: operations
   agent_providers: [claude, agents]
@@ -21,5 +21,5 @@ tree:
 run: [harness, launch, SUP-1, --no-open]
 exit: 0
 files_contain:
-  harnesses/support/2026-09-30-SUP-1-login-fails/CLAUDE.md: &section ["uncommitted. Do not commit here yourself.\n\n## Your organization\n\nOpen the harness through its workspace.\n"]
+  harnesses/support/2026-09-30-SUP-1-login-fails/CLAUDE.md: &section ["uncommitted. Do not commit here yourself.\n\n## Your obeya\n\nOpen the harness through its workspace.\n"]
   harnesses/support/2026-09-30-SUP-1-login-fails/AGENTS.md: *section

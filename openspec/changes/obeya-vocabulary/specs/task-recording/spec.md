@@ -45,7 +45,7 @@ draft.
 - **THEN** the command exits 1, names the path, says the task file was not found there, and changes nothing
 - **Cases**: keeps `tests/cases/record/task-file-missing.yaml`
 
-#### Scenario: Task named by ref from the tasks repo
+#### Scenario: Task named by ref from the obeya
 - **WHEN** `update.md` at the obeya root holds one bullet, `SUP-1` was created on `2026-09-30` with `updated_at: 2026-09-30` and has no harness, and `gemba record SUP-1 update.md --date 2026-10-01` runs from `tasks/support`
 - **THEN** the task holds the bullet under `### 2026-10-01`, `updated_at` reads `2026-10-01`, `update.md` no longer exists, the output is the task path followed by `updated_at: 2026-09-30 -> 2026-10-01`, and the command exits 0
 - **Cases**: modifies `tests/cases/record/task-named-by-ref-from-the-tasks-repo.yaml`, renamed `task-named-by-ref-from-the-obeya.yaml` (its name says obeya; it names its scenario by the new title)
@@ -93,7 +93,7 @@ blank lines dropped, with no rewording or reformatting.
 - **THEN** the command exits 1, names the rule the draft breaks, and changes nothing, the draft included
 - **Cases**: keeps `tests/cases/record/invalid-draft-refused.yaml`
 
-#### Scenario: Draft out of place refused in the tasks repo
+#### Scenario: Draft out of place refused in the obeya
 - **WHEN** `gemba record SUP-1 <file>` runs from the obeya with a draft of valid bullets at `../outside.md`, outside the obeya, or at `tasks/support/update.md`, or at `harnesses/support/2026-09-30-SUP-1-login-fails/update.md`
 - **THEN** the command exits 1, says that the draft does not lie directly in the root of the obeya, and changes nothing, the draft included
 - **Cases**: modifies `tests/cases/record/draft-out-of-place-refused-in-the-tasks-repo.yaml`, renamed `draft-out-of-place-refused-in-the-obeya.yaml` (the message it expects names the obeya; its name says obeya; its comment says obeya; it names its scenario by the new title)
@@ -164,7 +164,7 @@ say that the work of the run is recorded from inside it.
 - **THEN** the agent writes `update.md` at the obeya root with bullets of what the user said, runs `gemba record SUP-1 update.md` and relays the result
 - **Cases**: modifies the entry `task-recording: Agent records work done outside a harness` of `tests/not-automated.yaml` (its reason says obeya)
 
-#### Scenario: Task with a harness recorded from the tasks repo
+#### Scenario: Task with a harness recorded from the obeya
 - **WHEN** the user asks, in the obeya, to record a day of a task that has a harness
 - **THEN** the agent says that the work of the run is recorded from inside the harness, records only what the user told it, and reads no note of that harness
 - **Cases**: modifies the entry `task-recording: Task with a harness recorded from the tasks repo` of `tests/not-automated.yaml` (now `task-recording: Task with a harness recorded from the obeya`)

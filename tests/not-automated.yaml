@@ -11,11 +11,11 @@
 "gemba-config: List rules applied": the agent follows the rule through the gemba-list skill
 "gemba-config: Workstream rule wins over a base rule": the agent reads both rules of worktree.add from gemba config show and resolves their contradiction through the gemba-worktree skill
 "gemba-config: Personal rule wins over a shared rule": the agent reads the shared and the personal rules of worktree.add from gemba config show and resolves their contradiction through the gemba-worktree skill
-"harness-guide: Guide free of organization values": a property of the guide asset text, not of a command
+"harness-guide: Guide free of configured values": a property of the guide asset text, not of a command
 "harness-launch: Agent launches a task": the agent runs the command and relays its output by following the gemba-harness skill
 "harness-launch: Agent reads the task through the link": the agent reads task.md, or the file at the path task.md names, by following the guide of the harness
 "harness-launch: Task path written when the system refuses links": no runner of the suite refuses links, the CI runners on Windows included; covered by a unit test in tests/test_harness.py that makes the link creation fail
-"harness-launch: Harnesses ignored by the tasks repo": a property of this repository's .gitignore, not of a command
+"harness-launch: Harnesses ignored by the obeya": a property of this repository's .gitignore, not of a command
 "harness-notes: Agent acts on an approved note": the agent acts, writes the outcome and resolves by following the gemba-harness skill
 "harness-notes: Agent files a note": the agent drafts, saves the assets and files by following the gemba-harness skill
 "harness-notes: Agent follows the verb's rules": the agent follows harness.note.rules through the gemba-harness skill
@@ -47,11 +47,11 @@
 "task-recording: Nothing to record": the agent decides there is nothing to record by following the gemba-record skill; no command runs
 "task-recording: Agent follows the verb's rules": the agent follows record.rules through the gemba-record skill
 "task-recording: Config change without skill change": a property of the gemba-record skill text, not of the command
-"task-recording: Agent records work done outside a harness": the agent drafts what the user told it and runs the command from the tasks repo by following the gemba-record skill; the command is covered by the record cases
-"task-recording: Task with a harness recorded from the tasks repo": the agent points to the harness and reads none of its notes by following the gemba-record skill
+"task-recording: Agent records work done outside a harness": the agent drafts what the user told it and runs the command from the obeya by following the gemba-record skill; the command is covered by the record cases
+"task-recording: Task with a harness recorded from the obeya": the agent points to the harness and reads none of its notes by following the gemba-record skill
 "task-recording: Nothing told, nothing recorded": the agent asks what was done and records nothing it was not told by following the gemba-record skill; no command runs
 "task-migration: Agent migrates a task": the agent writes the task only through gemba create, gemba record --from, gemba mark and gemba archive by following the gemba-migrate skill; the copy of the history is covered by the record cases
-"task-migration: Old repo never converted": the agent keeps the old tasks repo as history and moves, renames or deletes nothing by following the gemba-migrate skill; no command runs
+"task-migration: Old repo never converted": the agent keeps the old obeya as history and moves, renames or deletes nothing by following the gemba-migrate skill; no command runs
 "task-migration: Old instructions not followed": the agent reads the old config and the old tasks as data by following the gemba-migrate skill
 "task-migration: Old config refused by the current CLI": the agent relays the refusal, points to the gemba-config skill and migrates nothing by following the gemba-migrate skill
 "task-migration: Live tasks only": the agent chooses the tasks with the user from gemba list --root by following the gemba-migrate skill
@@ -61,7 +61,7 @@
 "task-migration: Task created with its original date": the agent runs gemba create with the old slug, date and status and writes the old body by following the gemba-migrate skill
 "task-migration: Finished task migrated with its history": the agent runs gemba record --from, gemba mark and gemba archive in that order by following the gemba-migrate skill; the copy of the history is covered by the record cases
 "task-migration: Task without history": the agent runs no gemba record for a task with no dated subsection by following the gemba-migrate skill
-"task-migration: Old tasks archived": the agent archives the migrated tasks in the old tasks repo with gemba archive --root, relays them and commits nothing by following the gemba-migrate skill
+"task-migration: Old tasks archived": the agent archives the migrated tasks in the old obeya with gemba archive --root, relays them and commits nothing by following the gemba-migrate skill
 "task-migration: Config change without skill change": a property of the gemba-migrate skill text, not of a command
 "task-reporting: Candidates listed by the command": the agent runs gemba list with the report filters by following the gemba-report skill
 "task-reporting: Candidates of a month": the agent runs gemba list with the filters of the period by following the gemba-report skill
@@ -71,7 +71,7 @@
 "task-reporting: Created or finished on the date": the agent reads date and done_at by following the gemba-report skill
 "task-reporting: Report grouped by workstream": the agent composes the report by following the gemba-report skill
 "task-reporting: Gaps listed, not filled": the agent lists the candidates with nothing recorded by following the gemba-report skill
-"task-reporting: Gap pointed to recording": the agent points a gap to the gemba-record skill, inside the task's harness or from the tasks repo, by following the gemba-report skill and records nothing itself
+"task-reporting: Gap pointed to recording": the agent points a gap to the gemba-record skill, inside the task's harness or from the obeya, by following the gemba-report skill and records nothing itself
 "task-reporting: Day without activity": the agent says nothing was recorded by following the gemba-report skill
 "task-reporting: Problems relayed": the agent reports each problem of the listing by following the gemba-report skill
 "task-reporting: Amount of a period": the agent chooses the selection, runs gemba report and states its numbers by following the gemba-report skill; the command is covered by the report cases
@@ -102,14 +102,16 @@
 "harness-worktrees: Agent never forces first": the agent runs without --force and asks before forcing by following the gemba-worktree skill
 "harness-worktrees: Agent follows the verb's rules": the agent follows worktree.add.rules through the gemba-worktree skill
 "harness-worktrees: Config change without skill change": a property of the gemba-worktree skill text, not of the command
-"repo-initialization: Agent configures a new tasks repo": the agent interviews the user, edits gemba.yaml and checks it by following the gemba-init and gemba-config skills
+"repo-initialization: Agent configures a new obeya": the agent interviews the user, edits gemba.yaml and checks it by following the gemba-init and gemba-config skills
+"repo-initialization: Obeya explained before its name": the agent says what an obeya is, asks what this one holds and proposes its name by following the gemba-init skill
 "repo-initialization: Agent does not ask what has a default": a property of the gemba-init skill text, not of a command
 "repo-initialization: Guided configuration is used once": the agent chooses the gemba-config skill over the gemba-init skill for a later edit
 "config-maintenance: Agent edits the config by hand": the agent reads gemba config show, asks and edits gemba.yaml by following the gemba-config skill
 "config-maintenance: Edit verified by check": the agent runs gemba config check until it exits 0 by following the gemba-config skill; the command is covered by the config cases
 "config-maintenance: Providers change refreshes the skills": the agent runs gemba skills update and names the folder left behind by following the gemba-config skill
-"config-maintenance: Reference free of organization values": a property of the gemba-config skill text, not of a command
+"config-maintenance: Reference free of configured values": a property of the gemba-config skill text, not of a command
 "config-maintenance: Keys of an earlier config moved": "the agent moves the keys from gemba.yaml to gemba.local.yaml by following the gemba-config skill; the refusal that names them is covered by gemba-config: Personal keys refused in the shared config"
+"config-maintenance: Former organization key renamed": "the agent renames organization to obeya in gemba.yaml by following the gemba-config skill; the refusal that names it is covered by gemba-config: Former organization key refused"
 "built-in-skills: Command missing": the agent stops and names the install command by following the prerequisite of every skill
 "package-release: Package built": verified by the build step of the CI and release workflows and by uv build before a release
 "package-release: Installed from the index": needs the published index; checked by hand after each release
@@ -125,7 +127,7 @@
 "package-release: Changelog section missing": the subject is the release workflow under .github/workflows, run by GitHub Actions
 "package-release: Release page created": the subject is the release workflow under .github/workflows, run by GitHub Actions
 "platform-support: Suite passes on every platform": the subject is the CI workflow under .github/workflows, run by GitHub Actions
-"platform-support: Tasks repo used across platforms": no runner of the suite spans two platforms; the paths the tasks repo stores are POSIX and relative, covered by the cases that read them on every platform of the CI
+"platform-support: Obeya used across platforms": no runner of the suite spans two platforms; the paths the obeya stores are POSIX and relative, covered by the cases that read them on every platform of the CI
 "platform-support: Rule applied wherever a name is validated": "each name is covered by the case of the capability that validates it: gemba-config: Reserved device name refused and harness-notes: Reserved device name refused"
 "platform-support: Git failure on a long path hinted": covered by a unit test over the hint on git's message in tests/test_harness.py; no case can make git fail on a long path on every platform
 "harness-removal: Read-only files deleted": git marks its objects read-only on Windows only, where the Harness removed case exercises this deletion on the CI; on POSIX no file attribute blocks an unlink

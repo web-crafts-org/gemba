@@ -96,7 +96,7 @@ SHALL ignore `harnesses/` as a whole, so the harness repository never reaches th
 - **THEN** the harness holds a `.git/` folder whose `HEAD` points at `refs/heads/main`, and the repository history has exactly one commit, which includes `harness.yaml`, the guide, the skills, `.gitignore` and `task.md`
 - **Cases**: keeps `tests/cases/harness/harness-repository-initialized.yaml`
 
-#### Scenario: Harnesses ignored by the tasks repo
+#### Scenario: Harnesses ignored by the obeya
 - **WHEN** the obeya is at this change or later
 - **THEN** its `.gitignore` lists `harnesses/` and no `runs/` folder is tracked
 - **Cases**: modifies the entry `harness-launch: Harnesses ignored by the tasks repo` of `tests/not-automated.yaml` (now `harness-launch: Harnesses ignored by the obeya`)
