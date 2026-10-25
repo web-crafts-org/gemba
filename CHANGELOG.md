@@ -36,6 +36,21 @@ under Changed.
 - The `gemba-record` skill is written into the tasks repo too: from there the agent
   records what you tell it was done on a task, such as a meeting or a review, and never
   the notes of a harness, whose run is recorded from inside it.
+- `gemba record <ref> --from <task file>` copies the whole dated history of another
+  task file, such as a task of an earlier tasks repo, into a task whose `## Updates` is
+  empty, in one call. The command reads that file itself and copies its subsections as
+  they are, moves `updated_at` to the last date copied, and never changes the file. It
+  refuses with every problem of both files at once: a history that breaks the rules of
+  the section, text before its first date, a date before the creation of the task or
+  after today, or a task that already holds an update.
+- The `gemba-migrate` skill, written into the tasks repo: ask the agent to migrate tasks
+  from another tasks repo, such as your earlier tasks into a team's tasks repo. It reads
+  the old tasks repo as data, asks which tasks to bring and how its workstreams and
+  fields map to this config, one decision at a time, and writes every task through
+  `gemba create`, `gemba record --from`, `gemba mark` and `gemba archive`. The old tasks
+  repo is never converted: it stays as it was, its migrated tasks archived. A tasks
+  repo made before this version gets the skill with `gemba init` or
+  `gemba skills update`.
 
 ### Changed
 

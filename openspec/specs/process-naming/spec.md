@@ -47,14 +47,16 @@ Each process of Gemba SHALL be exactly one agent skill whose name is `gemba-` fo
 by the subcommand or the group that process owns: `gemba-create`, `gemba-list`,
 `gemba-init`, `gemba-harness`, `gemba-record`, `gemba-report`, `gemba-set`. A process
 with several subcommands inside one group SHALL be one skill named after the group, not
-one skill per verb. A process whose steps need no deterministic command SHALL be one
-skill alone, named `gemba-` followed by the name of the process, which is the name its
+one skill per verb. A process whose steps need no deterministic command of its own,
+such as one that only composes the commands of other processes, SHALL be one skill
+alone, named `gemba-` followed by the name of the process, which is the name its
 subcommand would take, so that when a deterministic step appears the process gains
-that subcommand and its skill keeps its name, as the report did. The skill's
-description, not its name, SHALL carry the phrases that make an agent choose it. A
-subcommand or group that no process needs, because a person runs it to maintain the
-tasks repo rather than an agent following steps, SHALL have no skill; `gemba skills` is
-one.
+that subcommand and its skill keeps its name, as the report did; `gemba-migrate`,
+which composes `gemba create`, `gemba record`, `gemba mark` and `gemba archive`, is
+one. The skill's description, not its name, SHALL carry the phrases that make an agent
+choose it. A subcommand or group that no process needs, because a person runs it to
+maintain the tasks repo rather than an agent following steps, SHALL have no skill;
+`gemba skills` is one.
 
 #### Scenario: Existing skills follow the rule
 - **WHEN** the tasks repo is at this change or later
@@ -65,8 +67,8 @@ one.
 - **THEN** it is the single skill `gemba-harness`, whatever the number of verbs in the group
 
 #### Scenario: Skill-only process
-- **WHEN** a process has no deterministic step and so owns no subcommand
-- **THEN** it is the single skill named after the process, with the name its subcommand would take, and no subcommand of that name exists
+- **WHEN** the migration process has no deterministic step of its own and composes the commands of other processes
+- **THEN** it is the single skill `gemba-migrate`, with the name its subcommand would take, and no `gemba migrate` subcommand exists
 
 #### Scenario: Skill-only process gains its subcommand
 - **WHEN** the report process gains a deterministic step, the arithmetic over the selected tasks

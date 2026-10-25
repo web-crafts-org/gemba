@@ -1,0 +1,48 @@
+name: a history date before the creation of the task and one after today are both refused, naming their headings
+scenario: "task-recording: Dates outside the life of the task refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+  old/tasks/support/2026-09-01-SUP-7-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-7
+    updated_at: 2026-09-01
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2026-09-01
+
+    - Reproduced the failure on Safari 17.
+
+    ### 2999-01-01
+
+    - Deployed the fix to staging.
+run: [record, SUP-1, --from, old/tasks/support/2026-09-01-SUP-7-login-fails.md]
+exit: 1
+stderr_contains:
+  - record not done
+  - >-
+    old/tasks/support/2026-09-01-SUP-7-login-fails.md has '### 2026-09-01':
+    date 2026-09-01 is before 2026-09-30, the creation date of the task
+  - "old/tasks/support/2026-09-01-SUP-7-login-fails.md has '### 2999-01-01': date 2999-01-01 is after today, {today}"
+unchanged: true

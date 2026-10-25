@@ -26,4 +26,5 @@ stdout: |
   missing .claude/skills/gemba-set/SKILL.md
   missing .claude/skills/gemba-init/SKILL.md
   missing .claude/skills/gemba-config/SKILL.md
+  missing .claude/skills/gemba-migrate/SKILL.md
 unchanged: true

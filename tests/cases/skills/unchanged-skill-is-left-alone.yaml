@@ -20,6 +20,7 @@ stdout: |
   kept .claude/skills/gemba-set/SKILL.md
   kept .claude/skills/gemba-init/SKILL.md
   kept .claude/skills/gemba-config/SKILL.md
+  kept .claude/skills/gemba-migrate/SKILL.md
   kept .agents/skills/gemba-create/SKILL.md
   kept .agents/skills/gemba-list/SKILL.md
   kept .agents/skills/gemba-harness/SKILL.md
@@ -30,4 +31,5 @@ stdout: |
   kept .agents/skills/gemba-set/SKILL.md
   kept .agents/skills/gemba-init/SKILL.md
   kept .agents/skills/gemba-config/SKILL.md
+  kept .agents/skills/gemba-migrate/SKILL.md
 unchanged: true

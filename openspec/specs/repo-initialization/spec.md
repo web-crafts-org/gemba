@@ -31,7 +31,7 @@ SHALL exit 0. The command SHALL ask nothing on the terminal.
 
 #### Scenario: Tasks repo scaffolded in the working directory
 - **WHEN** `gemba init` runs in an empty folder with no `--providers`
-- **THEN** the folder holds `gemba.yaml` with the `default` workstream as the default and `agent_providers` listing every known provider, `.gitignore` with `harnesses/`, `gemba.local.yaml` and `/update.md`, `.gitattributes` with the two `eol=lf` lines, `tasks/.gitkeep` and the tasks-repo skills under `.claude/skills/` and `.agents/skills/`, `gemba-record` among them, and no `gemba.local.yaml`; the output lists each path as `written` and ends with the next step, and the command exits 0
+- **THEN** the folder holds `gemba.yaml` with the `default` workstream as the default and `agent_providers` listing every known provider, `.gitignore` with `harnesses/`, `gemba.local.yaml` and `/update.md`, `.gitattributes` with the two `eol=lf` lines, `tasks/.gitkeep` and the tasks-repo skills under `.claude/skills/` and `.agents/skills/`, `gemba-record` and `gemba-migrate` among them, and no `gemba.local.yaml`; the output lists each path as `written` and ends with the next step, and the command exits 0
 
 #### Scenario: Tasks repo scaffolded at a given path
 - **WHEN** `gemba init acme-tasks` runs and `acme-tasks` does not exist

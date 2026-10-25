@@ -22,6 +22,7 @@ stdout: |
   kept .claude/skills/gemba-set/SKILL.md
   kept .claude/skills/gemba-init/SKILL.md
   kept .claude/skills/gemba-config/SKILL.md
+  kept .claude/skills/gemba-migrate/SKILL.md
   next step: open this tasks repo with your agent and ask it to configure gemba (the gemba-init skill)
 files:
   .gitignore: "harnesses/\ngemba.local.yaml\n/update.md\n"

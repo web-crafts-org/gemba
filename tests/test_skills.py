@@ -164,6 +164,7 @@ class RegistryTest(unittest.TestCase):
                 "gemba-worktree": "harness",
                 "gemba-init": "repo",
                 "gemba-config": "repo",
+                "gemba-migrate": "repo",
             },
         )
         self.assertEqual(len(set(NAMES)), len(NAMES))

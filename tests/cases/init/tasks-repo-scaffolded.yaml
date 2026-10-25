@@ -18,6 +18,7 @@ stdout: |
   written .claude/skills/gemba-set/SKILL.md
   written .claude/skills/gemba-init/SKILL.md
   written .claude/skills/gemba-config/SKILL.md
+  written .claude/skills/gemba-migrate/SKILL.md
   written .agents/skills/gemba-create/SKILL.md
   written .agents/skills/gemba-list/SKILL.md
   written .agents/skills/gemba-harness/SKILL.md
@@ -28,6 +29,7 @@ stdout: |
   written .agents/skills/gemba-set/SKILL.md
   written .agents/skills/gemba-init/SKILL.md
   written .agents/skills/gemba-config/SKILL.md
+  written .agents/skills/gemba-migrate/SKILL.md
   next step: open this tasks repo with your agent and ask it to configure gemba (the gemba-init skill)
 files:
   gemba.yaml: |
@@ -58,6 +60,7 @@ files_contain:
   .claude/skills/gemba-set/SKILL.md: &set ["---\nname: gemba-set\n", "  generatedBy: \"{version}\"\n"]
   .claude/skills/gemba-init/SKILL.md: &init ["---\nname: gemba-init\n", "  generatedBy: \"{version}\"\n"]
   .claude/skills/gemba-config/SKILL.md: &config ["---\nname: gemba-config\n", "  generatedBy: \"{version}\"\n"]
+  .claude/skills/gemba-migrate/SKILL.md: &migrate ["---\nname: gemba-migrate\n", "  generatedBy: \"{version}\"\n"]
   .agents/skills/gemba-create/SKILL.md: *create
   .agents/skills/gemba-list/SKILL.md: *list
   .agents/skills/gemba-harness/SKILL.md: *harness
@@ -68,6 +71,7 @@ files_contain:
   .agents/skills/gemba-set/SKILL.md: *set
   .agents/skills/gemba-init/SKILL.md: *init
   .agents/skills/gemba-config/SKILL.md: *config
+  .agents/skills/gemba-migrate/SKILL.md: *migrate
 absent:
   - gemba.local.yaml
   - .claude/skills/gemba-worktree

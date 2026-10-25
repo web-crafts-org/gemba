@@ -29,6 +29,7 @@ stdout: |
   written .claude/skills/gemba-set/SKILL.md
   written .claude/skills/gemba-init/SKILL.md
   written .claude/skills/gemba-config/SKILL.md
+  written .claude/skills/gemba-migrate/SKILL.md
 files:
   .claude/skills/openspec-explore/SKILL.md: |
     ---

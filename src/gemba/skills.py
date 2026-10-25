@@ -53,6 +53,7 @@ SKILLS = (
     Skill("gemba-worktree", "harness"),
     Skill("gemba-init", "repo"),
     Skill("gemba-config", "repo"),
+    Skill("gemba-migrate", "repo"),
 )
 
 SKILL_FILE = "SKILL.md"

@@ -30,7 +30,7 @@
 "process-naming: Config subcommands are grouped": a property of how the CLI names its subcommands, met by the config group and its verbs
 "process-naming: Existing skills follow the rule": a property of the skill files, not of a command
 "process-naming: Grouped process is one skill": the rule constrains how a future change names its skill
-"process-naming: Skill-only process": the rule constrains how a future change names a process with no deterministic step; no process is skill-only at this change
+"process-naming: Skill-only process": a property of the skill registry and of the CLI subcommands, met by the gemba-migrate skill, which has no gemba migrate subcommand
 "process-naming: Skill-only process gains its subcommand": a property of the skill registry and of the CLI subcommands, met by the gemba-report skill and the gemba report command
 "task-creation: Clear match": the agent chooses the workstream by following the gemba-create skill
 "task-creation: No match": the agent chooses the workstream by following the gemba-create skill
@@ -50,6 +50,19 @@
 "task-recording: Agent records work done outside a harness": the agent drafts what the user told it and runs the command from the tasks repo by following the gemba-record skill; the command is covered by the record cases
 "task-recording: Task with a harness recorded from the tasks repo": the agent points to the harness and reads none of its notes by following the gemba-record skill
 "task-recording: Nothing told, nothing recorded": the agent asks what was done and records nothing it was not told by following the gemba-record skill; no command runs
+"task-migration: Agent migrates a task": the agent writes the task only through gemba create, gemba record --from, gemba mark and gemba archive by following the gemba-migrate skill; the copy of the history is covered by the record cases
+"task-migration: Old repo never converted": the agent keeps the old tasks repo as history and moves, renames or deletes nothing by following the gemba-migrate skill; no command runs
+"task-migration: Old instructions not followed": the agent reads the old config and the old tasks as data by following the gemba-migrate skill
+"task-migration: Old config refused by the current CLI": the agent relays the refusal, points to the gemba-config skill and migrates nothing by following the gemba-migrate skill
+"task-migration: Live tasks only": the agent chooses the tasks with the user from gemba list --root by following the gemba-migrate skill
+"task-migration: One mapping decision at a time": the agent asks the user one mapping at a time by following the gemba-migrate skill
+"task-migration: Required field without an old value": the agent asks the user for the value before gemba create by following the gemba-migrate skill
+"task-migration: Task with a live harness": the agent leaves the task out and names the two ways forward by following the gemba-migrate skill
+"task-migration: Task created with its original date": the agent runs gemba create with the old slug, date and status and writes the old body by following the gemba-migrate skill
+"task-migration: Finished task migrated with its history": the agent runs gemba record --from, gemba mark and gemba archive in that order by following the gemba-migrate skill; the copy of the history is covered by the record cases
+"task-migration: Task without history": the agent runs no gemba record for a task with no dated subsection by following the gemba-migrate skill
+"task-migration: Old tasks archived": the agent archives the migrated tasks in the old tasks repo with gemba archive --root, relays them and commits nothing by following the gemba-migrate skill
+"task-migration: Config change without skill change": a property of the gemba-migrate skill text, not of a command
 "task-reporting: Candidates listed by the command": the agent runs gemba list with the report filters by following the gemba-report skill
 "task-reporting: Candidates of a month": the agent runs gemba list with the filters of the period by following the gemba-report skill
 "task-reporting: Task created after the date is not a candidate": the agent relies on the listing filters by following the gemba-report skill; the filters are covered by the list cases

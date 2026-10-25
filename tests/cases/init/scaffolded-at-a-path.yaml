@@ -5,7 +5,7 @@ run: [init, acme-tasks]
 exit: 0
 stdout_contains:
   - "written gemba.yaml\nwritten .gitignore\nwritten .gitattributes\nwritten tasks/.gitkeep\nwritten .claude/skills/gemba-create/SKILL.md\n"
-  - "written .agents/skills/gemba-config/SKILL.md\nnext step: "
+  - "written .agents/skills/gemba-config/SKILL.md\nwritten .agents/skills/gemba-migrate/SKILL.md\nnext step: "
 files:
   acme-tasks/gemba.yaml: |
     # The gemba config of this tasks repo, edited by hand: no gemba command rewrites it.
@@ -34,6 +34,7 @@ files_contain:
   acme-tasks/.claude/skills/gemba-set/SKILL.md: &set ["---\nname: gemba-set\n"]
   acme-tasks/.claude/skills/gemba-init/SKILL.md: &init ["---\nname: gemba-init\n"]
   acme-tasks/.claude/skills/gemba-config/SKILL.md: &config ["---\nname: gemba-config\n"]
+  acme-tasks/.claude/skills/gemba-migrate/SKILL.md: &migrate ["---\nname: gemba-migrate\n"]
   acme-tasks/.agents/skills/gemba-create/SKILL.md: *create
   acme-tasks/.agents/skills/gemba-list/SKILL.md: *list
   acme-tasks/.agents/skills/gemba-harness/SKILL.md: *harness
@@ -44,4 +45,5 @@ files_contain:
   acme-tasks/.agents/skills/gemba-set/SKILL.md: *set
   acme-tasks/.agents/skills/gemba-init/SKILL.md: *init
   acme-tasks/.agents/skills/gemba-config/SKILL.md: *config
+  acme-tasks/.agents/skills/gemba-migrate/SKILL.md: *migrate
 absent: [gemba.yaml, .gitignore, .gitattributes, tasks, .claude, .agents]

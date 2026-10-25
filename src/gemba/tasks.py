@@ -1,5 +1,5 @@
-"""Task file rules: slug, filename, ref allocation, frontmatter and body, written and read, and the draft of an
-update."""
+"""Task file rules: slug, filename, ref allocation, frontmatter and body, written and read, the draft of an
+update, and the history copied from another task file."""
 
 import datetime
 import re
@@ -101,6 +101,15 @@ class Problem:
 
     path: str
     problem: str
+
+
+@dataclass(frozen=True)
+class History:
+    """The dated history of a task file: the dates of its subsections, in order, and the lines of its updates section
+    from the first `### ` heading on, without the blank lines at their end."""
+
+    dates: tuple[datetime.date, ...]
+    lines: tuple[str, ...]
 
 
 def is_valid_slug(slug: str) -> bool:
@@ -313,34 +322,102 @@ def archive_problem(task: Task, harness_folder: str | None, destination_exists: 
 
 
 def updates_problem(body: str) -> str | None:
-    """The first rule of the updates section that `body` breaks, or None when the section is valid.
+    """The first rule of the updates section that `body` breaks, or None when the section is valid."""
+    problems = updates_problems(body)
+    return problems[0] if problems else None
+
+
+def updates_problems(body: str) -> list[str]:
+    """Every rule of the updates section that `body` breaks, in the order of its lines.
 
     The body holds one `## Updates` line and no `## ` heading after it, and every `### `
     heading under it is an ISO date, in strictly increasing order. The other lines under
-    a date heading are not checked.
+    a date heading are not checked. Scanning stops at a `## ` heading after the section,
+    since what follows is not the section.
     """
     lines = body.split("\n")
     found = [index for index, line in enumerate(lines) if line.rstrip() == UPDATES_HEADING]
     if not found:
-        return f"has no '{UPDATES_HEADING}' section"
+        return [f"has no '{UPDATES_HEADING}' section"]
     if len(found) > 1:
-        return f"holds '{UPDATES_HEADING}' more than once; the section must appear once, at the end of the body"
+        return [f"holds '{UPDATES_HEADING}' more than once; the section must appear once, at the end of the body"]
+    problems = []
     previous: datetime.date | None = None
     for line in lines[found[0] + 1 :]:
         heading = line.rstrip()
         if heading.startswith(SECTION_PREFIX):
-            return f"has '{heading}' after '{UPDATES_HEADING}', which must be the last section of the body"
+            problems.append(f"has '{heading}' after '{UPDATES_HEADING}', which must be the last section of the body")
+            break
         match = SUBSECTION_HEADING.match(line)
         if match is None:
             continue
         day = values.iso_date(match["text"].strip())
         if day is None:
-            return f"has '{heading}' under '{UPDATES_HEADING}', which is not a date heading (### YYYY-MM-DD)"
+            problems.append(f"has '{heading}' under '{UPDATES_HEADING}', which is not a date heading (### YYYY-MM-DD)")
+            continue
         if previous is not None and day <= previous:
             order = "repeats a date" if day == previous else f"follows '### {previous.isoformat()}'"
-            return f"has '{heading}' under '{UPDATES_HEADING}', which {order}; the dates must be strictly increasing"
+            problems.append(
+                f"has '{heading}' under '{UPDATES_HEADING}', which {order}; the dates must be strictly increasing"
+            )
         previous = day
-    return None
+    return problems
+
+
+def history(text: str) -> tuple[History | None, list[str]]:
+    """The history of the text of a task file that `read_source` accepted, or every problem that keeps it from
+    being copied.
+
+    The updates section follows its rules, holds at least one date heading, and holds no
+    non-blank line before its first `### ` heading, each such line named by its number in
+    the file.
+    """
+    lines = text.split("\n")
+    closing = _closing_line(lines)
+    body = lines[closing + 1 :]
+    problems = updates_problems("\n".join(body))
+    found = [index for index, line in enumerate(body) if line.rstrip() == UPDATES_HEADING]
+    if len(found) != 1:
+        return None, problems
+    end = next(
+        (index for index in range(found[0] + 1, len(body)) if body[index].rstrip().startswith(SECTION_PREFIX)),
+        len(body),
+    )
+    first: int | None = None
+    stray: list[str] = []
+    dates: list[datetime.date] = []
+    for index in range(found[0] + 1, end):
+        match = SUBSECTION_HEADING.match(body[index])
+        if match is None:
+            if first is None and body[index].strip():
+                stray.append(str(closing + index + 2))  # the number of the line in the file, counted from 1
+            continue
+        if first is None:
+            first = index
+        if (day := values.iso_date(match["text"].strip())) is not None:
+            dates.append(day)
+    if stray and first is not None:
+        where = f"line {stray[0]}" if len(stray) == 1 else f"lines {', '.join(stray)}"
+        problems.insert(
+            0,
+            f"has text under '{UPDATES_HEADING}' before its first date heading, at {where}: "
+            "every line of a history belongs to a date",
+        )
+    if not dates:
+        problems.append(f"has no date heading under '{UPDATES_HEADING}': there is no history to copy")
+    if problems:
+        return None, problems
+    assert first is not None, "a date heading was found"
+    return History(tuple(dates), tuple(_trimmed(body[first:end]))), []
+
+
+def history_problems(history: History, created: datetime.date, today: datetime.date) -> list[str]:
+    """Why the dates of `history` cannot date the changes of a task created on `created`, one problem per heading."""
+    return [
+        f"has '### {day.isoformat()}': {problem}"
+        for day in history.dates
+        if (problem := date_problem(day, created, today))
+    ]
 
 
 def parse_bullets(text: str) -> tuple[list[str], list[str]]:
@@ -472,6 +549,49 @@ def _trimmed(lines: list[str]) -> list[str]:
     return lines[:end]
 
 
+def history_target_problem(body: str) -> str | None:
+    """Why the task whose body is `body` cannot receive a history, or None when its updates section is valid and
+    empty, so that a history is never written twice."""
+    if problem := updates_problem(body):
+        return problem
+    lines = body.split("\n")
+    start = next(index for index, line in enumerate(lines) if line.rstrip() == UPDATES_HEADING)
+    if any(line.strip() for line in lines[start + 1 :]):
+        return f"has updates already: --from writes a history only into a task whose '{UPDATES_HEADING}' is empty"
+    return None
+
+
+def copy_history(
+    text: str, created: datetime.date, today: datetime.date, history: History
+) -> tuple[str, datetime.date, datetime.date]:
+    """The task file content with `history` as its updates section, and `updated_at` before and after.
+
+    The lines of the history follow the `## Updates` line and one blank line as they
+    are, with none of the rules of a draft, and the file ends with one newline.
+    `updated_at` moves to the last date of the history only when it is later, and the
+    frontmatter is dumped again in its own key order; every line of the body up to
+    `## Updates` is kept as it was.
+    """
+    if problems := history_problems(history, created, today):
+        raise TaskError(problems[0])
+    if not history.dates:
+        raise TaskError("there is no history to copy")
+    lines = text.split("\n")
+    closing = _closing_line(lines)
+    data = _frontmatter_map(lines, closing)
+    body = lines[closing + 1 :]
+    if problem := history_target_problem("\n".join(body)):
+        raise TaskError(problem)
+    previous = _date_field(data, "updated_at")
+    if previous is None:
+        raise TaskError("updated_at is missing")
+    updated_at = max(previous, max(history.dates))
+    data["updated_at"] = updated_at
+    start = next(index for index, line in enumerate(body) if line.rstrip() == UPDATES_HEADING)
+    frontmatter = f"{FRONTMATTER_DELIMITER}\n{dump_frontmatter(data)}{FRONTMATTER_DELIMITER}"
+    return "\n".join([frontmatter, *body[: start + 1], "", *history.lines, ""]), previous, updated_at
+
+
 def matches(task: Task, filters: Filters) -> bool:
     """Whether the task passes every filter; the workstream filter is the scan scope, not a filter."""
     if filters.statuses and task.status not in filters.statuses:
@@ -507,18 +627,46 @@ def read(path: Path, root: Path, workstream: str, archived: bool) -> Task:
     Metadata keys are not checked against the schema: a task written under an earlier
     schema stays readable after the config changes.
     """
-    match = FILENAME_PATTERN.match(path.name)
-    if match is None:
-        raise TaskError("filename does not match YYYY-MM-DD-<ref>-<slug>.md")
-    created = values.iso_date(match["date"])
-    if created is None:
-        raise TaskError(f"filename date '{match['date']}' is not a valid date")
     try:
         text = path.read_text(encoding="utf-8")
     except UnicodeDecodeError:
         raise TaskError("the file is not UTF-8 text") from None
     except OSError as exc:
         raise TaskError(f"the file cannot be read: {exc.strerror}") from None
+    return _parse(path.name, text, path.relative_to(root).as_posix(), workstream, archived)
+
+
+def read_source(path: Path) -> tuple[str | None, list[str]]:
+    """The text of the task file at `path`, whose history is copied into another task, or every problem found with it.
+
+    The bytes go through `platform.decode()`, so a CRLF or a byte-order mark is no
+    problem, and the text must pass the reading rules of the task file format. The
+    workstream and the archive folder of the file mean nothing here and are not checked.
+    """
+    if not path.is_file():
+        return None, ["is not a file" if path.exists() else "does not exist"]
+    try:
+        text = platform.decode(path.read_bytes())
+    except UnicodeDecodeError:
+        return None, ["is not UTF-8 text"]
+    except OSError as exc:
+        return None, [f"cannot be read: {exc.strerror}"]
+    try:
+        _parse(path.name, text, path.name, workstream="", archived=False)
+    except TaskError as exc:
+        return None, [f"is not a valid task: {exc}"]
+    return text, []
+
+
+def _parse(name: str, text: str, path: str, workstream: str, archived: bool) -> Task:
+    """The task named `name` whose content is `text`, by the reading rules of the task file format; `path`,
+    `workstream` and `archived` only locate it."""
+    match = FILENAME_PATTERN.match(name)
+    if match is None:
+        raise TaskError("filename does not match YYYY-MM-DD-<ref>-<slug>.md")
+    created = values.iso_date(match["date"])
+    if created is None:
+        raise TaskError(f"filename date '{match['date']}' is not a valid date")
 
     frontmatter, body = split(text)
     data = _load_frontmatter(frontmatter)
@@ -542,12 +690,12 @@ def read(path: Path, root: Path, workstream: str, archived: bool) -> Task:
     metadata = _metadata(data)
 
     return Task(
-        path=path.relative_to(root).as_posix(),
+        path=path,
         workstream=workstream,
         archived=archived,
         ref=ref,
         date=created,
-        title=display_title(path.name, ref),
+        title=display_title(name, ref),
         status=status,
         updated_at=updated_at,
         done_at=done_at,

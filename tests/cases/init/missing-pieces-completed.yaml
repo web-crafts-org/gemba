@@ -27,6 +27,7 @@ stdout: |
   written .claude/skills/gemba-set/SKILL.md
   written .claude/skills/gemba-init/SKILL.md
   written .claude/skills/gemba-config/SKILL.md
+  written .claude/skills/gemba-migrate/SKILL.md
   next step: open this tasks repo with your agent and ask it to configure gemba (the gemba-init skill)
 files:
   gemba.yaml: |

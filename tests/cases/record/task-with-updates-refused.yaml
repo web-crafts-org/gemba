@@ -1,0 +1,48 @@
+name: a task that already holds an update receives no history, and the problems of the source come in the same message
+scenario: "task-recording: Task with updates refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-10-01
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2026-10-01
+
+    - Reproduced the failure on Safari 17.
+  old/tasks/support/2026-09-30-SUP-7-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-7
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2999-01-01
+
+    - Deployed the fix to staging.
+run: [record, SUP-1, --from, old/tasks/support/2026-09-30-SUP-7-login-fails.md]
+exit: 1
+stderr_contains:
+  - record not done
+  - "old/tasks/support/2026-09-30-SUP-7-login-fails.md has '### 2999-01-01': date 2999-01-01 is after today"
+  - >-
+    tasks/support/2026-09-30-SUP-1-login-fails.md has updates already:
+    --from writes a history only into a task whose '## Updates' is empty
+unchanged: true

@@ -68,6 +68,7 @@ stdout: |
   written .claude/skills/gemba-set/SKILL.md
   written .claude/skills/gemba-init/SKILL.md
   written .claude/skills/gemba-config/SKILL.md
+  written .claude/skills/gemba-migrate/SKILL.md
   written .agents/skills/gemba-create/SKILL.md
   written .agents/skills/gemba-list/SKILL.md
   written .agents/skills/gemba-harness/SKILL.md
@@ -78,6 +79,7 @@ stdout: |
   written .agents/skills/gemba-set/SKILL.md
   written .agents/skills/gemba-init/SKILL.md
   written .agents/skills/gemba-config/SKILL.md
+  written .agents/skills/gemba-migrate/SKILL.md
 ---
 name: the create process accepts both known providers
 scenario: "gemba-config: Known providers accepted"
