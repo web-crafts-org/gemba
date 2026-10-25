@@ -1,0 +1,112 @@
+# Spec Delta
+
+## MODIFIED Requirements
+
+### Requirement: Mark moves the status of a task
+`gemba mark <ref> <status> [--date YYYY-MM-DD]` SHALL resolve the task with that ref
+anywhere under `tasks/`, archives included, and SHALL set its `status` to the one
+given, which SHALL be one of `open`, `in-progress`, `blocked`, `done`. One rule table
+SHALL govern every transition: when the destination is `done`, `done_at` SHALL be set
+to the date of the transition; when the task leaves `done`, `done_at` SHALL be
+removed; `updated_at` SHALL move to the later of its value and the date of the
+transition; when the destination equals the current status, the command SHALL write
+nothing and say the status was left as it was, exiting 0. The frontmatter SHALL be
+rewritten in its fixed key order and the body SHALL be kept byte for byte. The command
+SHALL refuse, writing nothing, when no task has that ref, when the status is not one
+of the four, or when the task is archived, saying in that case that the file must be
+moved out of `archive/` first. On success it SHALL print the task path relative to the
+obeya root, a `status: <old> -> <new>` line, a `done_at: <date>` or `done_at:
+removed` line when `done_at` changed, and an `updated_at: <old> -> <new>` or
+`updated_at: <value> (unchanged)` line. Refusals SHALL report every problem in one
+message and exit 1.
+
+#### Scenario: Task marked done
+- **WHEN** `gemba mark SUP-1 done --date 2026-10-03` runs on an `in-progress` task with `updated_at: 2026-10-01`
+- **THEN** its frontmatter reads `status: done`, `updated_at: 2026-10-03` and `done_at: 2026-10-03` in that order before `metadata`, the body is unchanged, and the output holds the path, `status: in-progress -> done`, `done_at: 2026-10-03` and `updated_at: 2026-10-01 -> 2026-10-03`
+- **Cases**: keeps `tests/cases/mark/task-marked-done.yaml`
+
+#### Scenario: Task leaves done
+- **WHEN** a `done` task with `done_at: 2026-10-01` is marked `open`, or marked `in-progress`
+- **THEN** its frontmatter has no `done_at` key, `status` reads the destination, the output holds `done_at: removed`, and the body is unchanged
+- **Cases**: keeps `tests/cases/mark/task-leaves-done.yaml`
+
+#### Scenario: Task marked blocked and back
+- **WHEN** an `in-progress` task is marked `blocked`, and then marked `in-progress` again
+- **THEN** each run rewrites `status` to the destination, `done_at` never appears, and `updated_at` moves to the date of each transition
+- **Cases**: keeps `tests/cases/mark/task-marked-blocked.yaml`
+
+#### Scenario: Same status left as it was
+- **WHEN** a `blocked` task is marked `blocked`
+- **THEN** the command exits 0, the output says `status: blocked, left as it was`, and the tree is unchanged
+- **Cases**: keeps `tests/cases/mark/same-status-left-as-it-was.yaml`
+
+#### Scenario: Invalid status refused
+- **WHEN** the status given is `closed`
+- **THEN** the command exits 1, names `closed` and the four allowed values, and writes nothing
+- **Cases**: keeps `tests/cases/mark/invalid-status-refused.yaml`
+
+#### Scenario: Unknown ref refused
+- **WHEN** no task under `tasks/` has the ref given
+- **THEN** the command exits 1, reports that no task has that ref, and writes nothing
+- **Cases**: keeps `tests/cases/mark/unknown-ref-refused.yaml`
+
+#### Scenario: Archived task refused
+- **WHEN** the task with that ref is under an `archive/` folder
+- **THEN** the command exits 1, says the task is archived and that it must be moved out of `archive/` before it is marked, and writes nothing
+- **Cases**: keeps `tests/cases/mark/archived-task-refused.yaml`
+
+### Requirement: Marking touches nothing but the frontmatter
+`mark` SHALL write only the task file and only its frontmatter: it SHALL NOT write
+under `## Updates`, SHALL NOT touch the harness of the task, if one exists, and SHALL
+run no git. The status of a task SHALL NOT condition the other processes of the task
+file: `gemba record` records on a task whatever its status, `done` included, and
+`gemba archive` moves a task whatever its status.
+
+#### Scenario: Harness untouched
+- **WHEN** a launched task is marked `done` from the obeya
+- **THEN** the harness repository has the same commits as after the launch and a clean working tree, and the task read through `task.md` shows the new status
+- **Cases**: modifies `tests/cases/mark/harness-untouched.yaml` (its name says obeya)
+
+#### Scenario: Done task recorded
+- **WHEN** a task is `done` and `gemba record update.md --date D` runs in its harness
+- **THEN** the day is recorded as on any task, `status` still reads `done` and `done_at` is kept
+- **Cases**: keeps `tests/cases/mark/done-task-recorded.yaml`
+
+### Requirement: Marking by the agent
+The `gemba-mark` skill SHALL have the agent, from the obeya or from inside a
+harness, identify the task by its ref, asking when the request is ambiguous, map the
+user's words to one destination status, run `gemba mark <ref> <status>` with `--date`
+only when the user names a past day, relay the output, and stop. The map SHALL be:
+finished, completed, closed or done is `done`; stuck, waiting or blocked is `blocked`;
+reopen, or any request to bring back a `done` task that does not say the work resumes
+now, is `open`; continuing, resuming or working on it now is `in-progress`. From inside
+a harness, before marking a task `done`, the skill SHALL have the agent check whether
+the current day is recorded in the task and offer to record it first, without blocking
+the mark when the user declines. The skill SHALL have the agent read the `mark` block
+of the task's workstream in the gemba config and follow its `rules` and `context`, and
+SHALL forbid editing the frontmatter by hand.
+
+#### Scenario: Agent marks a task
+- **WHEN** the user says a task is finished, blocked or back on
+- **THEN** the agent runs `gemba mark` with the ref and the mapped status and relays the status, `done_at` and `updated_at` lines
+- **Cases**: keeps the entry `task-marking: Agent marks a task` of `tests/not-automated.yaml`
+
+#### Scenario: Reopen defaults to open
+- **WHEN** the user asks to reopen a `done` task and does not say the work resumes now
+- **THEN** the agent marks it `open`; when the user says they continue now, the agent marks it `in-progress`
+- **Cases**: keeps the entry `task-marking: Reopen defaults to open` of `tests/not-automated.yaml`
+
+#### Scenario: Record before done
+- **WHEN** inside a harness the user asks to mark the task done and the day has notes that are not recorded in the task
+- **THEN** the agent offers to record the day first and marks the task done whatever the answer
+- **Cases**: keeps the entry `task-marking: Record before done` of `tests/not-automated.yaml`
+
+#### Scenario: Agent follows the verb's rules
+- **WHEN** workstream `support` declares `mark.rules` containing "before done, confirm the client was told"
+- **THEN** the agent follows that rule before running the command for a `support` task
+- **Cases**: keeps the entry `task-marking: Agent follows the verb's rules` of `tests/not-automated.yaml`
+
+#### Scenario: Config change without skill change
+- **WHEN** a `mark` rule is added, changed or removed in the gemba config
+- **THEN** the agent's behaviour changes accordingly without any change to the skill
+- **Cases**: keeps the entry `task-marking: Config change without skill change` of `tests/not-automated.yaml`
