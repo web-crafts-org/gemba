@@ -18,6 +18,7 @@ files_contain:
   .claude/skills/gemba-set/SKILL.md: ["---\nname: gemba-set\n"]
   .claude/skills/gemba-init/SKILL.md: ["---\nname: gemba-init\n"]
   .claude/skills/gemba-config/SKILL.md: ["---\nname: gemba-config\n"]
+  .claude/skills/gemba-migrate/SKILL.md: ["---\nname: gemba-migrate\n"]
 ---
 name: the skills are written by a verb of the skills group
 scenario: "process-naming: Skills subcommands are grouped"
@@ -39,6 +40,7 @@ stdout: |
   written .claude/skills/gemba-set/SKILL.md
   written .claude/skills/gemba-init/SKILL.md
   written .claude/skills/gemba-config/SKILL.md
+  written .claude/skills/gemba-migrate/SKILL.md
 ---
 name: the skills group writes no skill of its own
 scenario: "process-naming: Maintenance group has no skill"

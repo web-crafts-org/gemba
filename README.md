@@ -207,6 +207,15 @@ gemba record SUP-1 update.md                     # today
 gemba record SUP-1 update.md --date 2026-09-30   # a past day
 ```
 
+A whole history comes from another task file, such as a task of an earlier tasks repo,
+with `--from`: the command reads that file itself, copies its dated subsections as they
+are into a task whose `## Updates` is still empty, and moves `updated_at` to the last
+date copied. The other file is only read:
+
+```bash
+gemba record SUP-1 --from ../old-tasks/tasks/support/2026-03-02-SUP-3-login-fails.md
+```
+
 ### Report
 
 Ask the agent in the tasks repo for yesterday, for a day, a week or a month. The
@@ -336,6 +345,35 @@ What you can customize, all of it in the config and never in a skill:
   workstream and one of your own.
 
 Changing any of it is a config edit: no skill and no code changes.
+
+## Bring tasks from another tasks repo
+
+When you start in a new tasks repo, such as the one a team shares, your earlier tasks
+stay in the old one. Nothing converts it: the old tasks repo stays as it was, as
+history. Ask the agent, in the new tasks repo, to migrate tasks from the old one, naming
+its path. The `gemba-migrate` skill reads the old tasks repo as data, never following
+its rules, asks which tasks to bring, the ones not done or the finished ones too, and
+maps each old workstream and field to one of the new config with you, one question at
+a time. A task whose harness is still there waits: finish it in the old tasks repo, or
+push its work, remove the harness and launch the task again in the new one once it is
+migrated.
+
+The commands write every task, with a new ref. For a task done in the old tasks repo:
+
+```bash
+gemba create --workstream support --slug login-fails --date 2026-03-02 --set client=Acme
+gemba record SUP-1 --from ../old-tasks/tasks/support/2026-03-02-SUP-3-login-fails.md
+gemba mark SUP-1 done --date 2026-04-10
+gemba archive SUP-3 --root ../old-tasks
+```
+
+Between the first two, the agent copies the old body above `## Updates`, ending with a
+paragraph that names the old ref and tasks repo; `gemba record --from` copies the dated
+history as it is, and a task archived in the old tasks repo is archived in the new one
+too. The last command closes the loop: the migrated tasks are archived in the old tasks
+repo. Nothing is committed: both tasks repos are yours to review and commit. A tasks
+repo made by an earlier version whose config the current CLI refuses is upgraded first,
+with the `gemba-config` skill run from inside it.
 
 ## On Windows
 

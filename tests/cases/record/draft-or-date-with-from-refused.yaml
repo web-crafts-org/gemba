@@ -1,0 +1,110 @@
+name: a draft given with --from is refused and nothing changes, the draft included
+scenario: "task-recording: Draft, date or nothing given with the mode refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+  old/tasks/support/2026-09-30-SUP-7-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-7
+    updated_at: 2026-10-01
+    done_at: 2026-10-01
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2026-10-01
+
+    - Reproduced the failure on Safari 17.
+  update.md: |
+    - Reviewed the fix of the session cookie with the client.
+run: [record, SUP-1, update.md, --from, old/tasks/support/2026-09-30-SUP-7-login-fails.md]
+exit: 1
+stderr_contains: ["--from takes no draft"]
+unchanged: true
+---
+name: --date given with --from is refused, since the dates are those of the history
+scenario: "task-recording: Draft, date or nothing given with the mode refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+  old/tasks/support/2026-09-30-SUP-7-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-7
+    updated_at: 2026-10-01
+    done_at: 2026-10-01
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2026-10-01
+
+    - Reproduced the failure on Safari 17.
+run: [record, SUP-1, --from, old/tasks/support/2026-09-30-SUP-7-login-fails.md, --date, 2026-10-01]
+exit: 1
+stderr_contains: ["--date does not apply to --from"]
+unchanged: true
+---
+name: a record given neither a draft nor --from is refused and nothing changes
+scenario: "task-recording: Draft, date or nothing given with the mode refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+  update.md: |
+    - Reviewed the fix of the session cookie with the client.
+run: [record]
+exit: 1
+stderr_contains: ["a draft or --from is needed"]
+unchanged: true

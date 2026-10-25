@@ -7,7 +7,9 @@ the agent distills the day's notes of the run into bullets; from the tasks repo,
 work done outside a run, it drafts what the person tells it. One command writes them as
 the dated subsection of `## Updates` and moves `updated_at` in the same step, so that
 the task file stays the durable record and no update is ever invisible to date-filtered
-listings.
+listings. The same command copies the whole dated history of another task file, such
+as a task brought from an earlier tasks repo, into a task whose `## Updates` is still
+empty, reading that file itself so that the history reaches the task as it was.
 
 ## Requirements
 

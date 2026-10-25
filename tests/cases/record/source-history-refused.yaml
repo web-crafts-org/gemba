@@ -1,0 +1,105 @@
+name: every broken rule of the history of the source is reported in one message and nothing changes
+scenario: "task-recording: History of the source refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+  # Line 13 is the text before the first date heading.
+  old/tasks/support/2026-09-30-SUP-7-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-7
+    updated_at: 2026-10-02
+    done_at: 2026-10-02
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    Notes carried over from the old tracker.
+
+    ### 2026-09-30
+
+    - Reproduced the failure on Safari 17.
+
+    ### Monday
+
+    - Traced the failure to the session cookie.
+
+    ### 2026-10-02
+
+    - Deployed the fix to staging.
+
+    ### 2026-10-01
+
+    - Asked the client to confirm the fix.
+run: [record, SUP-1, --from, old/tasks/support/2026-09-30-SUP-7-login-fails.md]
+exit: 1
+stderr_contains:
+  - record not done
+  - >-
+    old/tasks/support/2026-09-30-SUP-7-login-fails.md has text under '## Updates' before its first date heading,
+    at line 13: every line of a history belongs to a date
+  - >-
+    old/tasks/support/2026-09-30-SUP-7-login-fails.md has '### Monday' under '## Updates',
+    which is not a date heading (### YYYY-MM-DD)
+  - >-
+    old/tasks/support/2026-09-30-SUP-7-login-fails.md has '### 2026-10-01' under '## Updates',
+    which follows '### 2026-10-02'; the dates must be strictly increasing
+unchanged: true
+---
+name: a source with no date heading under its updates section has no history to copy and is refused
+scenario: "task-recording: History of the source refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+  old/tasks/support/2026-09-30-SUP-7-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-7
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+run: [record, SUP-1, --from, old/tasks/support/2026-09-30-SUP-7-login-fails.md]
+exit: 1
+stderr_contains:
+  - record not done
+  - >-
+    old/tasks/support/2026-09-30-SUP-7-login-fails.md has no date heading under '## Updates':
+    there is no history to copy
+unchanged: true

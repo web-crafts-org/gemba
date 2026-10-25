@@ -1,0 +1,102 @@
+name: record --from copies the dated history of another task file into a task with an empty updates section
+scenario: "task-recording: History copied into a new task"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+  old/tasks/support/2026-09-30-SUP-7-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-7
+    updated_at: 2026-10-02
+    done_at: 2026-10-02
+    metadata: { client: Acme }
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2026-09-30
+
+    - Reproduced the failure on Safari 17.
+
+    ### 2026-10-01
+
+    - Traced the failure to the session cookie.
+      The cookie lacks the SameSite attribute.
+
+    ### 2026-10-02
+
+    - Deployed the fix to staging.
+run: [record, SUP-1, --from, old/tasks/support/2026-09-30-SUP-7-login-fails.md]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  copied: 3 days, 2026-09-30 to 2026-10-02
+  updated_at: 2026-09-30 -> 2026-10-02
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-10-02
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2026-09-30
+
+    - Reproduced the failure on Safari 17.
+
+    ### 2026-10-01
+
+    - Traced the failure to the session cookie.
+      The cookie lacks the SameSite attribute.
+
+    ### 2026-10-02
+
+    - Deployed the fix to staging.
+  old/tasks/support/2026-09-30-SUP-7-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-7
+    updated_at: 2026-10-02
+    done_at: 2026-10-02
+    metadata: { client: Acme }
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2026-09-30
+
+    - Reproduced the failure on Safari 17.
+
+    ### 2026-10-01
+
+    - Traced the failure to the session cookie.
+      The cookie lacks the SameSite attribute.
+
+    ### 2026-10-02
+
+    - Deployed the fix to staging.
+absent: [update.md, harnesses]

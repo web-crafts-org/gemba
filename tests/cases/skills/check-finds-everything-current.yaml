@@ -20,6 +20,7 @@ stdout: |
   unchanged .claude/skills/gemba-set/SKILL.md
   unchanged .claude/skills/gemba-init/SKILL.md
   unchanged .claude/skills/gemba-config/SKILL.md
+  unchanged .claude/skills/gemba-migrate/SKILL.md
   unchanged .agents/skills/gemba-create/SKILL.md
   unchanged .agents/skills/gemba-list/SKILL.md
   unchanged .agents/skills/gemba-harness/SKILL.md
@@ -30,4 +31,5 @@ stdout: |
   unchanged .agents/skills/gemba-set/SKILL.md
   unchanged .agents/skills/gemba-init/SKILL.md
   unchanged .agents/skills/gemba-config/SKILL.md
+  unchanged .agents/skills/gemba-migrate/SKILL.md
 unchanged: true
