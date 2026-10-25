@@ -20,13 +20,14 @@ files:
       default:
         prefix: TASK
         description: Work that fits no other workstream
-  acme-tasks/.gitignore: "harnesses/\ngemba.local.yaml\n"
+  acme-tasks/.gitignore: "harnesses/\ngemba.local.yaml\n/update.md\n"
   acme-tasks/.gitattributes: "*.md text eol=lf\n*.yaml text eol=lf\n"
   acme-tasks/tasks/.gitkeep: ""
 files_contain:
   acme-tasks/.claude/skills/gemba-create/SKILL.md: &create ["---\nname: gemba-create\n"]
   acme-tasks/.claude/skills/gemba-list/SKILL.md: &list ["---\nname: gemba-list\n"]
   acme-tasks/.claude/skills/gemba-harness/SKILL.md: &harness ["---\nname: gemba-harness\n"]
+  acme-tasks/.claude/skills/gemba-record/SKILL.md: &record ["---\nname: gemba-record\n"]
   acme-tasks/.claude/skills/gemba-report/SKILL.md: &report ["---\nname: gemba-report\n"]
   acme-tasks/.claude/skills/gemba-mark/SKILL.md: &mark ["---\nname: gemba-mark\n"]
   acme-tasks/.claude/skills/gemba-archive/SKILL.md: &archive ["---\nname: gemba-archive\n"]
@@ -36,6 +37,7 @@ files_contain:
   acme-tasks/.agents/skills/gemba-create/SKILL.md: *create
   acme-tasks/.agents/skills/gemba-list/SKILL.md: *list
   acme-tasks/.agents/skills/gemba-harness/SKILL.md: *harness
+  acme-tasks/.agents/skills/gemba-record/SKILL.md: *record
   acme-tasks/.agents/skills/gemba-report/SKILL.md: *report
   acme-tasks/.agents/skills/gemba-mark/SKILL.md: *mark
   acme-tasks/.agents/skills/gemba-archive/SKILL.md: *archive

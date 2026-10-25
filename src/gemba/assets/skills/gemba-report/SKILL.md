@@ -135,10 +135,11 @@ candidates by reading the task folders yourself, and do not compute a number you
 ## Filling a gap
 
 The report never fills a gap. To record what a task is missing, point the user to the
-harness of that task, `harnesses/<workstream>/<task file name without .md>/`, and the
-`gemba-record` skill used inside it; a task with no harness yet is launched with the
-`gemba-harness` skill. A metadata value that is missing or wrong is set with the
-`gemba-set` skill.
+`gemba-record` skill, used in one of two places: inside the harness of that task,
+`harnesses/<workstream>/<task file name without .md>/`, for the work of its run, from
+its notes; or from the tasks repo, for work done outside a run, such as a meeting or a
+review, from what the user tells it. A metadata value that is missing or wrong is set
+with the `gemba-set` skill.
 
 ## Rules
 

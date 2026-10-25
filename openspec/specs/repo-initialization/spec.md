@@ -16,8 +16,9 @@ catalogue holding the one workstream `default`, with the prefix `TASK` and a
 description that names it as the place of work that fits no other workstream, and
 `agent_providers` listing the providers selected as the next requirement says. It
 SHALL write the `tasks/` folder, kept by an empty `.gitkeep`, a `.gitignore` holding
-the lines `harnesses/` and `gemba.local.yaml`, so that neither the harnesses nor the
-personal config reach the history of the tasks repo, a `.gitattributes` holding the
+the lines `harnesses/`, `gemba.local.yaml` and `/update.md`, so that neither the
+harnesses, nor the personal config, nor the draft of an update left at the root by a
+refused record reach the history of the tasks repo, a `.gitattributes` holding the
 lines `*.md text eol=lf` and `*.yaml text eol=lf`, so that the files gemba owns keep
 LF on every platform whatever `core.autocrlf` says, and every registered skill whose
 scope includes the tasks repo under the skills folder of each selected provider, with
@@ -30,7 +31,7 @@ SHALL exit 0. The command SHALL ask nothing on the terminal.
 
 #### Scenario: Tasks repo scaffolded in the working directory
 - **WHEN** `gemba init` runs in an empty folder with no `--providers`
-- **THEN** the folder holds `gemba.yaml` with the `default` workstream as the default and `agent_providers` listing every known provider, `.gitignore` with `harnesses/` and `gemba.local.yaml`, `.gitattributes` with the two `eol=lf` lines, `tasks/.gitkeep` and the tasks-repo skills under `.claude/skills/` and `.agents/skills/`, and no `gemba.local.yaml`; the output lists each path as `written` and ends with the next step, and the command exits 0
+- **THEN** the folder holds `gemba.yaml` with the `default` workstream as the default and `agent_providers` listing every known provider, `.gitignore` with `harnesses/`, `gemba.local.yaml` and `/update.md`, `.gitattributes` with the two `eol=lf` lines, `tasks/.gitkeep` and the tasks-repo skills under `.claude/skills/` and `.agents/skills/`, `gemba-record` among them, and no `gemba.local.yaml`; the output lists each path as `written` and ends with the next step, and the command exits 0
 
 #### Scenario: Tasks repo scaffolded at a given path
 - **WHEN** `gemba init acme-tasks` runs and `acme-tasks` does not exist
@@ -60,30 +61,34 @@ known providers, and writes nothing.
 Run on a folder that already holds `gemba.yaml`, or that holds part of the layout,
 `gemba init` SHALL write only what is missing and SHALL report what it found: an
 existing `gemba.yaml` is never rewritten and is reported as `kept`; a `.gitignore`
-that lacks one or both of its two lines gets the missing lines appended, in their
-order, and is reported as `updated`, one that has both is `kept`; a `.gitattributes`
-that lacks one of its two lines gets the missing lines appended and is reported as
+that lacks any of its three lines gets the missing lines appended, in their order, and
+is reported as `updated`, one that has all three is `kept`; a `.gitattributes` that
+lacks one of its two lines gets the missing lines appended and is reported as
 `updated`, one that has both is `kept`; a missing `tasks/.gitkeep` is written; a skill
 already on disk is `kept` whatever its state, since refreshing it is the work of
-`gemba skills update`. The providers SHALL be read from the shared config, which the
-command validates, with the personal config beside it when there is one, before
-writing anything: an invalid config, or a shared config that declares no
-`agent_providers`, whatever the personal config declares, SHALL be refused with its
-problems and nothing written. `--providers` SHALL be refused when `gemba.yaml`
-exists, since the command never edits it. Running the command twice SHALL leave the
-tree identical after the second run.
+`gemba skills update`, and a registered skill missing from disk is written. The
+providers SHALL be read from the shared config, which the command validates, with the
+personal config beside it when there is one, before writing anything: an invalid
+config, or a shared config that declares no `agent_providers`, whatever the personal
+config declares, SHALL be refused with its problems and nothing written.
+`--providers` SHALL be refused when `gemba.yaml` exists, since the command never edits
+it. Running the command twice SHALL leave the tree identical after the second run.
 
 #### Scenario: Second run changes nothing
 - **WHEN** `gemba init` runs a second time with nothing changed in between
 - **THEN** every path is reported as `kept`, the tree is identical and the command exits 0
 
 #### Scenario: Missing pieces completed
-- **WHEN** `gemba init` runs in a folder holding a valid `gemba.yaml` with `agent_providers: [claude]`, a `.gitignore` with neither of its two lines, a `.gitattributes` holding only `*.md text eol=lf`, and no `tasks/` folder or skills
-- **THEN** `gemba.yaml` is kept byte for byte, `harnesses/` and `gemba.local.yaml` are appended to `.gitignore` in that order, the `*.yaml` line is appended to `.gitattributes`, `tasks/.gitkeep` and the skills of `claude` are written, no `.agents/` folder appears, and the output reports `kept gemba.yaml`, `updated .gitignore`, `updated .gitattributes` and `written` for the rest
+- **WHEN** `gemba init` runs in a folder holding a valid `gemba.yaml` with `agent_providers: [claude]`, a `.gitignore` with none of its three lines, a `.gitattributes` holding only `*.md text eol=lf`, and no `tasks/` folder or skills
+- **THEN** `gemba.yaml` is kept byte for byte, `harnesses/`, `gemba.local.yaml` and `/update.md` are appended to `.gitignore` in that order, the `*.yaml` line is appended to `.gitattributes`, `tasks/.gitkeep` and the skills of `claude` are written, no `.agents/` folder appears, and the output reports `kept gemba.yaml`, `updated .gitignore`, `updated .gitattributes` and `written` for the rest
 
 #### Scenario: Personal config ignored in an earlier tasks repo
 - **WHEN** `gemba init` runs in a tasks repo made by an earlier version, whose `.gitignore` holds `harnesses/` alone and whose other files are all in place
-- **THEN** `gemba.local.yaml` is appended to `.gitignore`, the output reports `updated .gitignore` and every other path as `kept`, and the command exits 0
+- **THEN** `gemba.local.yaml` and `/update.md` are appended to `.gitignore` in that order, the output reports `updated .gitignore` and every other path as `kept`, and the command exits 0
+
+#### Scenario: Draft ignored in an earlier tasks repo
+- **WHEN** `gemba init` runs in a tasks repo whose `.gitignore` holds `harnesses/` and `gemba.local.yaml` and whose other files are all in place, as the version before this change left it
+- **THEN** `/update.md` is appended to `.gitignore`, the output reports `updated .gitignore` and every other path as `kept`, and the command exits 0
 
 #### Scenario: Existing skill kept whatever its state
 - **WHEN** `gemba init` runs in a tasks repo where one skill was edited by hand and another was written by an older version

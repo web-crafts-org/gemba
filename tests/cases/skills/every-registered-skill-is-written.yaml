@@ -11,6 +11,7 @@ files_contain:
   .claude/skills/gemba-create/SKILL.md: ["---\nname: gemba-create\n"]
   .claude/skills/gemba-list/SKILL.md: ["---\nname: gemba-list\n"]
   .claude/skills/gemba-harness/SKILL.md: ["---\nname: gemba-harness\n"]
+  .claude/skills/gemba-record/SKILL.md: ["---\nname: gemba-record\n"]
   .claude/skills/gemba-report/SKILL.md: ["---\nname: gemba-report\n"]
   .claude/skills/gemba-mark/SKILL.md: ["---\nname: gemba-mark\n"]
   .claude/skills/gemba-archive/SKILL.md: ["---\nname: gemba-archive\n"]
@@ -31,6 +32,7 @@ stdout: |
   written .claude/skills/gemba-create/SKILL.md
   written .claude/skills/gemba-list/SKILL.md
   written .claude/skills/gemba-harness/SKILL.md
+  written .claude/skills/gemba-record/SKILL.md
   written .claude/skills/gemba-report/SKILL.md
   written .claude/skills/gemba-mark/SKILL.md
   written .claude/skills/gemba-archive/SKILL.md

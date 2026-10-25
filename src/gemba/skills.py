@@ -45,7 +45,7 @@ SKILLS = (
     Skill("gemba-create", "repo"),
     Skill("gemba-list", "repo"),
     Skill("gemba-harness", "both"),
-    Skill("gemba-record", "harness"),
+    Skill("gemba-record", "both"),
     Skill("gemba-report", "repo"),
     Skill("gemba-mark", "both"),
     Skill("gemba-archive", "repo"),

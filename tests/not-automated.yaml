@@ -47,6 +47,9 @@
 "task-recording: Nothing to record": the agent decides there is nothing to record by following the gemba-record skill; no command runs
 "task-recording: Agent follows the verb's rules": the agent follows record.rules through the gemba-record skill
 "task-recording: Config change without skill change": a property of the gemba-record skill text, not of the command
+"task-recording: Agent records work done outside a harness": the agent drafts what the user told it and runs the command from the tasks repo by following the gemba-record skill; the command is covered by the record cases
+"task-recording: Task with a harness recorded from the tasks repo": the agent points to the harness and reads none of its notes by following the gemba-record skill
+"task-recording: Nothing told, nothing recorded": the agent asks what was done and records nothing it was not told by following the gemba-record skill; no command runs
 "task-reporting: Candidates listed by the command": the agent runs gemba list with the report filters by following the gemba-report skill
 "task-reporting: Candidates of a month": the agent runs gemba list with the filters of the period by following the gemba-report skill
 "task-reporting: Task created after the date is not a candidate": the agent relies on the listing filters by following the gemba-report skill; the filters are covered by the list cases
@@ -55,6 +58,7 @@
 "task-reporting: Created or finished on the date": the agent reads date and done_at by following the gemba-report skill
 "task-reporting: Report grouped by workstream": the agent composes the report by following the gemba-report skill
 "task-reporting: Gaps listed, not filled": the agent lists the candidates with nothing recorded by following the gemba-report skill
+"task-reporting: Gap pointed to recording": the agent points a gap to the gemba-record skill, inside the task's harness or from the tasks repo, by following the gemba-report skill and records nothing itself
 "task-reporting: Day without activity": the agent says nothing was recorded by following the gemba-report skill
 "task-reporting: Problems relayed": the agent reports each problem of the listing by following the gemba-report skill
 "task-reporting: Amount of a period": the agent chooses the selection, runs gemba report and states its numbers by following the gemba-report skill; the command is covered by the report cases

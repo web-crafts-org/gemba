@@ -25,5 +25,5 @@ setup:
 cwd: tasks/support
 run: [record, update.md, --date, 2026-10-01]
 exit: 1
-stderr_contains: [no harness found]
+stderr_contains: [no harness found, no ref given]
 unchanged: true

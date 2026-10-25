@@ -1,16 +1,20 @@
-"""Task file rules: slug, filename, ref allocation, frontmatter and body, written and read."""
+"""Task file rules: slug, filename, ref allocation, frontmatter and body, written and read, and the draft of an
+update."""
 
 import datetime
 import re
 from collections.abc import Collection, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
-from typing import Any
+from typing import Any, Literal
 
 import yaml
 
-from gemba import metadata, values
+from gemba import metadata, platform, values
 from gemba.metadata import Conditions
+
+# Where a record is made: inside the harness of the task, or from the tasks repo.
+Place = Literal["harness", "repo"]
 
 TASKS_DIR = "tasks"
 ARCHIVE_DIR = "archive"
@@ -364,6 +368,30 @@ def parse_bullets(text: str) -> tuple[list[str], list[str]]:
     if problems:
         return [], problems
     return lines[filled[0] : filled[-1] + 1], []
+
+
+def read_draft(root: Path, given: str, place: Place) -> tuple[list[str], list[str]]:
+    """The bullet lines of the draft at `given`, relative to `root`, the resolved root of `place`, and every problem
+    found with it.
+
+    Inside a harness the draft lies anywhere in it. From the tasks repo it lies directly
+    in the root, so that neither a task file nor the draft of a run is consumed; the
+    parent is compared with `samefile`, so a spelling of the root that differs only in
+    case is still the root.
+    """
+    path = (root / given).resolve()
+    if place == "harness":
+        if not path.is_relative_to(root):
+            return [], ["is not inside the harness (paths are relative to the harness root)"]
+    elif not (path.parent.is_dir() and path.parent.samefile(root)):
+        return [], ["is not directly in the tasks repo root (paths are relative to the tasks repo root)"]
+    if not path.is_file():
+        return [], ["is not a file" if path.exists() else "does not exist"]
+    try:
+        text = platform.decode(path.read_bytes())
+    except UnicodeDecodeError:
+        return [], ["is not UTF-8 text"]
+    return parse_bullets(text)
 
 
 def date_problem(day: datetime.date, created: datetime.date, today: datetime.date) -> str | None:

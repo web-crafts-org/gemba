@@ -156,7 +156,7 @@ class RegistryTest(unittest.TestCase):
                 "gemba-create": "repo",
                 "gemba-list": "repo",
                 "gemba-harness": "both",
-                "gemba-record": "harness",
+                "gemba-record": "both",
                 "gemba-report": "repo",
                 "gemba-mark": "both",
                 "gemba-archive": "repo",

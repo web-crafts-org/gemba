@@ -11,6 +11,7 @@ stdout: |
   written .claude/skills/gemba-create/SKILL.md
   written .claude/skills/gemba-list/SKILL.md
   written .claude/skills/gemba-harness/SKILL.md
+  written .claude/skills/gemba-record/SKILL.md
   written .claude/skills/gemba-report/SKILL.md
   written .claude/skills/gemba-mark/SKILL.md
   written .claude/skills/gemba-archive/SKILL.md
@@ -20,6 +21,7 @@ stdout: |
   written .agents/skills/gemba-create/SKILL.md
   written .agents/skills/gemba-list/SKILL.md
   written .agents/skills/gemba-harness/SKILL.md
+  written .agents/skills/gemba-record/SKILL.md
   written .agents/skills/gemba-report/SKILL.md
   written .agents/skills/gemba-mark/SKILL.md
   written .agents/skills/gemba-archive/SKILL.md
@@ -41,7 +43,7 @@ files:
       default:
         prefix: TASK
         description: Work that fits no other workstream
-  .gitignore: "harnesses/\ngemba.local.yaml\n"
+  .gitignore: "harnesses/\ngemba.local.yaml\n/update.md\n"
   .gitattributes: "*.md text eol=lf\n*.yaml text eol=lf\n"
   tasks/.gitkeep: ""
 folders: [tasks]
@@ -49,6 +51,7 @@ files_contain:
   .claude/skills/gemba-create/SKILL.md: &create ["---\nname: gemba-create\n", "  generatedBy: \"{version}\"\n"]
   .claude/skills/gemba-list/SKILL.md: &list ["---\nname: gemba-list\n", "  generatedBy: \"{version}\"\n"]
   .claude/skills/gemba-harness/SKILL.md: &harness ["---\nname: gemba-harness\n", "  generatedBy: \"{version}\"\n"]
+  .claude/skills/gemba-record/SKILL.md: &record ["---\nname: gemba-record\n", "  generatedBy: \"{version}\"\n"]
   .claude/skills/gemba-report/SKILL.md: &report ["---\nname: gemba-report\n", "  generatedBy: \"{version}\"\n"]
   .claude/skills/gemba-mark/SKILL.md: &mark ["---\nname: gemba-mark\n", "  generatedBy: \"{version}\"\n"]
   .claude/skills/gemba-archive/SKILL.md: &archive ["---\nname: gemba-archive\n", "  generatedBy: \"{version}\"\n"]
@@ -58,6 +61,7 @@ files_contain:
   .agents/skills/gemba-create/SKILL.md: *create
   .agents/skills/gemba-list/SKILL.md: *list
   .agents/skills/gemba-harness/SKILL.md: *harness
+  .agents/skills/gemba-record/SKILL.md: *record
   .agents/skills/gemba-report/SKILL.md: *report
   .agents/skills/gemba-mark/SKILL.md: *mark
   .agents/skills/gemba-archive/SKILL.md: *archive
@@ -66,7 +70,5 @@ files_contain:
   .agents/skills/gemba-config/SKILL.md: *config
 absent:
   - gemba.local.yaml
-  - .claude/skills/gemba-record
   - .claude/skills/gemba-worktree
-  - .agents/skills/gemba-record
   - .agents/skills/gemba-worktree
