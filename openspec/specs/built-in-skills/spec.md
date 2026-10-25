@@ -63,10 +63,12 @@ nothing.
 directory: the nearest folder holding `harness.yaml` is a harness and the target is
 that harness, with the providers recorded in its `harness.yaml`; otherwise the nearest
 folder holding `gemba.yaml` is the tasks repo and the target is its root, with the
-providers of the gemba config. The command SHALL write the skills folders under the
-target and never under the working directory, and SHALL refuse, writing nothing, when
-no gemba config is found. `--root` SHALL name the target explicitly, tasks repo or
-harness.
+providers of the shared config, never those of the personal config, which choose the
+providers of a launch only. A shared config that declares no `agent_providers` SHALL
+be refused as the previous requirement says, whatever the personal config declares.
+The command SHALL write the skills folders under the target and never under the
+working directory, and SHALL refuse, writing nothing, when no gemba config is found.
+`--root` SHALL name the target explicitly, tasks repo or harness.
 
 #### Scenario: Run from a subfolder
 - **WHEN** `gemba skills update` runs from a folder below the tasks repo root that is not inside a harness
@@ -79,6 +81,10 @@ harness.
 #### Scenario: No tasks repo
 - **WHEN** no ancestor of the working directory holds `gemba.yaml`
 - **THEN** the command exits 1, reports that no gemba config was found, and writes nothing
+
+#### Scenario: Personal providers leave the tasks repo skills
+- **WHEN** `gemba.yaml` declares `agent_providers: [claude]`, `gemba.local.yaml` declares `agent_providers: [agents]`, and `gemba skills update` runs at the tasks repo root
+- **THEN** the tasks-repo skills are written under `.claude/skills/` and no `.agents/` folder is created
 
 ### Requirement: Written skill content and provenance
 A written `SKILL.md` SHALL consist of a YAML frontmatter followed by the body of the
