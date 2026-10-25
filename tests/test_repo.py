@@ -37,25 +37,35 @@ class RenderConfigTest(unittest.TestCase):
 
 
 class GitignoreTest(unittest.TestCase):
+    BOTH = "harnesses/\ngemba.local.yaml\n"
+
     def test_no_file(self):
-        self.assertEqual(repo.gitignore_text(None), "harnesses/\n")
+        self.assertEqual(repo.gitignore_text(None), self.BOTH)
 
     def test_empty_file(self):
-        self.assertEqual(repo.gitignore_text(""), "harnesses/\n")
+        self.assertEqual(repo.gitignore_text(""), self.BOTH)
 
-    def test_file_without_the_line(self):
-        self.assertEqual(repo.gitignore_text("cli/.venv/\n"), "cli/.venv/\nharnesses/\n")
+    def test_file_without_either_line(self):
+        self.assertEqual(repo.gitignore_text("cli/.venv/\n"), f"cli/.venv/\n{self.BOTH}")
 
     def test_file_without_a_final_newline(self):
-        self.assertEqual(repo.gitignore_text("cli/.venv/"), "cli/.venv/\nharnesses/\n")
+        self.assertEqual(repo.gitignore_text("cli/.venv/"), f"cli/.venv/\n{self.BOTH}")
 
-    def test_file_with_the_line(self):
-        self.assertIsNone(repo.gitignore_text("cli/.venv/\nharnesses/\n"))
-        self.assertIsNone(repo.gitignore_text("harnesses/"))
-        self.assertIsNone(repo.gitignore_text("harnesses/\r\n"))
+    def test_file_without_one_line(self):
+        self.assertEqual(repo.gitignore_text("harnesses/\n"), self.BOTH)
+        self.assertEqual(repo.gitignore_text("harnesses/"), self.BOTH)
+        self.assertEqual(
+            repo.gitignore_text("gemba.local.yaml\ncli/.venv/\n"), "gemba.local.yaml\ncli/.venv/\nharnesses/\n"
+        )
+
+    def test_file_with_both_lines(self):
+        self.assertIsNone(repo.gitignore_text(f"cli/.venv/\n{self.BOTH}"))
+        self.assertIsNone(repo.gitignore_text("gemba.local.yaml\nharnesses/"))
+        self.assertIsNone(repo.gitignore_text("harnesses/\r\ngemba.local.yaml\r\n"))
 
     def test_similar_lines_do_not_count(self):
-        self.assertEqual(repo.gitignore_text("harnesses/old/\n"), "harnesses/old/\nharnesses/\n")
+        text = "harnesses/old/\n/gemba.local.yaml.bak\n"
+        self.assertEqual(repo.gitignore_text(text), f"{text}{self.BOTH}")
 
 
 class GitattributesTest(unittest.TestCase):

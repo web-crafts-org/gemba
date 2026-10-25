@@ -3,8 +3,6 @@ scenario: "config-maintenance: Effective config shown"
 config:
   default_workstream: operations
   organization: acme
-  repos_dir: ~/projects
-  ide: code -n
   agent_providers: [claude, agents]
   metadata:
     - { name: client, type: text, description: Who the work is for }
@@ -16,6 +14,9 @@ config:
         - { name: client, type: text, required: true }
         - { name: project, type: text, description: The project of the client }
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  repos_dir: ~/projects
+  ide: code -n
 run: [config, show]
 exit: 0
 stdout_json:
@@ -24,6 +25,7 @@ stdout_json:
   repos_dir: ~/projects
   ide: code -n
   agent_providers: [claude, agents]
+  harness_providers: [claude, agents]
   default_workstream: operations
   workstreams:
     - id: support
@@ -41,7 +43,7 @@ stdout_json:
         archive: *empty
         set: *empty
         harness:
-          guide: { organization: null, workstream: null }
+          guide: { organization: null, workstream: null, user: null }
           launch: *empty
           note: *empty
           resolve: *empty

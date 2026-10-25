@@ -126,7 +126,7 @@ def run_launch(args: argparse.Namespace) -> int:
         return fail("launch", str(exc))
 
     errors = []
-    if gemba_config.agent_providers is None:
+    if gemba_config.harness_providers is None:
         errors.append(
             f"no agent providers declared: add agent_providers to {config.CONFIG_FILENAME} "
             f"(known providers: {', '.join(skills.PROVIDERS)})"
@@ -148,7 +148,7 @@ def run_launch(args: argparse.Namespace) -> int:
             )
     if errors:
         return fail("launch", "harness not launched:\n" + "\n".join(f"- {error}" for error in errors))
-    assert task is not None and gemba_config.agent_providers is not None, "every failed check appended an error"
+    assert task is not None and gemba_config.harness_providers is not None, "every failed check appended an error"
 
     root = gemba_config.root
     folder = harness.harness_path(root, task.workstream, PurePosixPath(task.path).stem)
@@ -167,7 +167,7 @@ def run_launch(args: argparse.Namespace) -> int:
             task=task.path,
             ref=task.ref,
             workstream=task.workstream,
-            agent_providers=gemba_config.agent_providers,
+            agent_providers=gemba_config.harness_providers,
             launched_at=today,
             gemba_version=package_version,
         )
@@ -517,19 +517,17 @@ def write_layout(
 
     `link` creates `task.md` as a symbolic link; when the system refuses, the file form holds the path instead.
     """
-    assert gemba_config.agent_providers is not None
+    providers = gemba_config.harness_providers
+    assert providers is not None
     for name in (harness.NOTES_DIR, harness.ASSETS_DIR, harness.WORKTREES_DIR):
         (folder / name).mkdir(parents=True, exist_ok=True)
     write_new(folder / harness.GITIGNORE, harness.GITIGNORE_TEXT)
     write_task_link(folder / harness.TASK_LINK, task.path, link)
-    guide = harness.render_guide(
-        skills.guide_asset(),
-        config.guide(gemba_config.processes),
-        config.guide(gemba_config.workstreams[task.workstream].processes),
-    )
-    for provider in gemba_config.agent_providers:
+    texts = gemba_config.effective_guide(task.workstream)
+    guide = harness.render_guide(skills.guide_asset(), texts.organization, texts.workstream, texts.user)
+    for provider in providers:
         write_new(folder / skills.PROVIDERS[provider].guide, guide)
-    for action in skills.plan(folder, gemba_config.agent_providers, version("gemba-cli"), "harness"):
+    for action in skills.plan(folder, providers, version("gemba-cli"), "harness"):
         if action.state == "missing":
             write_new(folder / action.path, action.content)
 

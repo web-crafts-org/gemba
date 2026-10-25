@@ -11,26 +11,26 @@ the removal of a harness never loses unsaved or unpushed work.
 
 ### Requirement: The repositories folder and the branch of a run
 A repository a run may check out SHALL be a folder directly under the `repos_dir` of
-the gemba config that holds a git repository at its root, identified by its folder
+the personal config that holds a git repository at its root, identified by its folder
 name. `repos_dir` SHALL be absolute, start with `~`, which is expanded to the user's
 home, or be relative to the tasks repo root. No verb SHALL search below that level or
 clone anything. The remote of every operation SHALL be `origin`. Every worktree of a
 run SHALL be on a local branch named `<branch_prefix>/<organization>/<ref>`, with
-`branch_prefix` and `organization` from the gemba config and `ref` from
-`harness.yaml`, created with no upstream, so that two runs on the same repository
-never share a branch. No verb of the group SHALL push, delete or otherwise change
-anything on the remote, whatever the flags.
+`branch_prefix` from the personal config, `organization` from the shared config and
+`ref` from `harness.yaml`, created with no upstream, so that two runs on the same
+repository never share a branch. No verb of the group SHALL push, delete or otherwise
+change anything on the remote, whatever the flags.
 
 #### Scenario: Repository resolved at the root of the folder
 - **WHEN** `repos_dir` holds `nakatomi-web/` with a `.git` and `group/other/` with a `.git` below one more level, and `gemba worktree add nakatomi-web` and then `gemba worktree add other` run inside a harness
 - **THEN** the first creates `worktrees/nakatomi-web` and exits 0, and the second exits 1, says that no repository named `other` is at the root of the folder, names `nakatomi-web` as the one found there, and creates no worktree and no branch
 
 #### Scenario: Repositories folder relative to the tasks repo
-- **WHEN** the config declares `repos_dir: repos` and `repos/nakatomi-web` is a git repository under the tasks repo root
+- **WHEN** the personal config declares `repos_dir: repos` and `repos/nakatomi-web` is a git repository under the tasks repo root
 - **THEN** `gemba worktree add nakatomi-web` finds it and creates the worktree
 
 #### Scenario: Branch named after the run
-- **WHEN** the config declares `organization: nakatomi` and no `branch_prefix`, or `branch_prefix: nk`, and `gemba worktree add nakatomi-web` runs in the harness of `SUP-1`
+- **WHEN** the shared config declares `organization: nakatomi` and the personal config declares no `branch_prefix`, or `branch_prefix: nk`, and `gemba worktree add nakatomi-web` runs in the harness of `SUP-1`
 - **THEN** the base repository holds the local branch `gemba/nakatomi/SUP-1`, or `nk/nakatomi/SUP-1`, checked out in `worktrees/nakatomi-web`, and `gemba worktree list` shows `upstream: none` for it
 
 #### Scenario: Same repository in two runs
@@ -40,22 +40,22 @@ anything on the remote, whatever the flags.
 ### Requirement: Add creates the worktree of a repository
 `gemba worktree add <repo> [--from <branch>] [--force]` SHALL run inside a harness,
 resolved as the nearest `harness.yaml` at or above the working directory or as the
-folder given with `--harness`. It SHALL refuse, creating nothing, when the gemba
-config declares no `organization` or no `repos_dir`, naming the missing key; when no
-repository named `<repo>` is at the root of `repos_dir`, naming the repositories that
-are; when `origin` has no branch `<branch>` after the fetch; when `--from` is not
-given and the repository records no default branch for `origin`, saying that
-`--from` names the base; when a folder exists at `worktrees/<repo>` that is not a
-worktree of that repository; and when the base repository already holds the branch of
-the run without a worktree, left by a harness deleted by hand, unless `--force` is
-given, in which case that branch is deleted and recreated. Otherwise it SHALL fetch
-`origin` with pruning, prune the stale worktree records of the base repository, create
-the branch of the run at `origin/<branch>`, or at the default branch of `origin`
-without `--from`, with no upstream, check it out as a worktree at `worktrees/<repo>`
-in the harness, and print the worktree path relative to the harness root, `branch:`
-and the branch, `from:` and the base, and `created`. A failed fetch SHALL be a refusal
-that relays git's message. The harness repository SHALL NOT be committed: `worktrees/`
-is excluded from it.
+folder given with `--harness`. It SHALL refuse, creating nothing, when the shared
+config declares no `organization` or the personal config no `repos_dir`, naming the
+missing key and the file it goes in; when no repository named `<repo>` is at the root
+of `repos_dir`, naming the repositories that are; when `origin` has no branch
+`<branch>` after the fetch; when `--from` is not given and the repository records no
+default branch for `origin`, saying that `--from` names the base; when a folder exists
+at `worktrees/<repo>` that is not a worktree of that repository; and when the base
+repository already holds the branch of the run without a worktree, left by a harness
+deleted by hand, unless `--force` is given, in which case that branch is deleted and
+recreated. Otherwise it SHALL fetch `origin` with pruning, prune the stale worktree
+records of the base repository, create the branch of the run at `origin/<branch>`, or
+at the default branch of `origin` without `--from`, with no upstream, check it out as
+a worktree at `worktrees/<repo>` in the harness, and print the worktree path relative
+to the harness root, `branch:` and the branch, `from:` and the base, and `created`. A
+failed fetch SHALL be a refusal that relays git's message. The harness repository
+SHALL NOT be committed: `worktrees/` is excluded from it.
 
 #### Scenario: Worktree added from the default branch
 - **WHEN** `origin` of `nakatomi-web` has `main` as its default branch and `gemba worktree add nakatomi-web` runs in the harness of `SUP-1`
@@ -70,8 +70,8 @@ is excluded from it.
 - **THEN** `worktrees/nakatomi-web` holds the file of that commit
 
 #### Scenario: Config without organization or repositories folder refused
-- **WHEN** the config declares no `organization`, or no `repos_dir`, and `gemba worktree add nakatomi-web` runs
-- **THEN** the command exits 1, names the missing key, and creates no worktree and no branch
+- **WHEN** the shared config declares no `organization`, or the personal config no `repos_dir`, and `gemba worktree add nakatomi-web` runs
+- **THEN** the command exits 1, names the missing key and the file it goes in, `gemba.yaml` or `gemba.local.yaml`, and creates no worktree and no branch
 
 #### Scenario: Missing remote branch refused
 - **WHEN** `gemba worktree add nakatomi-web --from feature/none` runs and `origin` has no such branch

@@ -2,84 +2,91 @@ name: an empty ide command is refused naming ide
 scenario: "gemba-config: Malformed IDE command refused"
 config:
   default_workstream: operations
-  ide: ""
   workstreams:
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  ide: ""
 run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
 exit: 1
-stderr_contains: [invalid gemba config, ide must be a non-empty string]
+stderr_contains: [invalid gemba config, gemba.local.yaml, ide must be a non-empty string]
 unchanged: true
 ---
 name: an ide command written as a list is refused naming ide
 scenario: "gemba-config: Malformed IDE command refused"
 config:
   default_workstream: operations
-  ide: [code, -n]
   workstreams:
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  ide: [code, -n]
 run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
 exit: 1
-stderr_contains: [invalid gemba config, ide must be a non-empty string]
+stderr_contains: [invalid gemba config, gemba.local.yaml, ide must be a non-empty string]
 unchanged: true
 ---
 name: an ide map without command is refused naming ide
 scenario: "gemba-config: Malformed IDE command refused"
 config:
   default_workstream: operations
-  ide: { args: [-n] }
   workstreams:
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  ide: { args: [-n] }
 tree:
   tasks/operations/.gitkeep: ""
 run: [list]
 exit: 1
-stderr_contains: [invalid gemba config, ide.command must be a non-empty string]
+stderr_contains: [invalid gemba config, gemba.local.yaml, ide.command must be a non-empty string]
 unchanged: true
 ---
 name: an ide map whose command is empty is refused naming ide
 scenario: "gemba-config: Malformed IDE command refused"
 config:
   default_workstream: operations
-  ide: { command: "" }
   workstreams:
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  ide: { command: "" }
 run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
 exit: 1
-stderr_contains: [invalid gemba config, ide.command must be a non-empty string]
+stderr_contains: [invalid gemba config, gemba.local.yaml, ide.command must be a non-empty string]
 unchanged: true
 ---
 name: an ide map whose command is not a string is refused naming ide
 scenario: "gemba-config: Malformed IDE command refused"
 config:
   default_workstream: operations
-  ide: { command: [code, -n] }
   workstreams:
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  ide: { command: [code, -n] }
 run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
 exit: 1
-stderr_contains: [invalid gemba config, ide.command must be a non-empty string]
+stderr_contains: [invalid gemba config, gemba.local.yaml, ide.command must be a non-empty string]
 unchanged: true
 ---
 name: an ide map whose args is not a list is refused naming ide
 scenario: "gemba-config: Malformed IDE command refused"
 config:
   default_workstream: operations
-  ide: { command: code, args: -n }
   workstreams:
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  ide: { command: code, args: -n }
 run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
 exit: 1
-stderr_contains: [invalid gemba config, ide.args must be a list of strings]
+stderr_contains: [invalid gemba config, gemba.local.yaml, ide.args must be a list of strings]
 unchanged: true
 ---
 name: an ide map whose args holds something other than a string is refused naming ide
 scenario: "gemba-config: Malformed IDE command refused"
 config:
   default_workstream: operations
-  ide: { command: code, args: [-n, 1] }
   workstreams:
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  ide: { command: code, args: [-n, 1] }
 run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
 exit: 1
-stderr_contains: [invalid gemba config, ide.args must be a list of strings]
+stderr_contains: [invalid gemba config, gemba.local.yaml, ide.args must be a list of strings]
 unchanged: true

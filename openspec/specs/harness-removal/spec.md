@@ -28,12 +28,12 @@ with the folder. Without `--yes` it SHALL then print
 `not removed: pass --yes to delete the harness` and exit 0, leaving the tree as it
 was. With `--yes` it SHALL first remove every worktree of the harness from its base
 repository and delete the branch checked out in it, delete every branch of the run
-left in a repository under `repos_dir` without a worktree, then delete the harness
-folder and everything inside it, `task.md` whatever its form and the uncommitted
-paths included and never the task file `task.md` links or names, print `removed`,
-and exit 0. The remote of every repository SHALL NOT be touched. The task file SHALL
-NOT be touched, whatever its status, and no git command SHALL run against the tasks
-repo.
+left in a repository under the `repos_dir` of the personal config without a worktree,
+then delete the harness folder and everything inside it, `task.md` whatever its form
+and the uncommitted paths included and never the task file `task.md` links or names,
+print `removed`, and exit 0. The remote of every repository SHALL NOT be touched. The
+task file SHALL NOT be touched, whatever its status, and no git command SHALL run
+against the tasks repo.
 
 #### Scenario: Manifest shown without deleting
 - **WHEN** `gemba harness remove SUP-1` runs for a launched task whose harness holds two filed notes and one asset
@@ -56,7 +56,7 @@ repo.
 - **THEN** the manifest reads `worktrees: 2` and `uncommitted: 0`, the harness folder no longer exists, neither base repository holds `gemba/nakatomi/SUP-1`, the branches of each `origin` are what they were, the output ends with `removed` and the exit code is 0
 
 #### Scenario: Orphan branch of the run deleted
-- **WHEN** a repository under `repos_dir` holds `gemba/nakatomi/SUP-1` with no worktree and every commit of it on a remote branch, and `gemba harness remove SUP-1 --yes` runs
+- **WHEN** a repository under the `repos_dir` of the personal config holds `gemba/nakatomi/SUP-1` with no worktree and every commit of it on a remote branch, and `gemba harness remove SUP-1 --yes` runs
 - **THEN** the branch no longer exists, the harness folder no longer exists and the exit code is 0
 
 #### Scenario: Removed harness relaunched
@@ -76,20 +76,21 @@ Before deleting, and also when only showing the manifest, `remove` SHALL check t
 the working directory is not inside the harness, that the state of the harness
 repository can be read, that every worktree under `worktrees/` has no uncommitted path
 and no commit that is not on any remote branch, that every branch of the run left in a
-repository under `repos_dir` without a worktree has no commit that is not on any remote
-branch, and that every folder under `worktrees/` is a worktree. The uncommitted paths
-of the harness repository itself are not checked: the manifest lists them and the
-removal deletes them. When a check fails, or when the state of a worktree cannot be
-read, the command SHALL print the manifest, then `harness not removed:` and one line
-per problem, naming each worktree with the number of its uncommitted paths and of its
-unpushed commits, each orphan branch with its repository and the number of its
-unpushed commits, and each folder that is not a worktree, exit 1 and delete nothing,
-with or without `--yes`, so that the manifest never promises a deletion the real run
-refuses. When the state of the harness repository cannot be read, the manifest SHALL
-read `uncommitted: unknown`. With `--force` the checks on worktrees, orphan branches
-and folders under `worktrees/` SHALL NOT refuse, and with `--yes --force` the command
-SHALL discard what they protect; the checks on the working directory and on the state
-of the harness repository SHALL refuse regardless of `--force`.
+repository under the `repos_dir` of the personal config without a worktree has no
+commit that is not on any remote branch, and that every folder under `worktrees/` is a
+worktree. The uncommitted paths of the harness repository itself are not checked: the
+manifest lists them and the removal deletes them. When a check fails, or when the
+state of a worktree cannot be read, the command SHALL print the manifest, then
+`harness not removed:` and one line per problem, naming each worktree with the number
+of its uncommitted paths and of its unpushed commits, each orphan branch with its
+repository and the number of its unpushed commits, and each folder that is not a
+worktree, exit 1 and delete nothing, with or without `--yes`, so that the manifest
+never promises a deletion the real run refuses. When the state of the harness
+repository cannot be read, the manifest SHALL read `uncommitted: unknown`. With
+`--force` the checks on worktrees, orphan branches and folders under `worktrees/`
+SHALL NOT refuse, and with `--yes --force` the command SHALL discard what they
+protect; the checks on the working directory and on the state of the harness
+repository SHALL refuse regardless of `--force`.
 
 #### Scenario: Working directory inside the harness refused
 - **WHEN** `remove --yes` runs from a folder inside the harness it names
@@ -100,7 +101,7 @@ of the harness repository SHALL refuse regardless of `--force`.
 - **THEN** the output holds the manifest, `harness not removed:` and a line naming `worktrees/nakatomi-web` with the number of uncommitted paths or of unpushed commits, the exit code is 1, and the harness, the worktree and its branch still exist
 
 #### Scenario: Orphan branch with pending work refused
-- **WHEN** a repository under `repos_dir` holds `gemba/nakatomi/SUP-1` with no worktree and a commit not on any remote branch, and `remove SUP-1 --yes` runs
+- **WHEN** a repository under the `repos_dir` of the personal config holds `gemba/nakatomi/SUP-1` with no worktree and a commit not on any remote branch, and `remove SUP-1 --yes` runs
 - **THEN** the output holds the manifest, `harness not removed:` and a line naming the branch, the repository and the number of unpushed commits, the exit code is 1, and the harness and the branch still exist
 
 #### Scenario: Folder that is not a worktree refused

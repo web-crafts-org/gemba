@@ -1,0 +1,21 @@
+name: personal blocks of a workstream the shared catalogue does not declare are refused naming it and the valid ones
+scenario: "gemba-config: Personal blocks of an unknown workstream refused"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  workstreams:
+    billing:
+      create:
+        rules: [name the invoice]
+tree:
+  tasks/operations/.gitkeep: ""
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains:
+  - "invalid gemba config:\n"
+  - "gemba.local.yaml: workstream 'billing' is not in the workstream catalogue of gemba.yaml"
+  - "valid: support, operations"
+unchanged: true

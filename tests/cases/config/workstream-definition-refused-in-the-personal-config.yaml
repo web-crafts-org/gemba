@@ -1,0 +1,52 @@
+name: a prefix under a workstream of the personal config is refused naming the workstream, the key and gemba.yaml
+scenario: "gemba-config: Workstream definition refused in the personal config"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  workstreams:
+    support:
+      prefix: HLP
+tree:
+  tasks/operations/.gitkeep: ""
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains: ["invalid gemba config:\n", "gemba.local.yaml: workstream 'support': prefix belongs in gemba.yaml"]
+unchanged: true
+---
+name: a description under a workstream of the personal config is refused naming the workstream, the key and gemba.yaml
+scenario: "gemba-config: Workstream definition refused in the personal config"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  workstreams:
+    support:
+      description: My support work
+run: [config, check]
+exit: 1
+stderr_contains: ["invalid gemba config:\n", "gemba.local.yaml: workstream 'support': description belongs in gemba.yaml"]
+unchanged: true
+---
+name: metadata under a workstream of the personal config is refused naming the workstream, the key and gemba.yaml
+scenario: "gemba-config: Workstream definition refused in the personal config"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  workstreams:
+    support:
+      metadata:
+        - { name: client, type: text }
+tree:
+  tasks/support/.gitkeep: ""
+run: [list]
+exit: 1
+stderr_contains: ["invalid gemba config:\n", "gemba.local.yaml: workstream 'support': metadata belongs in gemba.yaml"]
+unchanged: true

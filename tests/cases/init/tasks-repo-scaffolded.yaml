@@ -1,4 +1,4 @@
-name: init in an empty folder writes the config, the ignore line, the LF attributes, the tasks folder and the skills of every provider
+name: init in an empty folder writes the config, the ignore lines, the LF attributes, the tasks folder and the skills of every provider
 scenario: "repo-initialization: Tasks repo scaffolded in the working directory"
 cwd: .
 run: [init]
@@ -41,7 +41,7 @@ files:
       default:
         prefix: TASK
         description: Work that fits no other workstream
-  .gitignore: "harnesses/\n"
+  .gitignore: "harnesses/\ngemba.local.yaml\n"
   .gitattributes: "*.md text eol=lf\n*.yaml text eol=lf\n"
   tasks/.gitkeep: ""
 folders: [tasks]
@@ -65,6 +65,7 @@ files_contain:
   .agents/skills/gemba-init/SKILL.md: *init
   .agents/skills/gemba-config/SKILL.md: *config
 absent:
+  - gemba.local.yaml
   - .claude/skills/gemba-record
   - .claude/skills/gemba-worktree
   - .agents/skills/gemba-record

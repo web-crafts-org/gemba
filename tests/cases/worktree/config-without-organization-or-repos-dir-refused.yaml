@@ -3,10 +3,11 @@ scenario: "harness-worktrees: Config without organization or repositories folder
 config:
   default_workstream: operations
   agent_providers: [claude]
-  repos_dir: repos
   workstreams:
     support: { prefix: SUP, description: Investigate a client-reported problem }
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  repos_dir: repos
 repos:
   nakatomi-web:
     branches:
@@ -61,7 +62,7 @@ setup:
   - [harness, launch, SUP-1, --no-open]
 run: [worktree, add, nakatomi-web]
 exit: 1
-stderr_contains: ["worktree not added:", "no repos_dir declared: add repos_dir to gemba.yaml"]
+stderr_contains: ["worktree not added:", "no repos_dir declared: add repos_dir to gemba.local.yaml"]
 absent:
   - harnesses/support/2026-09-30-SUP-1-login-fails/worktrees/*
 git_branches:

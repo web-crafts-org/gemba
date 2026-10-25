@@ -3,10 +3,11 @@ scenario: "harness-launch: Open skipped"
 config:
   default_workstream: operations
   agent_providers: [claude]
-  ide: code -n
   workstreams:
     support: { prefix: SUP, description: Investigate a client-reported problem }
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  ide: code -n
 tree:
   tasks/support/2026-09-30-SUP-1-login-fails.md: |
     ---

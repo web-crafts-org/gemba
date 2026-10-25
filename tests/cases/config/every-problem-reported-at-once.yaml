@@ -1,0 +1,23 @@
+name: every problem of both files is reported in one refusal, each with the path of its file
+scenario: "gemba-config: Every problem reported at once"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: hours, type: integer }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: SUP, description: Anything that does not fit another workstream }
+local_config:
+  ide: ""
+  organization: nakatomi
+tree:
+  tasks/operations/.gitkeep: ""
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains:
+  - "invalid gemba config:\n"
+  - "gemba.yaml: workstreams 'support' and 'operations' declare the same prefix 'SUP'"
+  - "gemba.yaml: metadata[0]: field 'hours' has unknown type 'integer'"
+  - "gemba.local.yaml: ide must be a non-empty string"
+  - "gemba.local.yaml: organization belongs in gemba.yaml"
+unchanged: true

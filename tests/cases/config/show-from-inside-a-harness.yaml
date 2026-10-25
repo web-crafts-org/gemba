@@ -27,6 +27,7 @@ stdout_json:
   repos_dir: null
   ide: null
   agent_providers: [claude]
+  harness_providers: [claude]
   default_workstream: operations
   workstreams:
     - id: support
@@ -43,7 +44,7 @@ stdout_json:
         archive: *empty
         set: *empty
         harness:
-          guide: { organization: null, workstream: null }
+          guide: { organization: null, workstream: null, user: null }
           launch: *empty
           note: *empty
           resolve: { context: null, rules: [name the client in the outcome] }

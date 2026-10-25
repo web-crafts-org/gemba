@@ -1,0 +1,15 @@
+name: the skills of the tasks repo are written for the providers of gemba.yaml, never for those of the personal config
+scenario: "built-in-skills: Personal providers leave the tasks repo skills"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  agent_providers: [agents]
+run: [skills, update]
+exit: 0
+files_contain:
+  .claude/skills/gemba-create/SKILL.md: ["---\nname: gemba-create\n"]
+  .claude/skills/gemba-config/SKILL.md: ["---\nname: gemba-config\n"]
+absent: [.agents]

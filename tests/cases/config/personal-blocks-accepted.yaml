@@ -1,0 +1,52 @@
+name: personal process blocks at the top level and under a workstream of the catalogue are accepted
+scenario: "gemba-config: Personal blocks accepted"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  create:
+    rules: [propose a slug of three words at most]
+  harness:
+    guide: Answer me in Spanish.
+  workstreams:
+    support:
+      worktree:
+        add:
+          rules: [start from the default branch of origin]
+run: [create, --workstream, support, --slug, login-fails, --date, 2026-09-30]
+exit: 0
+stdout_contains: [tasks/support/2026-09-30-SUP-1-login-fails.md, SUP-1]
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+---
+name: check accepts personal process blocks
+scenario: "gemba-config: Personal blocks accepted"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  create:
+    rules: [propose a slug of three words at most]
+  harness:
+    guide: Answer me in Spanish.
+  workstreams:
+    support:
+      worktree:
+        add:
+          rules: [start from the default branch of origin]
+run: [config, check]
+exit: 0
+stdout_contains: ["gemba.yaml is valid\n"]
+unchanged: true

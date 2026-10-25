@@ -17,7 +17,7 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         help="make a folder a tasks repo",
         description=(
             f"Make the folder a tasks repo: {config.CONFIG_FILENAME} with the one workstream default, the "
-            f"{repo.GITKEEP} file, the {repo.IGNORED_LINE} line of {repo.GITIGNORE}, the LF lines of "
+            f"{repo.GITKEEP} file, the {' and '.join(repo.IGNORED_LINES)} lines of {repo.GITIGNORE}, the LF lines of "
             f"{repo.GITATTRIBUTES} and the tasks repo skills under the skills folder of every agent provider. "
             "Only what is missing is written: an existing "
             f"{config.CONFIG_FILENAME} is never rewritten and gives the providers, and a skill already on disk is "

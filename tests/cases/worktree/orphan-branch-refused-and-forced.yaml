@@ -6,10 +6,11 @@ config:
   default_workstream: operations
   agent_providers: [claude]
   organization: nakatomi
-  repos_dir: repos
   workstreams:
     support: { prefix: SUP, description: Investigate a client-reported problem }
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  repos_dir: repos
 repos:
   nakatomi-web:
     branches:
@@ -47,10 +48,11 @@ config:
   default_workstream: operations
   agent_providers: [claude]
   organization: nakatomi
-  repos_dir: repos
   workstreams:
     support: { prefix: SUP, description: Investigate a client-reported problem }
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  repos_dir: repos
 repos:
   nakatomi-web:
     branches:

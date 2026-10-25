@@ -6,6 +6,8 @@ YAML documents, one case each. A case uses this vocabulary:
 - `name`: short case name, shown when the case fails.
 - `scenario`: the spec scenario it covers, as `<capability>: <scenario title>`.
 - `config`: content of `gemba.yaml`, as a map or as raw text; omitted means no config.
+- `local_config`: content of `gemba.local.yaml`, the personal config, written like
+  `config`; omitted means no personal config.
 - `repos`: git repositories to build before `tree`, each name mapped to `branches`
   (each branch name mapped to its files, as `path: content`), `default` (the default
   branch of the remote, the first branch when omitted) and `unfetched` (branches
@@ -15,7 +17,8 @@ YAML documents, one case each. A case uses this vocabulary:
   branch; it clones it to `repos/<name>`, so `origin` is a file URL, `origin/HEAD` is
   the default branch and that branch is checked out; and it then pushes one commit per
   `unfetched` branch, subject `unfetched <branch>`, adding its files to the tip of the
-  branch, so that the clone is behind its remote. A case declares `repos_dir: repos`.
+  branch, so that the clone is behind its remote. A case declares `repos_dir: repos`
+  in `local_config`.
 - `tree`: files to create before running, as `path: content`. The content is written
   as UTF-8 with its line endings as given, so `\r\n` escapes make a CRLF file; a
   `!!binary` value is written as those bytes, for a file in another encoding.
@@ -33,6 +36,8 @@ YAML documents, one case each. A case uses this vocabulary:
 - `exit`: expected exit code.
 - `stdout`: the exact expected standard output.
 - `stdout_contains`, `stderr_contains`: strings the output must contain.
+- `stderr_excludes`: strings standard error must not contain, for a message that must
+  not appear.
 - `stdout_json`: the document standard output must hold, written as YAML. Both sides
   are compared as parsed JSON, so indentation and key order do not matter while every
   key, value, type and list order does. Unquoted YAML dates stand for ISO strings.
@@ -63,11 +68,13 @@ the same places, stands for the version of the installed gemba CLI package, and
 `{root}` for the absolute path of the root the case runs in, as the system spells it.
 
 Git must be on PATH: harness commands run it. Every command runs with the user's and
-the system's git config ignored and a fixed identity, so commits never depend on the
-machine running the suite. The IDE is never started: every command runs with a stub
-for each name in STUBS first on PATH, a shell script and a `.cmd` script side by side
-so that the stub resolves on every platform, each exiting 0 and doing nothing. The
-output of every command is decoded as UTF-8, the encoding gemba promises.
+the system's git config ignored, a fixed identity and none of the variables that tie
+git to a repository, so commits never depend on the machine running the suite, and a
+suite run from a git hook never reaches the repository of the hook. The IDE is never
+started: every command runs with a stub for each name in STUBS first on PATH, a shell
+script and a `.cmd` script side by side so that the stub resolves on every platform,
+each exiting 0 and doing nothing. The output of every command is decoded as UTF-8, the
+encoding gemba promises.
 """
 
 import datetime
@@ -79,6 +86,7 @@ import subprocess
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import yaml
 
@@ -117,6 +125,29 @@ GIT_ENVIRONMENT = {
     "GIT_COMMITTER_NAME": "Gemba Cases",
     "GIT_COMMITTER_EMAIL": "cases@gemba.invalid",
 }
+# The variables that tie git to one repository, as `git rev-parse --local-env-vars` lists
+# them, dropped from the inherited environment as git drops them on entering another one:
+# a hook run from a linked worktree exports GIT_DIR, which would point every git of a case
+# at that repository.
+GIT_LOCAL_VARIABLES = frozenset(
+    {
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+        "GIT_CONFIG",
+        "GIT_CONFIG_PARAMETERS",
+        "GIT_CONFIG_COUNT",
+        "GIT_OBJECT_DIRECTORY",
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+        "GIT_IMPLICIT_WORK_TREE",
+        "GIT_GRAFT_FILE",
+        "GIT_INDEX_FILE",
+        "GIT_NO_REPLACE_OBJECTS",
+        "GIT_REPLACE_REF_BASE",
+        "GIT_PREFIX",
+        "GIT_SHALLOW_FILE",
+        "GIT_COMMON_DIR",
+    }
+)
 GLOB_CHARACTERS = "*?["
 # Executables the cases may name in a config, such as `ide: "code -n"`, replaced by stubs.
 STUBS = ("code",)
@@ -167,7 +198,8 @@ def is_glob(relative):
 
 def environment():
     path = os.pathsep.join([_STUBS_DIR.name, os.environ.get("PATH", "")])
-    return {**os.environ, **GIT_ENVIRONMENT, "PATH": path}
+    inherited = {name: value for name, value in os.environ.items() if name not in GIT_LOCAL_VARIABLES}
+    return {**inherited, **GIT_ENVIRONMENT, "PATH": path}
 
 
 def write_tree(root, tree):
@@ -210,8 +242,8 @@ class CaseRunner(unittest.TestCase):
             self.check(root, case, label, before, result)
 
     def prepare(self, root, case, label):
-        """Build the tree the command runs in: `config`, `repos`, `tree`, `cwd`, the `setup` commands,
-        `tree_after_setup` and `git_after_setup`."""
+        """Build the tree the command runs in: `config`, `local_config`, `repos`, `tree`, `cwd`, the `setup`
+        commands, `tree_after_setup` and `git_after_setup`."""
         self.materialize(root, case, label)
         for run in case.get("setup") or []:
             prepared = self.execute(root, case, label, run)
@@ -222,10 +254,11 @@ class CaseRunner(unittest.TestCase):
             self.run_git(root / expand(relative), *args, label=f"{label} git_after_setup")
 
     def materialize(self, root, case, label):
-        if "config" in case:
-            config = case["config"]
-            text = config if isinstance(config, str) else yaml.safe_dump(config, sort_keys=False)
-            (root / "gemba.yaml").write_text(text, encoding="utf-8")
+        for key, filename in (("config", "gemba.yaml"), ("local_config", "gemba.local.yaml")):
+            if key in case:
+                config = case[key]
+                text = config if isinstance(config, str) else yaml.safe_dump(config, sort_keys=False)
+                (root / filename).write_text(text, encoding="utf-8")
         for name, declaration in (case.get("repos") or {}).items():
             self.build_repository(root, name, declaration or {}, f"{label} repos {name}")
         write_tree(root, case.get("tree"))
@@ -303,6 +336,8 @@ class CaseRunner(unittest.TestCase):
             self.assertIn(expand(expected, root), result.stdout, f"{label} stdout_contains{output}")
         for expected in case.get("stderr_contains") or []:
             self.assertIn(expand(expected, root), result.stderr, f"{label} stderr_contains{output}")
+        for unexpected in case.get("stderr_excludes") or []:
+            self.assertNotIn(expand(unexpected, root), result.stderr, f"{label} stderr_excludes{output}")
         if "stdout_json" in case:
             try:
                 actual = json.loads(result.stdout)
@@ -455,6 +490,45 @@ class RunnerTest(CaseRunner):
             self.check(root, passing, "lf_only", snapshot(root), subprocess.CompletedProcess([], 0, str(root), ""))
             with self.assertRaises(AssertionError):
                 self.check(root, {"lf_only": ["crlf.md"]}, "lf_only", {}, subprocess.CompletedProcess([], 0, "", ""))
+
+    def test_local_config_is_written_like_config(self):
+        cases = {
+            "map": {
+                "config": "default_workstream: support\n",
+                "local_config": {"ide": "code -n", "repos_dir": "repos"},
+            },
+            "raw text": {"local_config": "ide: code -n\n# a comment\n"},
+            "empty": {"local_config": ""},
+        }
+        expected = {"map": "ide: code -n\nrepos_dir: repos\n", "raw text": "ide: code -n\n# a comment\n", "empty": ""}
+        for label, case in cases.items():
+            with self.subTest(label=label), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp).resolve()
+                self.prepare(root, case, "local_config")
+                self.assertEqual((root / "gemba.local.yaml").read_text(encoding="utf-8"), expected[label])
+                self.assertEqual((root / "gemba.yaml").is_file(), "config" in case)
+
+    def test_stderr_excludes_fails_on_a_fragment_found(self):
+        result = subprocess.CompletedProcess([], 1, "", "invalid gemba config:\n- gemba.yaml: workstreams\n")
+        passing = {"stderr_excludes": ["default_workstream", "{root}"]}
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            self.check(root, passing, "stderr_excludes", {}, result)
+            with self.assertRaises(AssertionError):
+                self.check(root, {"stderr_excludes": ["workstreams"]}, "stderr_excludes", {}, result)
+
+    def test_git_of_a_hook_is_left_out(self):
+        # A pre-push hook run from a linked worktree inherits GIT_DIR, the git dir of that worktree.
+        with tempfile.TemporaryDirectory() as tmp:
+            outer = Path(tmp).resolve() / "outer"
+            self.run_git(Path(tmp), "init", "--quiet", str(outer), label="outer")
+            before = snapshot(outer / ".git")
+            root = Path(tmp).resolve() / "case"
+            root.mkdir()
+            with mock.patch.dict(os.environ, {"GIT_DIR": str(outer / ".git")}):
+                self.prepare(root, {"repos": {"nakatomi-web": {}}}, "hook")
+            self.assertEqual(branches(root, "repos/nakatomi-web"), ["main"])
+            self.assertEqual(snapshot(outer / ".git"), before)
 
     def test_new_command_names_resolve_to_the_binary(self):
         for name in ("mark", "archive", "report", "set", "worktree", "init", "config"):

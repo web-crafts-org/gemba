@@ -1,4 +1,4 @@
-"""`gemba config check` and `gemba config show`: validate gemba.yaml, then summarize or resolve it."""
+"""`gemba config check` and `gemba config show`: validate both config files, then summarize or resolve them."""
 
 from __future__ import annotations
 
@@ -15,8 +15,8 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         "config",
         help="check the gemba config or show it resolved",
         description=(
-            f"Read {config.CONFIG_FILENAME}, the config of the tasks repo, without ever writing it: the file is "
-            "edited by hand."
+            f"Read the config of the tasks repo, the shared {config.CONFIG_FILENAME} and the personal "
+            f"{config.LOCAL_FILENAME} beside it, without ever writing them: both files are edited by hand."
         ),
     )
     parser.set_defaults(handler=lambda _args: usage(parser))
@@ -26,9 +26,10 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         "check",
         help="validate the config and summarize it",
         description=(
-            f"Validate {config.CONFIG_FILENAME} as every command does before acting. A valid config is summarized "
-            "with its workstreams and prefixes, its default workstream and its agent providers; an invalid one is "
-            "reported with the path of the file and the first problem, and the command exits 1."
+            f"Validate {config.CONFIG_FILENAME} and {config.LOCAL_FILENAME}, when it exists, as every command does "
+            "before acting. A valid config is summarized with its workstreams and prefixes, its default workstream, "
+            "its agent providers and the providers the personal config declares for a launch; an invalid one is "
+            "reported with every problem of both files, each with the path of its file, and the command exits 1."
         ),
     )
     check.add_argument("--root", type=Path, help="tasks repo root (default: walk up to the nearest gemba.yaml)")
@@ -38,11 +39,12 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         "show",
         help="print the effective config as one JSON document",
         description=(
-            f"Validate {config.CONFIG_FILENAME} as check does and print the effective config as one JSON object: "
-            "the top-level keys, the defaults applied and null where nothing is declared, and `workstreams`, in "
-            "catalogue order, each with its prefix, its description, its effective metadata schema and, under "
-            "`processes`, the effective block of every process and verb, the base block followed by the "
-            "workstream's."
+            "Validate the config as check does and print the effective config, merged from both files, as one JSON "
+            "object: the top-level keys, the defaults applied and null where nothing is declared, "
+            "`harness_providers`, the providers a launch writes the harness for, and `workstreams`, in catalogue "
+            "order, each with its prefix, its description, its effective metadata schema and, under `processes`, "
+            "the effective block of every process and verb: the shared base block, the workstream's, then the "
+            "personal ones."
         ),
     )
     show.add_argument("--workstream", metavar="ID", help="workstream identifier from gemba.yaml (default: every one)")
@@ -61,9 +63,13 @@ def run_check(args: argparse.Namespace) -> int:
     )
     providers = ", ".join(gemba_config.agent_providers) if gemba_config.agent_providers else "none declared"
     print(f"{config.CONFIG_FILENAME} is valid")
+    if gemba_config.personal:
+        print(f"{config.LOCAL_FILENAME} is valid")
     print(f"workstreams: {workstreams}")
     print(f"default workstream: {gemba_config.default_workstream}")
     print(f"agent providers: {providers}")
+    if gemba_config.personal_providers is not None:
+        print(f"harness providers: {', '.join(gemba_config.personal_providers)}")
     return 0
 
 
@@ -85,6 +91,7 @@ def run_show(args: argparse.Namespace) -> int:
         "repos_dir": gemba_config.repos_dir,
         "ide": None if gemba_config.ide is None else gemba_config.ide.declared,
         "agent_providers": None if gemba_config.agent_providers is None else list(gemba_config.agent_providers),
+        "harness_providers": None if gemba_config.harness_providers is None else list(gemba_config.harness_providers),
         "default_workstream": gemba_config.default_workstream,
         "workstreams": [workstream(gemba_config, workstream_id) for workstream_id in shown],
     }

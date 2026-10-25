@@ -6,11 +6,13 @@ description: Configure gemba for the first time in a tasks repo that gemba init 
 # Configure a new tasks repo
 
 `gemba init` writes a tasks repo that every command accepts, with a minimal
-`gemba.yaml`: one workstream, `default`, and every agent provider the CLI knows. This
-skill turns that scaffold into the config of the person's own work, once, by asking
-what only they know. Your part is to ask one question at a time, propose the values
-from the answers, and hand the edit over to the `gemba-config` skill, which holds the
-reference of every key and the process to edit, check and refresh.
+`gemba.yaml`, the shared config: one workstream, `default`, and every agent provider the
+CLI knows. This skill turns that scaffold into the config of the person's own work,
+once, by asking what only they know. What belongs to their machine alone, the IDE and
+the repositories folder, goes into `gemba.local.yaml`, the personal config, which git
+ignores. Your part is to ask one question at a time, propose the values from the
+answers, and hand the edit over to the `gemba-config` skill, which holds the reference
+of every key, the file it belongs in, and the process to edit, check and refresh.
 
 ## Prerequisite
 
@@ -52,30 +54,36 @@ fill a value the user did not give or confirm.
    `agent_providers`. Ask which agents the person uses and propose the list trimmed to
    them.
 6. **The IDE.** Ask for the command that opens a folder in their editor, such as
-   `code -n`; it becomes `ide`, run on every harness at launch. Write it as a string
+   `code -n`; it becomes `ide` in `gemba.local.yaml`, run on every harness this clone
+   launches. Write it as a string
    when it is a bare command with its arguments; when the path holds spaces or
    backslashes, as on Windows, either put it between double quotes inside the string
    or use the map form, `{ command: 'C:\Program Files\Code\code.cmd', args: [-n] }`,
    where the path is written as YAML writes any string, with no quoting rule of its own.
 7. **The repositories folder.** Only when the work involves code: ask for the folder
-   that holds the repositories the runs check out as worktrees; it becomes `repos_dir`,
-   absolute, starting with `~`, or relative to the tasks repo root.
+   that holds the repositories the runs check out as worktrees; it becomes `repos_dir`
+   in `gemba.local.yaml`, absolute, starting with `~`, or relative to the tasks repo
+   root.
 
 Do not ask for what has a default or comes from use: `branch_prefix`, and the
 `context` and `rules` of the processes.
 
 Then:
 
-8. **Write the config** by following the `gemba-config` skill from its step 4: edit
-   `gemba.yaml` keeping the comments of the scaffold, run `gemba config check` until it
-   exits 0, and run `gemba skills update` when `agent_providers` changed, telling the
+8. **Write the config** by following the `gemba-config` skill from its step 4: write
+   the IDE command and the repositories folder into `gemba.local.yaml`, which you create
+   at the tasks repo root, and every other answer into `gemba.yaml`, keeping the
+   comments of the scaffold; run `gemba config check` until it exits 0, and run
+   `gemba skills update` when the `agent_providers` of `gemba.yaml` changed, telling the
    user which skills folder is left for them to delete.
 9. **Report** the resulting config: the workstreams with their prefixes, the default,
-   the fields, the providers, the IDE command and the repositories folder. End by
-   naming the edits that come later, through the `gemba-config` skill: `branch_prefix`,
-   the first segment of every branch of a run, `gemba` by default; and the `context`
-   and `rules` of any process, which tell agents what to know and do in a workstream
-   or in all of them. Do not commit: the user reviews and commits the tasks repo.
+   the fields, the providers, the IDE command and the repositories folder. Say that
+   `gemba.local.yaml` stays on this machine and that git ignores it, so each person who
+   uses the tasks repo writes their own. End by naming the edits that come later,
+   through the `gemba-config` skill: `branch_prefix`, the first segment of every branch
+   of a run, `gemba` by default; and the `context` and `rules` of any process, which
+   tell agents what to know and do in a workstream or in all of them, for everyone or
+   for the person alone. Do not commit: the user reviews and commits the tasks repo.
 
 ## Rules
 

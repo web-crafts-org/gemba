@@ -22,6 +22,8 @@ GITIGNORE_TEXT = f"{WORKTREES_DIR}/\n"
 BRANCH = "main"
 ORGANIZATION_HEADING = "## Your organization"
 WORKSTREAM_HEADING = "## Your workstream"
+# The section of the guide texts of the personal config, which the person whose agent reads the guide wrote.
+USER_HEADING = "## Your user"
 
 # Levels between the tasks repo root and a harness root: harnesses/<workstream>/<stem>.
 DEPTH = 3
@@ -241,10 +243,12 @@ def find_root(start: Path | str) -> Path:
     raise HarnessError(f"no harness found: no {CONFIG_FILENAME} in {start} or any parent folder")
 
 
-def render_guide(asset_text: str, base_guide: str | None, workstream_guide: str | None) -> str:
-    """The guide of a harness: the asset as shipped, then the base text and the workstream's, each in its section."""
+def render_guide(asset_text: str, base_guide: str | None, workstream_guide: str | None, user_guide: str | None) -> str:
+    """The guide of a harness: the asset as shipped, then the base text, the workstream's and the personal one, each
+    in its section."""
     guide = asset_text
-    for heading, text in ((ORGANIZATION_HEADING, base_guide), (WORKSTREAM_HEADING, workstream_guide)):
+    sections = ((ORGANIZATION_HEADING, base_guide), (WORKSTREAM_HEADING, workstream_guide), (USER_HEADING, user_guide))
+    for heading, text in sections:
         if text is not None and text.strip():
             guide = f"{guide.rstrip()}\n\n{heading}\n\n{text.strip()}\n"
     return guide

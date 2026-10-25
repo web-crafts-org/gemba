@@ -1,0 +1,18 @@
+name: a personal config that is not valid YAML is reported with its parse error, and the shared config is still checked
+scenario: "gemba-config: Malformed personal YAML"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: SUP, description: Anything that does not fit another workstream }
+local_config: |
+  ide: [unclosed
+tree:
+  tasks/operations/.gitkeep: ""
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains:
+  - "invalid gemba config:\n"
+  - "gemba.local.yaml: malformed YAML"
+  - "gemba.yaml: workstreams 'support' and 'operations' declare the same prefix 'SUP'"
+unchanged: true

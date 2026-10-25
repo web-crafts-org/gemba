@@ -1,0 +1,39 @@
+name: ide, repos_dir and branch_prefix in gemba.yaml are refused in one message that sends each to gemba.local.yaml
+scenario: "gemba-config: Personal keys refused in the shared config"
+config:
+  default_workstream: operations
+  ide: code -n
+  repos_dir: ~/projects
+  branch_prefix: nk
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/operations/.gitkeep: ""
+run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
+exit: 1
+stderr_contains:
+  - invalid gemba config
+  - ide belongs in gemba.local.yaml
+  - repos_dir belongs in gemba.local.yaml
+  - branch_prefix belongs in gemba.local.yaml
+unchanged: true
+---
+name: check refuses the personal keys of an earlier gemba.yaml even with a personal config beside it
+scenario: "gemba-config: Personal keys refused in the shared config"
+config:
+  default_workstream: operations
+  ide: code -n
+  repos_dir: ~/projects
+  branch_prefix: nk
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  ide: code -n
+run: [config, check]
+exit: 1
+stderr_contains:
+  - invalid gemba config
+  - ide belongs in gemba.local.yaml
+  - repos_dir belongs in gemba.local.yaml
+  - branch_prefix belongs in gemba.local.yaml
+unchanged: true

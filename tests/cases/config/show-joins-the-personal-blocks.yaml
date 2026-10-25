@@ -1,0 +1,90 @@
+name: show joins the personal blocks after the shared ones, at the top level and per workstream
+scenario: "config-maintenance: Personal blocks joined after the shared ones"
+config:
+  default_workstream: operations
+  create:
+    rules: [ask who requested the work if not stated]
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      create:
+        context: Support work is billed to the client.
+        rules: [ask for the ticket of the client]
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  create:
+    context: I keep my notes in English.
+    rules: [propose a slug of three words at most]
+  harness:
+    guide: Answer me in Spanish.
+  workstreams:
+    support:
+      create:
+        rules: [name the client in the title]
+      harness:
+        guide: Quote the ticket in every note.
+run: [config, show]
+exit: 0
+stdout_json:
+  organization: null
+  branch_prefix: gemba
+  repos_dir: null
+  ide: null
+  agent_providers: null
+  harness_providers: null
+  default_workstream: operations
+  workstreams:
+    - id: support
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata: []
+      processes:
+        create:
+          context: "Support work is billed to the client.\n\nI keep my notes in English."
+          rules:
+            - ask who requested the work if not stated
+            - ask for the ticket of the client
+            - propose a slug of three words at most
+            - name the client in the title
+        list: &empty { context: null, rules: [] }
+        record: *empty
+        report: *empty
+        mark: *empty
+        archive: *empty
+        set: *empty
+        harness:
+          guide: { organization: null, workstream: null, user: "Answer me in Spanish.\n\nQuote the ticket in every note." }
+          launch: *empty
+          note: *empty
+          resolve: *empty
+          remove: *empty
+        worktree:
+          add: *empty
+          list: *empty
+          remove: *empty
+    - id: operations
+      prefix: OPS
+      description: Anything that does not fit another workstream
+      metadata: []
+      processes:
+        create:
+          context: I keep my notes in English.
+          rules: [ask who requested the work if not stated, propose a slug of three words at most]
+        list: *empty
+        record: *empty
+        report: *empty
+        mark: *empty
+        archive: *empty
+        set: *empty
+        harness:
+          guide: { organization: null, workstream: null, user: Answer me in Spanish. }
+          launch: *empty
+          note: *empty
+          resolve: *empty
+          remove: *empty
+        worktree:
+          add: *empty
+          list: *empty
+          remove: *empty
+unchanged: true

@@ -7,8 +7,9 @@ from pathlib import Path, PurePosixPath
 from gemba import config, skills, tasks
 
 GITIGNORE = ".gitignore"
-# The line of the .gitignore that keeps the harnesses, each a git repository of its own, out of the tasks repo.
-IGNORED_LINE = "harnesses/"
+# The lines of the .gitignore that keep out of the tasks repo the harnesses, each a git repository of its own, and
+# the personal config, private to the clone. The second is unanchored like the first: the file only exists at the root.
+IGNORED_LINES = ("harnesses/", config.LOCAL_FILENAME)
 GITATTRIBUTES = ".gitattributes"
 # The lines of the .gitattributes that keep LF in the files gemba owns, whatever core.autocrlf says; the scope
 # is those files, not `*`, so that an asset a person keeps in the tasks repo is never renormalized.
@@ -27,17 +28,12 @@ def render_config(providers: Sequence[str]) -> str:
 
 
 def gitignore_text(existing: str | None) -> str | None:
-    """The `.gitignore` to write given the one on disk, or None when it already holds the line.
+    """The `.gitignore` to write given the one on disk, or None when it already holds both lines.
 
-    With no file, the line alone; with a file that lacks it, the file with the line appended
-    after a final newline.
+    With no file, the two lines; with a file that lacks one or both, the file with the missing
+    lines appended after a final newline, in their order.
     """
-    if existing is None:
-        return f"{IGNORED_LINE}\n"
-    if any(line.strip() == IGNORED_LINE for line in existing.splitlines()):
-        return None
-    separator = "\n" if existing and not existing.endswith("\n") else ""
-    return f"{existing}{separator}{IGNORED_LINE}\n"
+    return _completed(existing, IGNORED_LINES)
 
 
 def gitattributes_text(existing: str | None) -> str | None:
@@ -46,10 +42,15 @@ def gitattributes_text(existing: str | None) -> str | None:
     With no file, the two lines; with a file that lacks one or both, the file with the missing
     lines appended after a final newline, in their order.
     """
+    return _completed(existing, GITATTRIBUTES_LINES)
+
+
+def _completed(existing: str | None, lines: Sequence[str]) -> str | None:
+    """`existing` with every one of `lines` it lacks appended in order, `lines` alone for no file, or None."""
     if existing is None:
-        return "".join(f"{line}\n" for line in GITATTRIBUTES_LINES)
+        return "".join(f"{line}\n" for line in lines)
     present = {line.strip() for line in existing.splitlines()}
-    missing = [line for line in GITATTRIBUTES_LINES if line not in present]
+    missing = [line for line in lines if line not in present]
     if not missing:
         return None
     separator = "\n" if existing and not existing.endswith("\n") else ""

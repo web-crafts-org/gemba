@@ -1,0 +1,15 @@
+name: a catalogue that is not a map is reported alone, not echoed by the checks that need it
+scenario: "gemba-config: One mistake reported once"
+config:
+  default_workstream: support
+  workstreams: [support, operations]
+local_config:
+  workstreams:
+    support:
+      create:
+        rules: [name the client in the title]
+run: [config, check]
+exit: 1
+stderr_contains: ["invalid gemba config:\n", "gemba.yaml: workstreams must be a non-empty map"]
+stderr_excludes: [default_workstream, gemba.local.yaml, "'support'"]
+unchanged: true

@@ -72,7 +72,8 @@ gemba --version
 gemba init ~/nakatomi-tasks       # a tasks repo for the organization you work with
 ```
 
-`gemba init` writes a minimal `gemba.yaml`, the `tasks/` folder, a `.gitignore`, a
+`gemba init` writes a minimal `gemba.yaml`, the `tasks/` folder, a `.gitignore` that
+keeps the harnesses and your personal config, `gemba.local.yaml`, out of the history, a
 `.gitattributes` that keeps LF line endings in the files Gemba owns, and the skills for
 every agent it knows (`--providers claude` keeps only one). It runs no git: make the
 folder a repository and commit it when you like.
@@ -80,7 +81,9 @@ folder a repository and commit it when you like.
 Then open the folder with your agent and ask it to configure Gemba. The `gemba-init`
 skill asks, one question at a time, for your organization, the kinds of work you do,
 which one takes a task that fits no other, what to record per task, your agents, your
-editor and the folder of your repositories, and writes the answers into `gemba.yaml`.
+editor and the folder of your repositories. It writes your editor and your
+repositories folder into `gemba.local.yaml`, which stays on your machine, and the rest
+into `gemba.yaml`.
 
 From there, talk to the agent:
 
@@ -140,7 +143,7 @@ repository of its own, with `harness.yaml`, the run's identity; `task.md`, a lin
 the task, or a file naming its path where the system creates no links; the guide of
 the agent (`CLAUDE.md`, `AGENTS.md`); the harness skills;
 `notes/`, `assets/` and `worktrees/`. It moves an `open` task to `in-progress` and
-opens the folder with the `ide` command of `gemba.yaml` (`--no-open` skips it).
+opens the folder with the `ide` command of `gemba.local.yaml` (`--no-open` skips it).
 Launching again only reopens it. `harnesses/` is ignored by the tasks repo: a run is
 not a record, the task is.
 
@@ -171,7 +174,8 @@ gemba worktree list                                  # branch, upstream, uncommi
 gemba worktree remove nakatomi-web --yes             # the worktree and its branch
 ```
 
-A repository is a folder under the `repos_dir` of `gemba.yaml`; Gemba never clones.
+A repository is a folder under the `repos_dir` of `gemba.local.yaml`; Gemba never
+clones.
 The branch, `gemba/nakatomi/SUP-1`, exists only on your machine and is never pushed
 under its own name: a push needs an approved note naming the branch of the remote, and
 always names its target, `git push -u origin HEAD:<that branch>`. `add --from` and
@@ -239,18 +243,22 @@ value of the wrong type.
 
 ## The config
 
-`gemba.yaml` is edited by hand, or by the `gemba-config` skill when you ask the agent
-to add a workstream, a field or a rule; `gemba config check` validates it and
-`gemba config show` prints it resolved, as the skills read it. No command rewrites it.
+The config is two files at the root of the tasks repo. `gemba.yaml`, the shared
+config, is committed: the workstreams, the fields, the organization and the rules
+everyone who uses the tasks repo agrees on. `gemba.local.yaml`, the personal config, is
+optional and ignored by git: what belongs to you and your machine. Both are edited by
+hand, or by the `gemba-config` skill when you ask the agent to add a workstream, a
+field or a rule, for everyone or for yourself; `gemba config check` validates both and
+reports every problem at once, and `gemba config show` prints the config resolved, as
+the skills read it. No command rewrites either.
+
+`gemba.yaml`:
 
 ```yaml
 default_workstream: operations
 
 agent_providers: [claude, agents]
-
-ide: code -n
 organization: nakatomi
-repos_dir: ~/projects
 
 metadata:
   - { name: client, type: text, required: true, description: Who the work is for }
@@ -274,20 +282,47 @@ workstreams:
     description: Anything that does not fit another workstream
 ```
 
-What you can customize, all of it here and never in a skill:
+`gemba.local.yaml`:
+
+```yaml
+ide: code -n
+repos_dir: ~/projects
+
+harness:
+  guide: |
+    Answer me in Spanish.
+
+workstreams:
+  support:
+    create:
+      rules:
+        - name the client in the title
+```
+
+`ide`, `repos_dir` and `branch_prefix` go only in `gemba.local.yaml`: they run a
+command or name paths and branches on your machine, so no command a teammate commits
+runs on yours. `agent_providers` may go in both: the shared list decides the skills of
+the tasks repo, and yours, when you declare one, the agents your harnesses are launched
+for. The `context`, `rules` and `harness.guide` of your personal config come after the
+shared ones, at the top level and for any workstream of the shared catalogue, so your
+rule wins a contradiction; they add to the team's agreement and never remove from it.
+
+What you can customize, all of it in the config and never in a skill:
 
 - **Workstreams**, each with a prefix, a description the agent uses to choose one, and
   its own fields, and the one that takes a task that fits no other.
 - **Metadata fields**, shared or per workstream, each of one type: `text`, `number`,
   `boolean` or `date`. Gemba reads, filters, groups and adds values by their type and
   never interprets their meaning.
-- **Agent providers**, the IDE command (a string, or `{ command: code, args: [-n] }`),
-  the organization and the repositories folder.
-- **`context` and `rules` for every process**, at the top level and per workstream:
-  what the agent should know and do when it creates, lists, launches, notes, records,
-  marks, archives or checks out, with the workstream's rule winning a contradiction.
-- **The guide** of every harness, with a paragraph of your organization and one of
-  the workstream.
+- **Agent providers**, the organization, and in your personal config the IDE command
+  (a string, or `{ command: code, args: [-n] }`), the repositories folder and the
+  branch prefix.
+- **`context` and `rules` for every process**, at the top level and per workstream, in
+  either file: what the agent should know and do when it creates, lists, launches,
+  notes, records, marks, archives or checks out, with the workstream's rule winning a
+  contradiction, and yours winning over the shared ones.
+- **The guide** of every harness, with a paragraph of your organization, one of the
+  workstream and one of your own.
 
 Changing any of it is a config edit: no skill and no code changes.
 
@@ -301,10 +336,11 @@ uv tool install gemba-cli
 gemba init $HOME\nakatomi-tasks
 ```
 
-- **The `ide` command.** A bare `code -n` works: the command is resolved on PATH the
-  way Windows does, so `code` finds `code.cmd`. A string is split as a POSIX shell
-  splits it, so a path with spaces or backslashes goes between double quotes, with
-  each backslash doubled, or takes the map form, which needs no quoting rule:
+- **The `ide` command** of `gemba.local.yaml`. A bare `code -n` works: the command is
+  resolved on PATH the way Windows does, so `code` finds `code.cmd`. A string is split
+  as a POSIX shell splits it, so a path with spaces or backslashes goes between double
+  quotes, with each backslash doubled, or takes the map form, which needs no quoting
+  rule:
 
   ```yaml
   ide: '"C:\\Program Files\\Microsoft VS Code\\bin\\code.cmd" -n'

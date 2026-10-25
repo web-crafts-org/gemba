@@ -101,7 +101,7 @@ def run_add(args: argparse.Namespace) -> int:
         errors.append(f"no organization declared: add organization to {config.CONFIG_FILENAME}")
     repository = None
     if gemba_config.repos_dir is None:
-        errors.append(f"no repos_dir declared: add repos_dir to {config.CONFIG_FILENAME}")
+        errors.append(f"no repos_dir declared: add repos_dir to {config.LOCAL_FILENAME}")
     else:
         repos = worktree.repos_dir(gemba_config.root, gemba_config.repos_dir)
         if problem := worktree.repo_problem(repos, args.repo, repositories(repos)):

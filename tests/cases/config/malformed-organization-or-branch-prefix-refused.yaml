@@ -41,9 +41,10 @@ scenario: "gemba-config: Malformed organization or branch prefix refused"
 config:
   default_workstream: operations
   organization: nakatomi
-  branch_prefix: Gemba/
   workstreams:
     operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  branch_prefix: Gemba/
 run: [create, --workstream, operations, --slug, renew-domain, --date, 2026-09-30]
 exit: 1
 stderr_contains: [invalid gemba config, branch_prefix must be kebab-case]
