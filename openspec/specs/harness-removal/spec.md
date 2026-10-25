@@ -9,31 +9,28 @@ cold, without touching the task.
 
 ## Requirements
 
-### Requirement: Remove deletes the harness of a task
-`gemba harness remove <ref> [--yes] [--force]` SHALL run from the obeya: it SHALL
-resolve the task with that ref anywhere under `tasks/`, archives included, and the
-harness at `harnesses/<workstream>/<stem>/` under the obeya root. It SHALL
-refuse, deleting nothing, when no task has that ref, when no folder exists at the
-harness path, or when the folder holds no `harness.yaml`. It SHALL print a manifest of
-the run: the harness path relative to the obeya root, then one line each for
-`task`, `launched_at`, `notes` (the number of files under `notes/`), `assets` (the
-number of files under `assets/`), `commits` (the number of commits of the harness
-repository), `worktrees` (the number of worktrees under `worktrees/`) and
-`uncommitted` (the number of uncommitted paths of the harness repository, staged,
-unstaged or untracked), followed by one `- <path>` line per uncommitted path, relative
-to the harness root, in the order git reports them. Nothing in the harness repository
-is meant to outlive the run, so an uncommitted path SHALL NOT refuse the removal: it is
-listed so that the confirmation is given knowing what will be lost, and it is deleted
-with the folder. Without `--yes` it SHALL then print
-`not removed: pass --yes to delete the harness` and exit 0, leaving the tree as it
-was. With `--yes` it SHALL first remove every worktree of the harness from its base
-repository and delete the branch checked out in it, delete every branch of the run
-left in a repository under the `repos_dir` of the personal config without a worktree,
-then delete the harness folder and everything inside it, `task.md` whatever its form
-and the uncommitted paths included and never the task file `task.md` links or names,
-print `removed`, and exit 0. The remote of every repository SHALL NOT be touched. The
-task file SHALL NOT be touched, whatever its status, and no git command SHALL run
-against the obeya.
+### Requirement: Remove finds the harness of a task
+`gemba harness remove <ref> [--yes] [--force]` SHALL run from the obeya, resolve the
+task with that ref anywhere under `tasks/`, archives included, and take its harness at
+`harnesses/<workstream>/<stem>/` under the obeya root. It SHALL refuse, deleting
+nothing, when no task has that ref, when no folder exists at the harness path, or when
+the folder holds no `harness.yaml`.
+
+#### Scenario: No harness to remove
+- **WHEN** no task has the ref given, or the task exists but no folder exists at its harness path
+- **THEN** the command exits 1, says which of the two it is, and deletes nothing
+
+#### Scenario: Folder without harness config refused
+- **WHEN** a folder exists at the harness path but holds no `harness.yaml`
+- **THEN** the command exits 1, says the folder is not a harness, and deletes nothing, with or without `--yes`
+
+### Requirement: Remove shows the manifest of the run
+`remove` SHALL print the harness path relative to the obeya root, then a line for each
+of `task`, `launched_at`, `notes` and `assets` (their files), `commits` (of the
+harness repository), `worktrees` and `uncommitted` (staged, unstaged or untracked
+paths of the harness repository), then a `- <path>` line per such path, relative to
+the harness root, in git's order. Without `--yes` it SHALL then print
+`not removed: pass --yes to delete the harness` and exit 0, changing nothing.
 
 #### Scenario: Manifest shown without deleting
 - **WHEN** `gemba harness remove SUP-1` runs for a launched task whose harness holds two filed notes and one asset
@@ -42,6 +39,14 @@ against the obeya.
 #### Scenario: Uncommitted paths listed in the manifest
 - **WHEN** the harness of `SUP-1` holds a drafted note `notes/draft.md` never filed and an `update.md` never recorded, and `gemba harness remove SUP-1` runs
 - **THEN** the manifest reads `uncommitted: 2` followed by `- notes/draft.md` and `- update.md`, the output ends with `not removed: pass --yes to delete the harness`, the tree is unchanged and the exit code is 0
+
+### Requirement: Remove deletes the run with yes
+With `--yes`, `remove` SHALL remove every worktree of the harness from its base
+repository and delete the branch checked out in it, delete every branch of the run
+left without a worktree in a repository under `repos_dir`, then delete the harness
+folder, `task.md` and the uncommitted paths included, print `removed` and exit 0. An
+uncommitted path of the harness SHALL NOT refuse the removal. The remotes, the task
+file that `task.md` reaches and the obeya's git SHALL NOT be touched.
 
 #### Scenario: Uncommitted paths deleted with the harness
 - **WHEN** the harness of `SUP-1` holds a drafted note never filed, an `update.md` never recorded and a modified skill file, and `gemba harness remove SUP-1 --yes` runs
@@ -63,38 +68,25 @@ against the obeya.
 - **WHEN** a task's harness is removed with `--yes` and `gemba harness launch` runs again for it
 - **THEN** a fresh harness is created with one commit, the status of the task is left as it was, and the exit code is 0
 
-#### Scenario: No harness to remove
-- **WHEN** no task has the ref given, or the task exists but no folder exists at its harness path
-- **THEN** the command exits 1, says which of the two it is, and deletes nothing
-
-#### Scenario: Folder without harness config refused
-- **WHEN** a folder exists at the harness path but holds no `harness.yaml`
-- **THEN** the command exits 1, says the folder is not a harness, and deletes nothing, with or without `--yes`
-
-### Requirement: Remove refuses an unsafe deletion
+### Requirement: What remove checks before deleting
 Before deleting, and also when only showing the manifest, `remove` SHALL check that
 the working directory is not inside the harness, that the state of the harness
-repository can be read, that every worktree under `worktrees/` has no uncommitted path
-and no commit that is not on any remote branch, that every branch of the run left in a
-repository under the `repos_dir` of the personal config without a worktree has no
-commit that is not on any remote branch, and that every folder under `worktrees/` is a
-worktree. The uncommitted paths of the harness repository itself are not checked: the
-manifest lists them and the removal deletes them. When a check fails, or when the
-state of a worktree cannot be read, the command SHALL print the manifest, then
-`harness not removed:` and one line per problem, naming each worktree with the number
-of its uncommitted paths and of its unpushed commits, each orphan branch with its
-repository and the number of its unpushed commits, and each folder that is not a
-worktree, exit 1 and delete nothing, with or without `--yes`, so that the manifest
-never promises a deletion the real run refuses. When the state of the harness
-repository cannot be read, the manifest SHALL read `uncommitted: unknown`. With
-`--force` the checks on worktrees, orphan branches and folders under `worktrees/`
-SHALL NOT refuse, and with `--yes --force` the command SHALL discard what they
-protect; the checks on the working directory and on the state of the harness
-repository SHALL refuse regardless of `--force`.
+repository can be read, that every folder under `worktrees/` is a worktree with no
+uncommitted path and no commit on no remote branch, and that every branch of the run
+left without a worktree under `repos_dir` has no such commit. The uncommitted paths of
+the harness repository itself are not checked.
 
 #### Scenario: Working directory inside the harness refused
 - **WHEN** `remove --yes` runs from a folder inside the harness it names
 - **THEN** the command exits 1, says the working directory is inside the harness, and deletes nothing
+
+### Requirement: Remove reports every failed check
+When a check fails, or the state of a worktree cannot be read, `remove` SHALL print
+the manifest, then `harness not removed:` and one line per problem, naming each
+worktree with its numbers of uncommitted paths and unpushed commits, each orphan
+branch with its repository and unpushed commits, and each folder that is not a
+worktree, and exit 1, deleting nothing, with or without `--yes`. When the state of the
+harness repository cannot be read, the manifest SHALL read `uncommitted: unknown`.
 
 #### Scenario: Worktree with pending work refused
 - **WHEN** `worktrees/nakatomi-web` holds an uncommitted file, or a commit not on any remote branch, and `remove SUP-1 --yes` runs
@@ -108,6 +100,12 @@ repository SHALL refuse regardless of `--force`.
 - **WHEN** a plain folder with a file exists under `worktrees/` and `remove SUP-1 --yes` runs
 - **THEN** the output holds the manifest, `harness not removed:` and a line saying the folder is not a worktree, the exit code is 1 and the tree is unchanged
 
+### Requirement: Force discards the pending work
+With `--force`, the checks on worktrees, orphan branches and folders under
+`worktrees/` SHALL NOT refuse, and with `--yes --force` the command SHALL discard what
+they protect. The checks on the working directory and on the state of the harness
+repository SHALL refuse whatever `--force`.
+
 #### Scenario: Pending work discarded with force
 - **WHEN** `worktrees/nakatomi-web` holds a commit not on any remote branch and `remove SUP-1 --yes --force` runs
 - **THEN** the harness folder no longer exists, the base repository no longer holds `gemba/nakatomi/SUP-1`, the branches of `origin` are what they were, the output ends with `removed` and the exit code is 0
@@ -116,42 +114,44 @@ repository SHALL refuse regardless of `--force`.
 - **WHEN** `remove SUP-1 --yes --force` runs from a folder inside the harness it names
 - **THEN** the output holds `harness not removed:` and the line saying the working directory is inside the harness, the exit code is 1 and the tree is unchanged
 
-### Requirement: Removal confirmed by the agent
-The `gemba-harness` skill SHALL have the agent, from the obeya, identify the task
-by its ref, run `gemba harness remove <ref>` without `--yes` and without `--force`,
-show the manifest to the user and ask for their confirmation in the chat, remind them
-to close any IDE window open on that folder, and only after a yes run the command
-again with `--yes` and relay the result. The confirmation in the chat is enough
-because the harness is gemba's own data; an `external-action` note is not required.
-When the manifest lists uncommitted paths of the harness, the skill SHALL have the
-agent name them when asking for the confirmation, say that they will be deleted with
-the harness, and say what would keep each one should the user want to (file a draft
-note with `gemba harness note`, record an `update.md` with `gemba record`, from a
-session inside the harness), and SHALL NOT have the agent file, commit or delete
-anything in the harness itself. When the command refuses for a worktree, an orphan
-branch or a folder under `worktrees/`, the skill SHALL have the agent relay every line,
-say that a push from inside the harness saves unpushed commits and needs an approved
-`external-action` note, and pass `--force` only after the user confirms, in the chat,
-that everything the command listed is to be discarded; the agent SHALL NOT pass
-`--force` on the first run, even when the user asks to force the removal. The skill
-SHALL have the agent read the `harness.remove` block of the task's workstream and
-follow its `rules` and `context`.
+### Requirement: The agent confirms a removal in the chat
+The `gemba-harness` skill SHALL have the agent, from the obeya, identify the task by
+its ref, follow the `harness.remove` block of its workstream, run
+`gemba harness remove <ref>` without `--yes` or `--force`, show the manifest, ask for
+confirmation in the chat, remind the user to close any IDE window on the folder, and
+only after a yes run it with `--yes` and relay the result. A yes in the chat is
+enough: the harness is gemba's own data, so no `external-action` note is needed.
 
 #### Scenario: Agent removes a harness
 - **WHEN** the user asks to remove, clean up, delete or throw away the harness of a task
 - **THEN** the agent shows the manifest, asks, and runs `remove --yes` only after the user says yes
 
+#### Scenario: Agent follows the verb's rules
+- **WHEN** workstream `support` declares `harness.remove.rules` containing "check the client report was sent before removing"
+- **THEN** the agent follows that rule before showing the manifest for a `support` task
+
+### Requirement: The agent names what the removal deletes
+When the manifest lists uncommitted paths of the harness, the agent SHALL name them
+when asking, say they are deleted with the harness, and say what would keep each one,
+from a session inside the harness: `gemba harness note` for a draft note,
+`gemba record` for an `update.md`. It SHALL NOT file, commit or delete anything in the
+harness itself.
+
 #### Scenario: Agent names uncommitted paths before confirming
 - **WHEN** the manifest lists uncommitted paths of the harness, such as a drafted note and an `update.md`
 - **THEN** the agent names them when asking for the confirmation, says they will be deleted with the harness and how each could be kept, and files, commits or deletes nothing in the harness itself
 
+### Requirement: The agent forces only after a confirmed list
+When the command refuses for a worktree, an orphan branch or a folder under
+`worktrees/`, the agent SHALL relay every line and say that a push from inside the
+harness, through an approved `external-action` note, saves unpushed commits. It SHALL
+pass `--force` only after the user confirms, in the chat, that everything listed is to
+be discarded, and never on the first run, even when the user asks to force the
+removal.
+
 #### Scenario: Agent forces only after confirming the pending list
 - **WHEN** the command refuses for a worktree with pending work and the user asks to force the removal
 - **THEN** the agent relays the pending list, waits for the user to confirm that list, and only then runs `remove --yes --force`
-
-#### Scenario: Agent follows the verb's rules
-- **WHEN** workstream `support` declares `harness.remove.rules` containing "check the client report was sent before removing"
-- **THEN** the agent follows that rule before showing the manifest for a `support` task
 
 ### Requirement: Removal finishes what the system allows
 When deleting the harness folder, `remove --yes` SHALL delete a file the system

@@ -20,6 +20,7 @@ ALREADY_ATTACHED = "already attached, worktree unchanged"
 NOT_REMOVED = "not removed: pass --yes to delete the worktree"
 REMOVED = "removed"
 NO_WORKTREES = "no worktrees"
+NO_REPOSITORIES = "no repositories"
 NOT_A_WORKTREE = "not a worktree"
 UNREADABLE = "state not readable with git"
 NOT_ADDED_REFUSAL = "worktree not added:"
@@ -72,6 +73,16 @@ def repos_dir(config_root: Path, declared: str) -> Path:
     return path if path.is_absolute() else config_root / path
 
 
+def missing_repos_dir_problem(config_file: str) -> str:
+    """The refusal of `add` and `list --available` when `config_file`, the personal config, declares no repos_dir."""
+    return f"no repos_dir declared: add repos_dir to {config_file}"
+
+
+def not_a_folder_problem(folder: Path) -> str:
+    """The refusal of `add` and `list --available` when the repositories folder `folder` is not a folder."""
+    return f"repos_dir {folder} is not a folder"
+
+
 def repo_problem(folder: Path, repo: str, repositories: Sequence[str] | None) -> str | None:
     """Why `repo` is not a repository at the root of `folder`, or None when it is one.
 
@@ -79,7 +90,7 @@ def repo_problem(folder: Path, repo: str, repositories: Sequence[str] | None) ->
     repository, or None when `folder` is not a folder.
     """
     if repositories is None:
-        return f"repos_dir {folder} is not a folder"
+        return not_a_folder_problem(folder)
     if repo in repositories:
         return None
     found = f"repositories there: {', '.join(sorted(repositories))}" if repositories else "no repository is there"

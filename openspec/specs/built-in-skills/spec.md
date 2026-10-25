@@ -9,15 +9,12 @@ needed to tell an outdated copy from a hand edit.
 ## Requirements
 
 ### Requirement: Skills are assets of the package
-Every skill of Gemba SHALL ship inside the gemba CLI package, and the package SHALL
-hold a registry naming each built-in skill with its scope: the obeya, a harness,
-or both. `gemba skills update` SHALL write exactly the registered skills whose scope
-includes its target and SHALL NOT create, modify or delete any other folder or file
-under a provider's skills folder, so that skills of other tools that share the folder
-are left as they are. At this change `gemba-create`, `gemba-list`, `gemba-report`,
-`gemba-archive`, `gemba-init`, `gemba-config` and `gemba-migrate` belong to the obeya, `gemba-worktree` to the harness, and `gemba-harness`, `gemba-record`,
-`gemba-mark` and `gemba-set` to both. `gemba init` SHALL write the obeya skills through the same
-registry, so a skill added to it reaches a new obeya with no other change.
+Every skill SHALL ship in the gemba CLI package, in a registry that gives each its
+scope: the obeya (`gemba-create`, `gemba-list`, `gemba-report`, `gemba-archive`,
+`gemba-init`, `gemba-config`, `gemba-migrate`), a harness (`gemba-worktree`), or both
+(`gemba-harness`, `gemba-record`, `gemba-mark`, `gemba-set`). `gemba skills update`
+and `gemba init` SHALL write exactly the registered skills whose scope includes their
+target, and nothing else under a provider's skills folder.
 
 #### Scenario: Every registered skill is written
 - **WHEN** `gemba skills update` runs in an obeya that declares one provider and has no skills folder
@@ -33,13 +30,11 @@ registry, so a skill added to it reaches a new obeya with no other change.
 
 ### Requirement: Skills are written per agent provider
 `gemba skills update` SHALL write the skills under the skills folder of every provider
-of its target, relative to the target root: the `claude` provider under
-`.claude/skills/` and the `agents` provider under `.agents/skills/`. The provider table
-of the CLI SHALL also name the guide filename of each provider, `CLAUDE.md` for `claude`
-and `AGENTS.md` for `agents`, which `launch` uses. A provider the target does not list
-SHALL get nothing. When the obeya is the target and the config declares no
-`agent_providers`, the command SHALL refuse, name the known providers, and write
-nothing.
+of its target, relative to the target root: `.claude/skills/` for `claude` and
+`.agents/skills/` for `agents`. Each provider SHALL also name the guide filename
+`launch` writes, `CLAUDE.md` for `claude` and `AGENTS.md` for `agents`. A provider the
+target does not list SHALL get nothing. When the obeya declares no `agent_providers`,
+the command SHALL refuse, name the known providers, and write nothing.
 
 #### Scenario: One skills folder per declared provider
 - **WHEN** the config declares `agent_providers: [claude, agents]`
@@ -58,16 +53,12 @@ nothing.
 - **THEN** the guide is written as `CLAUDE.md` and as `AGENTS.md`
 
 ### Requirement: Skills are written at the root the command runs in
-`gemba skills update` SHALL resolve its target by walking up from the current working
-directory: the nearest folder holding `harness.yaml` is a harness and the target is
-that harness, with the providers recorded in its `harness.yaml`; otherwise the nearest
-folder holding `gemba.yaml` is the obeya and the target is its root, with the
-providers of the shared config, never those of the personal config, which choose the
-providers of a launch only. A shared config that declares no `agent_providers` SHALL
-be refused as the previous requirement says, whatever the personal config declares.
-The command SHALL write the skills folders under the target and never under the
-working directory, and SHALL refuse, writing nothing, when no gemba config is found.
-`--root` SHALL name the target explicitly, obeya or harness.
+`gemba skills update` SHALL take as target the nearest folder up from the working
+directory that holds `harness.yaml`, with the providers it records, or else the
+nearest that holds `gemba.yaml`, with the providers of the shared config alone,
+whatever the personal config declares; `--root` SHALL name the target instead. It
+SHALL write under the target, never under the working directory, and SHALL refuse,
+writing nothing, when no gemba config is found.
 
 #### Scenario: Run from a subfolder
 - **WHEN** `gemba skills update` runs from a folder below the obeya root that is not inside a harness
@@ -97,19 +88,13 @@ The content SHALL be the same for every provider.
 - **WHEN** a skill is written by package version V
 - **THEN** its frontmatter holds `name`, `description`, `metadata.generatedBy: "V"` and `metadata.contentHash`, and its body is the asset's body
 
-### Requirement: Update is idempotent and respects hand edits
-For each registered skill and each declared provider, `gemba skills update` SHALL
-classify the file on disk as one of: **missing** (no file); **unchanged** (identical
-to what the current package writes, ignoring `generatedBy`); **outdated** (different
-from what the current package writes, while its `contentHash` matches its own
-content, so it is an untouched older generation); **edited** (its `contentHash` is
-absent or does not match its own content). The command SHALL write a missing skill,
-rewrite an outdated one, leave an unchanged one as it is, and leave an edited one as
-it is unless `--force` is passed, in which case it SHALL overwrite it. The command
-SHALL print one line per skill and provider stating the action taken (`written`,
-`updated`, `kept`, `overwritten`) and the path relative to the obeya root, and
-SHALL say on the `kept` line of an edited skill that `--force` overwrites it. Running
-the command twice SHALL leave the tree identical after the second run.
+### Requirement: Update writes what is missing or outdated
+For each registered skill and provider, `gemba skills update` SHALL write a missing
+skill, rewrite an outdated one (it differs from what the package writes and its
+`contentHash` matches its own content) and keep an unchanged one (identical to what
+the package writes, `generatedBy` aside). It SHALL print one line per skill and
+provider with its action, `written`, `updated`, `kept` or `overwritten`, and its path
+relative to the obeya root. A second run SHALL leave the tree as the first left it.
 
 #### Scenario: Missing skill is written
 - **WHEN** a registered skill has no file under a declared provider
@@ -122,6 +107,12 @@ the command twice SHALL leave the tree identical after the second run.
 #### Scenario: Outdated skill is refreshed
 - **WHEN** a skill on disk differs from what the current package writes and its `contentHash` matches its own content
 - **THEN** the file is rewritten with the current content and the output reports `updated`
+
+### Requirement: Update keeps a skill edited by hand
+A skill whose `contentHash` is absent or does not match its own content is edited by
+hand. `gemba skills update` SHALL leave it as it is and report it `kept`, saying that
+`--force` overwrites it; with `--force` it SHALL overwrite it and report it
+`overwritten`.
 
 #### Scenario: Edited skill is kept and reported
 - **WHEN** a skill on disk has no `contentHash` or one that does not match its own content

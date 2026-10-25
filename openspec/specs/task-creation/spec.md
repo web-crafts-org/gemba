@@ -12,12 +12,10 @@ created with a wrong ref, a wrong folder or a wrong frontmatter.
 ### Requirement: Creation inputs
 Creating a task SHALL take a workstream identifier and a slug, and MAY take a creation
 date (default: today), an initial status (default: `open`; `in-progress` or `blocked`
-when the user says so; `done` is refused), a description, and metadata values as
-key and value pairs. Every value given for a metadata key SHALL be converted by the
-declared type of its field, never read as YAML: a `text` value is kept exactly as
-written, a `number` is a decimal literal, a `boolean` is `true` or `false`, a `date` is
-an ISO `YYYY-MM-DD` date, and the literal `null` gives no value. A key given more than
-once SHALL become a list in the order given, and only for a `text` field.
+when the user says so; `done` refused), a description, and metadata values as key and
+value pairs. Each value SHALL be converted by its field's type, never read as YAML,
+the literal `null` giving no value. A key given twice or more SHALL become a list, for
+a `text` field only.
 
 #### Scenario: Typed metadata values
 - **WHEN** the metadata values `hours=3`, `billed=false`, `client=Acme Corp` and `due=2026-10-15` are supplied for a number, a boolean, a text and a date field
@@ -58,15 +56,12 @@ agent SHALL NOT rely on any workstream knowledge that is not in the config.
 - **THEN** the agent asks the user which one to use before creating anything
 
 ### Requirement: Metadata gathering by the agent
-Before creating the file, the agent SHALL read the effective metadata schema of the
-chosen workstream and SHALL ask the user only for required fields whose value the user
-has not given, using each field's description when present to phrase the question.
-The agent SHALL NOT ask for optional fields; optional fields are filled only when the
-user mentions them. The agent SHALL write each value in the form of its field's
-declared type and, for a text field, SHALL look up the values already in use with
-`gemba report --by <field>` and reuse their spelling when the user means one of them.
-The agent SHALL also follow the workstream's `create.rules` and read its
-`create.context` when present.
+The agent SHALL read the effective schema of the chosen workstream and ask only for
+the required fields the user has not given, phrasing each from its field's description
+when present; optional fields are filled only when the user mentions them. It SHALL
+write each value in the form of its type and, for a text field, reuse the spelling of
+a value in use, found with `gemba report --by <field>`, when the user means it. It
+SHALL follow the workstream's `create.rules` and read its `create.context`.
 
 #### Scenario: Required field missing
 - **WHEN** the workstream requires `merge_url` and the user did not give a link
@@ -85,13 +80,12 @@ The agent SHALL also follow the workstream's `create.rules` and read its
 - **THEN** the agent finds `acme` with `gemba report --by client` and passes `client=acme`, asking when it cannot tell whether the user means the value in use
 
 ### Requirement: Validation and refusal by the command
-The command SHALL validate, before writing anything, that: the gemba config is valid;
-the workstream exists; the slug is valid; the status is allowed at creation; every
-supplied metadata key is in the effective schema; every required key of the effective
-schema has a non-null value; every value converts to the declared type of its field;
-and a key is repeated only for a text field. On any failure it SHALL write nothing,
-exit with a non-zero status, and report in a single message every missing required
-key, every undeclared key and every value that does not convert to its type.
+Before writing anything, the command SHALL check that the gemba config is valid, the
+workstream exists, the slug is valid, the status is allowed at creation, every
+metadata key is in the effective schema, every required key has a non-null value,
+every value converts to its field's type, and a key is repeated only for a text field.
+On any failure it SHALL write nothing, exit non-zero, and report in one message every
+missing required key, undeclared key and value that does not convert.
 
 #### Scenario: Unknown workstream
 - **WHEN** the workstream identifier is not in the config

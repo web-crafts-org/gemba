@@ -1,0 +1,42 @@
+name: list --available prints every repository at the root of repos_dir, attached or not, in name order
+scenario: "harness-worktrees: Repositories listed"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  obeya: nakatomi
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  repos_dir: repos
+repos:
+  nakatomi-web:
+    branches:
+      main: { README.md: "Nakatomi web\n" }
+  nakatomi-api:
+    branches:
+      main: { README.md: "Nakatomi api\n" }
+  group/other:
+    branches:
+      main: { README.md: "Other\n" }
+tree:
+  repos/notes/README.md: "Not a repository.\n"
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+  - [worktree, add, nakatomi-web]
+run: [worktree, list, --available]
+exit: 0
+stdout: |
+  nakatomi-api
+  nakatomi-web
+unchanged: true

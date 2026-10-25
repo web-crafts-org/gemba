@@ -20,6 +20,7 @@
 "harness-notes: Agent files a note": the agent drafts, saves the assets and files by following the gemba-harness skill
 "harness-notes: Agent follows the verb's rules": the agent follows harness.note.rules through the gemba-harness skill
 "harness-notes: Approval is set by the user in the file": the user is the subject; the command only reads what the user wrote
+"harness-notes: Note awaiting approval linked": the agent links the note and asks for the approval by following the gemba-harness skill
 "metadata-setting: Agent sets a value": the agent maps the user's words to declared fields and operators and runs gemba set by following the gemba-set skill
 "metadata-setting: Spelling in use reused": the agent looks up the values in use with gemba report --by and reuses their spelling by following the gemba-set skill
 "metadata-setting: Agent follows the verb's rules": the agent follows set.rules through the gemba-set skill
@@ -96,6 +97,8 @@
 "harness-removal: Agent names uncommitted paths before confirming": the agent names the uncommitted paths of the manifest, says they are deleted and how each could be kept by following the gemba-harness skill
 "harness-removal: Agent follows the verb's rules": the agent follows harness.remove.rules through the gemba-harness skill
 "harness-removal: Agent forces only after confirming the pending list": the agent relays the pending list and passes --force only after the user confirms it by following the gemba-harness skill
+"harness-worktrees: Repository found by its exact name": the agent matches the request against gemba worktree list --available by following the gemba-worktree skill
+"harness-worktrees: Repository chosen by the user": the agent matches the request against gemba worktree list --available and asks the user by following the gemba-worktree skill
 "harness-worktrees: Agent adds the repositories of the task": the agent names the repositories, chooses --from and runs gemba worktree add by following the gemba-worktree skill
 "harness-worktrees: Agent never runs git against the base repository": a property of the gemba-worktree skill and of the guide text, not of a command
 "harness-worktrees: Agent pushes only to the branch a note names": the agent pushes after an approved external-action note by following the guide of the harness

@@ -60,8 +60,15 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         help="show the branch, upstream and pending work of every worktree",
         description=(
             f"Print, for every folder under {worktree.WORKTREES_DIR}/ in name order, its path, branch, upstream, "
-            "the number of uncommitted paths and the number of commits on no remote branch, read from git."
+            "the number of uncommitted paths and the number of commits on no remote branch, read from git. With "
+            "--available, print instead the repositories that add accepts."
         ),
+    )
+    list_.add_argument(
+        "--available",
+        action="store_true",
+        help="print the name of every folder directly under repos_dir that holds a git repository, attached or "
+        "not, one per line in name order",
     )
     harness_command.add_location(list_)
     list_.set_defaults(handler=run_list)
@@ -101,7 +108,7 @@ def run_add(args: argparse.Namespace) -> int:
         errors.append(f"no obeya declared: add obeya to {config.CONFIG_FILENAME}")
     repository = None
     if gemba_config.repos_dir is None:
-        errors.append(f"no repos_dir declared: add repos_dir to {config.LOCAL_FILENAME}")
+        errors.append(worktree.missing_repos_dir_problem(config.LOCAL_FILENAME))
     else:
         repos = worktree.repos_dir(gemba_config.root, gemba_config.repos_dir)
         if problem := worktree.repo_problem(repos, args.repo, repositories(repos)):
@@ -179,11 +186,29 @@ def run_list(args: argparse.Namespace) -> int:
         folder = harness_command.locate(args.harness)
     except harness.HarnessError as exc:
         return fail("list", str(exc))
+    if args.available:
+        return list_available(folder, args.root)
     names = entries(folder)
     if not names:
         print(worktree.NO_WORKTREES)
         return 0
     print("\n\n".join(worktree.render_state(read_state(folder, name)) for name in names))
+    return 0
+
+
+def list_available(folder: Path, root: Path | None) -> int:
+    """Print the repositories at the root of repos_dir that `add` accepts, read from the config of `folder`."""
+    try:
+        gemba_config = config.load(root=root, cwd=folder)
+    except config.ConfigError as exc:
+        return fail("list", str(exc))
+    if gemba_config.repos_dir is None:
+        return fail("list", worktree.missing_repos_dir_problem(config.LOCAL_FILENAME))
+    repos = worktree.repos_dir(gemba_config.root, gemba_config.repos_dir)
+    names = repositories(repos)
+    if names is None:
+        return fail("list", worktree.not_a_folder_problem(repos))
+    print("\n".join(names) if names else worktree.NO_REPOSITORIES)
     return 0
 
 

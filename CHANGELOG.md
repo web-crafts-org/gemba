@@ -51,6 +51,11 @@ both listed under Changed: the keys that moved to the personal config, and
   `gemba record --from`, `gemba mark` and `gemba archive`. The old obeya is never
   converted: it stays as it was, its migrated tasks archived. An obeya made before this
   version gets the skill with `gemba init` or `gemba skills update`.
+- `gemba worktree list --available` prints the repositories `gemba worktree add`
+  accepts, one per line in name order: the folders directly under `repos_dir` that hold
+  a git repository, attached or not, or `no repositories` when there is none. It
+  refuses as `add` does when `repos_dir` is not declared or is not a folder, and writes
+  nothing.
 
 ### Changed
 
@@ -85,6 +90,16 @@ both listed under Changed: the keys that moved to the personal config, and
   obeya root by a refused `gemba record` never reaches a commit. Running `gemba init`
   again on an obeya made before this version appends the line and writes the
   `gemba-record` skill; `gemba skills update` writes the skill alone.
+- The `gemba-harness` skill gives a note it filed or resolved as a Markdown link to the
+  path the command printed, relative to the harness root, so that you open the note
+  from the chat to read it or to set `approved: true`. A harness launched earlier gets
+  the new skill with `gemba skills update` run inside it.
+- The `gemba-worktree` skill looks up the repositories a task needs in
+  `gemba worktree list --available`: a name spelled as a listed one is used as it is;
+  otherwise the agent asks you to choose among the repositories the request may mean,
+  with its question panel when it has one, and never guesses. It still never reads
+  `repos_dir` itself. A harness launched earlier gets the new skill with
+  `gemba skills update` run inside it.
 
 ## [0.2.0] - 2026-10-13
 

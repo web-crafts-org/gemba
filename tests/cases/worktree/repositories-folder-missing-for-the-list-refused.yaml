@@ -1,0 +1,54 @@
+name: list --available refuses a config without repos_dir, naming the key and its file
+scenario: "harness-worktrees: Repositories folder missing for the list refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [worktree, list, --available]
+exit: 1
+stderr_contains: ["no repos_dir declared: add repos_dir to gemba.local.yaml"]
+unchanged: true
+---
+name: list --available refuses a repos_dir that names a file
+scenario: "harness-worktrees: Repositories folder missing for the list refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+local_config:
+  repos_dir: repos
+tree:
+  repos: "A file, not a folder.\n"
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+cwd: harnesses/support/2026-09-30-SUP-1-login-fails
+setup:
+  - [harness, launch, SUP-1, --no-open]
+run: [worktree, list, --available]
+exit: 1
+stderr_contains: ["repos_dir", "is not a folder"]
+unchanged: true

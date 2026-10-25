@@ -9,19 +9,13 @@ outside the harness.
 
 ## Requirements
 
-### Requirement: A note is drafted by the agent and filed by the command
-`gemba harness note <file> --type <type> [--approval] [--asset <path>]...` SHALL take a
-Markdown file directly under `notes/` of the harness whose name is a slug (matching
-`^[a-z0-9]+(-[a-z0-9]+)*$` and not a reserved device name of Windows: `con`, `prn`,
-`aux`, `nul`, `com0` to `com9`, `lpt0` to `lpt9`) followed by `.md` and that does not
-start with a frontmatter, read the current date and time from the clock, rename it to
-`notes/YYYY-MM-DD-HHMMSS-<slug>.md`, prepend a frontmatter, commit, and print the
-new path relative to the harness root. The body SHALL be kept character for
-character, with its line endings made LF and a leading byte-order mark dropped, so
-that a note holds one convention whatever wrote the draft; a draft that is not UTF-8
-SHALL be refused. The command SHALL refuse, changing nothing, when the file is not
-directly under `notes/`, when its name is not a slug, when it already starts with a
-frontmatter, or when the target name already exists.
+### Requirement: A draft is filed under a dated name
+`gemba harness note <file> --type <type> [--approval] [--asset <path>]...` SHALL take
+a Markdown draft directly under `notes/` of the harness, read the date and time from
+the clock, rename it to `notes/YYYY-MM-DD-HHMMSS-<slug>.md`, prepend a frontmatter,
+commit, and print the new path relative to the harness root. The body SHALL be kept
+character for character, its line endings made LF and a leading byte-order mark
+dropped, so that a note holds one convention whatever wrote the draft.
 
 #### Scenario: Note filed
 - **WHEN** `notes/login-trace.md` holds a body with no frontmatter and `gemba harness note notes/login-trace.md --type finding` runs on 2026-09-30
@@ -30,6 +24,13 @@ frontmatter, or when the target name already exists.
 #### Scenario: Draft with CRLF filed
 - **WHEN** `notes/login-trace.md` holds a body whose lines end with CRLF, starting with a UTF-8 byte-order mark, and `gemba harness note notes/login-trace.md --type finding` runs
 - **THEN** the filed note holds the frontmatter followed by the body with every line ending in LF and no byte-order mark, character for character otherwise, and the command exits 0
+
+### Requirement: Drafts the command refuses
+The command SHALL refuse, changing nothing, a draft that is not directly under
+`notes/`; whose name is not a slug (`^[a-z0-9]+(-[a-z0-9]+)*$`, not a reserved device
+name of Windows: `con`, `prn`, `aux`, `nul`, `com0` to `com9`, `lpt0` to `lpt9`)
+followed by `.md`; that already starts with a frontmatter; that is not UTF-8; or whose
+target name already exists.
 
 #### Scenario: Draft that is not UTF-8 refused
 - **WHEN** the draft is encoded in UTF-16
@@ -63,16 +64,23 @@ note.
 - **WHEN** an `external-action` note is filed with `--asset assets/1759350491-console.log`
 - **THEN** its frontmatter holds `type`, `date`, `time`, `approved: false` and `assets: [assets/1759350491-console.log]`, in that order
 
-### Requirement: Note types and the approval gate
+### Requirement: The five note types
 The type SHALL be one of `finding` (what is true and the evidence for it), `blocker`
-(why the run cannot continue, what was tried, what is needed), `decision` (the options,
-their trade-offs and the recommendation or the choice), `summary` (where the run stands
-at a milestone and what remains) and `external-action` (something to be done outside
-the harness, word for word). The gate SHALL follow the type: an `external-action` SHALL
-always be filed with `approved: false`; a `decision` SHALL be filed with `approved:
-false` only when `--approval` is given; `--approval` SHALL be refused for `finding`,
-`blocker` and `summary`. An unknown type SHALL be refused, naming the known types. The
-command's help SHALL list the types with their one-line definitions.
+(why the run cannot continue, what was tried, what is needed), `decision` (the
+options, their trade-offs and the recommendation or the choice), `summary` (where the
+run stands at a milestone and what remains) and `external-action` (something to be
+done outside the harness, word for word). An unknown type SHALL be refused, naming the
+known types, and the command's help SHALL list the types with their definitions.
+
+#### Scenario: Unknown type refused
+- **WHEN** `--type` is not one of the five types
+- **THEN** the command exits 1, names the known types, and changes nothing
+
+### Requirement: The approval gate follows the type
+The gate SHALL follow the type: an `external-action` SHALL always be filed with
+`approved: false`; a `decision` SHALL be filed with `approved: false` only when
+`--approval` is given; `--approval` SHALL be refused for `finding`, `blocker` and
+`summary`.
 
 #### Scenario: External action always gated
 - **WHEN** an `external-action` note is filed without `--approval`
@@ -85,10 +93,6 @@ command's help SHALL list the types with their one-line definitions.
 #### Scenario: Approval refused for ungated types
 - **WHEN** `--approval` is given with type `finding`, `blocker` or `summary`
 - **THEN** the command exits 1, says that type takes no approval, and changes nothing
-
-#### Scenario: Unknown type refused
-- **WHEN** `--type` is not one of the five types
-- **THEN** the command exits 1, names the known types, and changes nothing
 
 ### Requirement: Assets are saved by the agent and referenced by the command
 Assets SHALL be files the agent or the user saves under `assets/` of the harness, named
@@ -140,25 +144,33 @@ The body is the agent's: the command SHALL leave it as it finds it.
 - **WHEN** a gated note awaits approval
 - **THEN** only the user changes `approved` to `true`, editing the note in the IDE; a request in the conversation is not an approval
 
-### Requirement: Notes by the agent
-The `gemba-harness` skill SHALL have the agent write each note as a file directly under
-`notes/` with its own tools, choose the type by the question the note answers, file it
-with `gemba harness note` passing the assets it references, and never write a
-frontmatter, a date or a timestamp into a note by hand. Before acting on a gated note
-the agent SHALL read its frontmatter and SHALL act only when `approved` is `true`;
-after acting it SHALL append what was done and where to the body, with its own tools,
-and run `gemba harness resolve` on the note. The skill SHALL have the agent read the
-`harness.note` or `harness.resolve` block of the task's workstream in the gemba config
-before running that verb and follow its `rules`.
+### Requirement: The agent files a note and links it
+The `gemba-harness` skill SHALL have the agent write each note under `notes/` with its
+own tools, choose its type by the question it answers, read the `harness.note` block
+of the task's workstream and follow its `rules`, and file the note with
+`gemba harness note` and the assets it references, never writing a frontmatter, a date
+or a timestamp by hand. The agent SHALL then give the note in the chat as a Markdown
+link to the path the command printed.
 
 #### Scenario: Agent files a note
 - **WHEN** the agent has something to record
-- **THEN** it writes the draft under `notes/`, saves any evidence under `assets/` with a timestamp name, runs `gemba harness note` with the type and the assets, and relays the filed path
-
-#### Scenario: Agent acts on an approved note
-- **WHEN** the user has set `approved: true` on an `external-action` note
-- **THEN** the agent performs the action, appends the outcome to the note body and runs `gemba harness resolve` on it
+- **THEN** it writes the draft under `notes/`, saves any evidence under `assets/` with a timestamp name, runs `gemba harness note` with the type and the assets, and gives the filed note as a Markdown link whose text and target are the path the command printed, relative to the harness root, such as `[notes/2026-09-30-101500-login-trace.md](notes/2026-09-30-101500-login-trace.md)`, and never the path of the draft
 
 #### Scenario: Agent follows the verb's rules
 - **WHEN** the task's workstream declares `harness.note.rules`
 - **THEN** the agent follows them while drafting and filing a note
+
+#### Scenario: Note awaiting approval linked
+- **WHEN** the agent files an `external-action` note, or a `decision` with `--approval`
+- **THEN** it gives the filed note as a link, as for any note, and tells the user that they approve it by setting `approved: true` in its frontmatter, which they open from that link, and that a yes in the chat is not an approval
+
+### Requirement: The agent acts on an approved note
+Before acting on a gated note, the agent SHALL read its frontmatter and act only when
+`approved` is `true`, following the `rules` of the `harness.resolve` block of the
+task's workstream. After acting it SHALL append what was done and where to the body,
+with its own tools, run `gemba harness resolve` on the note, and give the note in the
+chat as a link to the path that command printed, with the outcome.
+
+#### Scenario: Agent acts on an approved note
+- **WHEN** the user has set `approved: true` on an `external-action` note
+- **THEN** the agent performs the action, appends the outcome to the note body, runs `gemba harness resolve` on it, and gives the resolved note as a Markdown link to the path the command printed, with the outcome

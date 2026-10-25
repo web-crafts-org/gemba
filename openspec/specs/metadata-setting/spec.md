@@ -9,22 +9,13 @@ hand edit.
 
 ## Requirements
 
-### Requirement: Set writes metadata values of a task
+### Requirement: Set writes each assignment
 `gemba set <ref> <assignment> [<assignment> ...]` SHALL resolve the task with that ref
-anywhere under `tasks/`, archives included, and SHALL write each assignment into its
-`metadata`. An assignment SHALL be `<key>=<value>`, which sets the value, `<key>=null`,
-which clears it, or `<key>+=<number>`, which adds the number to the current value of a
-number field, a value of `null` or a missing key counting as zero. A key given more than
-once with `=` SHALL set a list, in the order given. The command SHALL refuse, writing
-nothing, when no task has that ref, when a key is not in the effective schema of the
-task's workstream, when a value does not convert to the field's declared type, when `+=`
-names a field that is not of type `number` or whose current value is not a number, when
-a key is repeated for a field that is not of type `text` or is given with both `=` and
-`+=`, or when a required field would be left `null`. Refusals SHALL report every problem
-in one message and exit 1. On success it SHALL print the task path relative to the tasks
-repo root, then one line per assigned key, `<key>: <old> -> <new>`, or `<key>: <value>
-(unchanged)` when the value did not change, values written as they read in YAML flow
-style, and exit 0. When no value changes, it SHALL write nothing.
+anywhere under `tasks/`, archives included, and write each assignment into its
+`metadata`: `<key>=<value>` sets the value, `<key>=null` clears it, and
+`<key>+=<number>` adds the number to a number field, a `null` or missing value
+counting as zero. A key given more than once with `=` SHALL set a list, in the order
+given.
 
 #### Scenario: Values set
 - **WHEN** `gemba set SUP-1 client=acme invoiced=2026-10-03` runs on a task whose `client` and `invoiced` are `null`, `client` a text field and `invoiced` a date field
@@ -42,9 +33,17 @@ style, and exit 0. When no value changes, it SHALL write nothing.
 - **WHEN** `gemba set SUP-1 project=checkout project=landing` runs on a text field
 - **THEN** the field reads `project: [checkout, landing]`, replacing any previous value
 
-#### Scenario: Same value left as it was
-- **WHEN** `gemba set SUP-1 client=acme` runs on a task whose `client` is already `acme`
-- **THEN** the command exits 0, the output says `client: acme (unchanged)`, and the tree is unchanged
+#### Scenario: Archived or done task set
+- **WHEN** the task with the ref is `done`, or lies under an `archive/` folder
+- **THEN** its metadata is written like any other task's, in place
+
+### Requirement: Set refuses an invalid assignment
+The command SHALL refuse, writing nothing, when no task has that ref, when a key is
+not in the effective schema of the task's workstream, when a value does not convert to
+its field's type, when `+=` names a field that is not a `number` or holds no number,
+when a key is repeated for a field that is not `text` or given with both `=` and `+=`,
+or when a required field would be left `null`, reporting every problem in one message
+and exiting 1.
 
 #### Scenario: Problems reported together
 - **WHEN** one call gives an undeclared key `ticket`, `hours=two` on a number field, `invoiced+=1` on a date field and `billed=true` twice on a boolean field
@@ -58,19 +57,23 @@ style, and exit 0. When no value changes, it SHALL write nothing.
 - **WHEN** no task under `tasks/` has the ref given
 - **THEN** the command exits 1, reports that no task has that ref, and writes nothing
 
-#### Scenario: Archived or done task set
-- **WHEN** the task with the ref is `done`, or lies under an `archive/` folder
-- **THEN** its metadata is written like any other task's, in place
+### Requirement: Set reports each value
+On success `gemba set` SHALL print the task path relative to the obeya root, then one
+line per assigned key, `<key>: <old> -> <new>`, or `<key>: <value> (unchanged)` when
+it did not change, values as they read in YAML flow style, and exit 0. When no value
+changes, it SHALL write nothing.
+
+#### Scenario: Same value left as it was
+- **WHEN** `gemba set SUP-1 client=acme` runs on a task whose `client` is already `acme`
+- **THEN** the command exits 0, the output says `client: acme (unchanged)`, and the tree is unchanged
 
 ### Requirement: Values follow the declared type
-Each value SHALL be converted by the declared type of its field, never read as YAML: a
-`text` value SHALL be kept exactly as written; a `number` SHALL be a decimal literal, an
-optional minus sign, digits without leading zeros and an optional fractional part; a
-`boolean` SHALL be `true` or `false`; a `date` SHALL be an ISO `YYYY-MM-DD` date. The
-literal `null` SHALL clear a value of any type. A sum SHALL be computed exactly in
-decimal, so that adding `0.1` to `0.2` gives `0.3`, and a total with no fractional part
-SHALL be written as an integer. The value written SHALL read back in YAML as the same
-type, quoted when a text would otherwise read as another type.
+Each value SHALL be converted by its field's type, never read as YAML: a `text` kept
+exactly as written; a `number` a decimal literal, an optional minus sign, digits
+without leading zeros and an optional fractional part; a `boolean` `true` or `false`;
+a `date` an ISO `YYYY-MM-DD` date; `null` clears any type. Sums SHALL be exact in
+decimal (`0.1` plus `0.2` is `0.3`), and a whole total SHALL be written as an integer.
+The value written SHALL read back in YAML as its type, quoted when needed.
 
 #### Scenario: Text kept as written
 - **WHEN** `gemba set SUP-1 client=no code=007` runs on two text fields
@@ -111,30 +114,30 @@ every key it added, and SHALL never remove a key.
 - **WHEN** a task holds `ticket_id: PROD-1`, the config no longer declares `ticket_id`, and a declared field is set
 - **THEN** `ticket_id: PROD-1` is written after the declared keys, as it was
 
-### Requirement: Setting by the agent
-The `gemba-set` skill SHALL have the agent, from the obeya or from inside a
-harness, identify the task by its ref, from `harness.yaml` when inside a harness and
-asking when the request is ambiguous; map what the user says to declared fields by
-their names and descriptions in the gemba config; write each value in the form of the
-field's declared type; use `+=` whenever the user adds to an amount rather than stating
-the new total, so that it never computes a sum itself; for a text field, look up the
-values already in use with `gemba report --by <field>` and reuse their spelling when
-the user means one of them; run `gemba set` once with every assignment; relay the
-output; and stop. It SHALL have the agent read the `set` block of the task's workstream
-in the gemba config and follow its `rules` and `context`, and SHALL forbid editing the
-frontmatter by hand.
+### Requirement: The agent sets what the user says
+The `gemba-set` skill SHALL have the agent identify the task by its ref, from
+`harness.yaml` inside a harness, asking when the request is ambiguous; follow the
+`set` block of its workstream; map what the user says to declared fields by their
+names and descriptions; write each value in the form of its type, with `+=` whenever
+the user adds to an amount, never summing itself; run `gemba set` once with every
+assignment, relay the output and stop, never editing the frontmatter by hand.
 
 #### Scenario: Agent sets a value
 - **WHEN** the user says a task took two more hours, or that it was invoiced today
 - **THEN** the agent runs `gemba set` with `+=2` on the number field, or today's date on the date field, and relays the output
 
-#### Scenario: Spelling in use reused
-- **WHEN** the user says a task is for "ACME" and the text field `client` already holds `acme` on other tasks
-- **THEN** the agent finds `acme` with `gemba report --by client` and sets `client=acme`, asking when it cannot tell whether the user means the value in use
-
 #### Scenario: Agent follows the verb's rules
 - **WHEN** workstream `support` declares `set.rules` containing "set invoiced only when the task is done"
 - **THEN** the agent follows that rule before running the command for a `support` task
+
+### Requirement: The agent reuses the spelling in use
+For a text field, the agent SHALL look up the values already in use with
+`gemba report --by <field>` and reuse their spelling when the user means one of them,
+asking when it cannot tell.
+
+#### Scenario: Spelling in use reused
+- **WHEN** the user says a task is for "ACME" and the text field `client` already holds `acme` on other tasks
+- **THEN** the agent finds `acme` with `gemba report --by client` and sets `client=acme`, asking when it cannot tell whether the user means the value in use
 
 ### Requirement: Skill contains no configured value
 The `gemba-set` skill SHALL contain only the process and SHALL NOT name any workstream,

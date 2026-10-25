@@ -21,6 +21,11 @@ rules:
     - Every scenario in a delta spec names the cases it adds, modifies or removes
       under tests/cases, matched by the case's scenario field, or the entry it
       adds or removes in tests/not-automated.yaml
+    - Keep the text of every requirement a delta adds or modifies, the lines
+      before its first scenario, at 500 characters or fewer, one behavior per
+      requirement, with its examples and edge cases in its scenarios; openspec
+      validate checks that limit on ADDED requirements only, so check MODIFIED
+      ones too
   design:
     - State which module owns each new rule, domain or adapter, and name any new
       seam the change introduces, such as filesystem, clock or output

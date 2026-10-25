@@ -33,10 +33,22 @@ harness, from its root or any folder below it. Never run `git worktree` or
 
 ## Add
 
-1. **Find the repositories the task needs** in `task.md` and in the notes of the run.
-   Name each one by its folder name under the `repos_dir` that `gemba config show`
-   prints, such as `nakatomi-web`. When a name is not clear from them, ask the user; never
-   browse `repos_dir` or any folder above the harness to guess it.
+1. **Look up the repositories the task needs.** Take them from the request, `task.md`
+   and the notes of the run, then run:
+
+   ```bash
+   gemba worktree list --available
+   ```
+
+   It prints the folder name of every repository `add` accepts, one per line, such as
+   `nakatomi-web`. A name spelled exactly as a listed one is used as it is. Otherwise,
+   ask the user to choose among the listed repositories the request may mean: those
+   whose names share a word or a stem with it, or that `task.md` or the notes name. Ask
+   with your tool for questions with options, a panel, when you have one, the likeliest
+   first, saying that the user may name another; otherwise ask with a numbered list in
+   the chat. When no listed name fits, say so and show the list. Never guess, and never
+   run `add` on a name the user did not confirm. Never read `repos_dir` or any folder
+   above the harness yourself: the command reads it.
 2. **Read the `worktree.add` block**, `processes.worktree.add` of the document. Read
    `context` as background and follow every entry of `rules`: they say which branch each
    repository starts from.
@@ -52,8 +64,9 @@ harness, from its root or any folder below it. Never run `git worktree` or
 5. **Relay** what it printed: the worktree path, `branch:`, `from:` and `created`, or
    `already attached, worktree unchanged` when the repository is already checked out in
    this harness. When it refuses, relay every line, the repositories it names as found
-   at the root of `repos_dir` included, and ask the user how to go on; never work
-   around a refusal.
+   at the root of `repos_dir` included, and ask the user how to go on; when it found no
+   repository of that name, ask the user to choose among the ones it names, as step 1
+   does. Never work around a refusal.
 
 ## Branches
 
@@ -86,6 +99,11 @@ it), `uncommitted:`, the number of paths not committed, and `unpushed:`, the num
 commits on no remote branch. Every value is read from git when it runs. Relay them; a
 folder listed as `not a worktree` was not created by gemba, so tell the user. With no
 worktree it prints `no worktrees`.
+
+With `--available`, it prints instead the repositories `add` accepts, the folders
+directly under `repos_dir` that hold a git repository, attached or not, one per line in
+name order, or `no repositories`. Step 1 of Add looks the repositories up there. When
+`repos_dir` is not declared or is not a folder, it refuses: relay the message.
 
 ## Remove
 

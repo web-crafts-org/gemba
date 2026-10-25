@@ -8,18 +8,13 @@ independent of the task's status and of any run.
 
 ## Requirements
 
-### Requirement: Archive moves a task into its archive folder
+### Requirement: Archive moves the task file
 `gemba archive <ref> [<ref> ...]` SHALL resolve each ref anywhere under `tasks/`,
-archives included, and SHALL move each task file from `tasks/<workstream>/` into
-`tasks/<workstream>/archive/` with the same filename and the same content, byte for
-byte: `updated_at` SHALL NOT move, because archiving is not activity on the task. Each
-ref SHALL be handled on its own: a ref SHALL be refused, and the others still archived,
-when no task has it, when its task is already archived, when a folder exists at the
-harness path of its task, or when a file already exists at the destination. The
-command SHALL print one line per ref, `archived: <new path>` or `not archived: <ref>
-<reason>`, SHALL exit 0 when every ref was archived and 1 otherwise, and SHALL run no
-git: the obeya is committed by a person. It SHALL check no status: a task is
-archived whatever its status.
+archives included, move its task file from `tasks/<workstream>/` into
+`tasks/<workstream>/archive/` with the same name and content, byte for byte,
+`updated_at` included, since archiving is no activity on the task, and print
+`archived: <new path>`. It SHALL archive a task whatever its status and run no git: a
+person commits the obeya.
 
 #### Scenario: Task archived
 - **WHEN** `gemba archive SUP-1` runs for `tasks/support/2026-09-30-SUP-1-login-fails.md`, a `done` task with `updated_at: 2026-10-01`
@@ -28,6 +23,13 @@ archived whatever its status.
 #### Scenario: Several tasks archived
 - **WHEN** `gemba archive SUP-1 OPS-2` runs for a `done` task and a `blocked` task of two workstreams
 - **THEN** both files are under their own workstream's `archive/`, one `archived:` line per ref is printed in the order given, and the exit code is 0
+
+### Requirement: Archive refuses each ref on its own
+Each ref SHALL be handled on its own: a ref SHALL be refused, the others still
+archived, when no task has it, when its task is already archived, when a folder exists
+at the harness path of its task, or when a file exists at the destination, with a line
+`not archived: <ref> <reason>`. The command SHALL exit 0 when every ref was archived
+and 1 otherwise.
 
 #### Scenario: Task with a harness refused
 - **WHEN** `gemba archive SUP-1 SUP-2` runs and a harness folder exists for `SUP-2`
@@ -41,21 +43,22 @@ archived whatever its status.
 - **WHEN** no task under `tasks/` has one of the refs given
 - **THEN** that ref gets a `not archived:` line saying no task has it, the other refs are archived, and the exit code is 1
 
-### Requirement: Archiving by the agent
-The `gemba-archive` skill SHALL have the agent, from the obeya, archive the tasks
-the user names by ref, or find candidates when the user asks to archive what has gone
-cold: run `gemba list --updated-to <date>` with the date the user names or confirms,
-with `--status done` unless the user names other statuses, show the candidates with
-their ref, title, status and last update, let the user confirm or trim the list, and
-run `gemba archive` with the confirmed refs in one call. The agent SHALL relay every
-`not archived:` line and, for a task refused because of its harness, say that `gemba
-harness remove` clears it. The skill SHALL have the agent read the `archive` block of
-each workstream involved in the gemba config and follow its `rules` and `context`,
-and SHALL forbid moving a task file by hand.
+### Requirement: The agent archives what went cold
+The `gemba-archive` skill SHALL have the agent, from the obeya, archive the tasks the
+user names by ref, or, asked to archive what went cold, list candidates with
+`gemba list --updated-to <date>`, with `--status done` unless the user names other
+statuses, show their ref, title, status and last update, let the user confirm or trim
+them, and run `gemba archive` once with the confirmed refs. It SHALL relay every
+`not archived:` line, saying that `gemba harness remove` clears a harness.
 
 #### Scenario: Agent archives cold tasks
 - **WHEN** the user asks to archive the tasks not touched since a date
 - **THEN** the agent lists them with `gemba list --updated-to <date> --status done`, shows them, and after the user's confirmation runs `gemba archive` with their refs
+
+### Requirement: The agent follows the archive block
+The skill SHALL have the agent read the `archive` block of each workstream involved in
+the gemba config and follow its `rules` and `context`, and SHALL forbid moving a task
+file by hand.
 
 #### Scenario: Agent follows the verb's rules
 - **WHEN** workstream `support` declares `archive.rules` containing "never archive a task whose invoice is unpaid"
