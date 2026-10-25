@@ -1,0 +1,48 @@
+name: in an obeya with a team, the record of a task carries its owner right after its path
+scenario: "task-listing: Record of a member's task"
+config:
+  default_workstream: support
+  workstreams:
+    support:
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata:
+        - { name: client, type: text }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  me: manuel
+tree:
+  tasks/ana/support/2026-10-20-AG-SUP-1-export-times-out.md: |
+    ---
+    status: open
+    ref: AG-SUP-1
+    updated_at: 2026-10-20
+    metadata:
+      client: acme
+    ---
+
+    The monthly export times out for large accounts
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/ana/support/2026-10-20-AG-SUP-1-export-times-out.md
+      owner: ana
+      workstream: support
+      archived: false
+      ref: AG-SUP-1
+      date: 2026-10-20
+      title: Export times out
+      status: open
+      updated_at: 2026-10-20
+      done_at: null
+      metadata: { client: acme }
+      description: The monthly export times out for large accounts
+  problems: []
+stdout_contains:
+  - "\"path\": \"tasks/ana/support/2026-10-20-AG-SUP-1-export-times-out.md\",\n      \"owner\": \"ana\",\n      \"workstream\": \"support\","
+unchanged: true

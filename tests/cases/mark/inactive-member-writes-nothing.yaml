@@ -1,0 +1,28 @@
+name: a clone whose me is an inactive member marks nothing, not even a task of its own
+scenario: "task-ownership: Inactive member writes nothing"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG, active: false }
+local_config:
+  me: ana
+tree:
+  tasks/ana/support/2026-10-20-AG-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: AG-SUP-1
+    updated_at: 2026-10-20
+    metadata:
+      hours: null
+    ---
+
+    ## Updates
+run: [mark, AG-SUP-1, done]
+exit: 1
+stderr_contains:
+  - "gemba mark: task not marked:\n"
+  - "- me is ana, an inactive member of the team, who writes no task"
+unchanged: true

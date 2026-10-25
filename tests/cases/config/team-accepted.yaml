@@ -1,0 +1,17 @@
+name: a team in gemba.yaml and the member of the clone in gemba.local.yaml do not stop the list process
+scenario: "gemba-config: Team accepted"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG, active: false }
+local_config:
+  me: manuel
+run: [list]
+exit: 0
+stdout_json:
+  tasks: []
+  problems: []
+unchanged: true

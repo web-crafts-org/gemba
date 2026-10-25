@@ -28,7 +28,8 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         description=(
             f"Validate {config.CONFIG_FILENAME} and {config.LOCAL_FILENAME}, when it exists, as every command does "
             "before acting. A valid config is summarized with its workstreams and prefixes, its default workstream, "
-            "its agent providers and the providers the personal config declares for a launch; an invalid one is "
+            "the members of its team and the member of the clone when it declares a team, its agent providers and "
+            "the providers the personal config declares for a launch; an invalid one is "
             "reported with every problem of both files, each with the path of its file, and the command exits 1."
         ),
     )
@@ -41,7 +42,8 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         description=(
             "Validate the config as check does and print the effective config, merged from both files, as one JSON "
             "object: the top-level keys, the defaults applied and null where nothing is declared, "
-            "`harness_providers`, the providers a launch writes the harness for, and `workstreams`, in catalogue "
+            "`harness_providers`, the providers a launch writes the harness for, in an obeya with a team `team`, "
+            "each member with its initials and whether it is active, and `me`, and `workstreams`, in catalogue "
             "order, each with its prefix, its description, its effective metadata schema and, under `processes`, "
             "the effective block of every process and verb: the shared base block, the workstream's, then the "
             "personal ones."
@@ -67,6 +69,14 @@ def run_check(args: argparse.Namespace) -> int:
         print(f"{config.LOCAL_FILENAME} is valid")
     print(f"workstreams: {workstreams}")
     print(f"default workstream: {gemba_config.default_workstream}")
+    if gemba_config.team is not None:
+        members = ", ".join(
+            f"{member.id} ({member.initials})" if member.active else f"{member.id} ({member.initials}, inactive)"
+            for member in gemba_config.team.values()
+        )
+        print(f"team: {members}")
+        if gemba_config.me is not None:
+            print(f"me: {gemba_config.me}")
     print(f"agent providers: {providers}")
     if gemba_config.personal_providers is not None:
         print(f"harness providers: {', '.join(gemba_config.personal_providers)}")
@@ -85,7 +95,7 @@ def run_show(args: argparse.Namespace) -> int:
             f"unknown workstream '{args.workstream}' (valid workstreams: {', '.join(gemba_config.workstreams)})",
         )
     shown = [args.workstream] if args.workstream is not None else list(gemba_config.workstreams)
-    document = {
+    document: dict[str, object] = {
         "obeya": gemba_config.obeya,
         "branch_prefix": gemba_config.branch_prefix,
         "repos_dir": gemba_config.repos_dir,
@@ -93,8 +103,14 @@ def run_show(args: argparse.Namespace) -> int:
         "agent_providers": None if gemba_config.agent_providers is None else list(gemba_config.agent_providers),
         "harness_providers": None if gemba_config.harness_providers is None else list(gemba_config.harness_providers),
         "default_workstream": gemba_config.default_workstream,
-        "workstreams": [workstream(gemba_config, workstream_id) for workstream_id in shown],
     }
+    # Only an obeya with a team shows the team, as only its listing records carry an owner.
+    if gemba_config.team is not None:
+        document["team"] = {
+            member.id: {"initials": member.initials, "active": member.active} for member in gemba_config.team.values()
+        }
+        document["me"] = gemba_config.me
+    document["workstreams"] = [workstream(gemba_config, workstream_id) for workstream_id in shown]
     print(selection.dump(document))
     return 0
 

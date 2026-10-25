@@ -1,0 +1,40 @@
+name: the first support task of manuel receives MR-SUP-1, in a filename that carries the initials
+scenario: "task-file-format: Ref of a member's task"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  me: manuel
+run: [create, --workstream, support, --slug, export-times-out, --date, 2026-10-25]
+exit: 0
+stdout: |
+  tasks/manuel/support/2026-10-25-MR-SUP-1-export-times-out.md
+  MR-SUP-1
+files_contain:
+  tasks/manuel/support/2026-10-25-MR-SUP-1-export-times-out.md: ["ref: MR-SUP-1\n"]
+---
+name: gemba list reads the task created with the initials in its ref and the title without them
+scenario: "task-file-format: Ref of a member's task"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  me: manuel
+setup:
+  - [create, --workstream, support, --slug, export-times-out, --date, 2026-10-25]
+run: [list]
+exit: 0
+stdout_contains:
+  - '"path": "tasks/manuel/support/2026-10-25-MR-SUP-1-export-times-out.md"'
+  - '"ref": "MR-SUP-1"'
+  - '"title": "Export times out"'
+  - '"problems": []'
+unchanged: true

@@ -197,5 +197,8 @@ harness nor a harness repository whose state cannot be read: those still refuse.
   own the bodies of the notes. `task.md` is read-only.
 - Nothing outside the harness happens without an `external-action` note whose
   frontmatter reads `approved: true`.
+- In an obeya with a team, only the owner of a task launches it, from their own clone.
+  When the command refuses a task because it belongs to another member, relay the
+  refusal, suggest asking its owner, and never edit the task file to get around it.
 - When `gemba.yaml` changes, follow the new content. This skill never needs an edit when
   a workstream or a rule is added, changed or removed.

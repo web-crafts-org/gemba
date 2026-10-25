@@ -1,0 +1,17 @@
+name: a me that names no member of the team is refused, naming it and listing the members
+scenario: "gemba-config: Unknown member refused"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  me: bob
+run: [list]
+exit: 1
+stderr_contains:
+  - "invalid gemba config:\n"
+  - "gemba.local.yaml: me names no member of the team: 'bob' (members: manuel, ana)"
+unchanged: true

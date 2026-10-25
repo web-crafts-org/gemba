@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from importlib.metadata import version
 from pathlib import Path, PurePosixPath
 
-from gemba import config, harness, platform, skills, tasks, worktree
+from gemba import config, harness, platform, skills, tasks, team, worktree
 from gemba.commands import worktree as worktree_command
 
 # The keyword of the error handler of shutil.rmtree: onexc takes the exception from 3.12, onerror the exc_info.
@@ -132,7 +132,7 @@ def run_launch(args: argparse.Namespace) -> int:
             f"(known providers: {', '.join(skills.PROVIDERS)})"
         )
     try:
-        task = tasks.find_by_ref(gemba_config.root, gemba_config.workstreams, args.ref)
+        task = tasks.find_by_ref(gemba_config.root, gemba_config.workstreams, args.ref, gemba_config.members)
     except tasks.TaskError as exc:
         task = None
         errors.append(str(exc))
@@ -146,6 +146,7 @@ def run_launch(args: argparse.Namespace) -> int:
                 f"{task.ref} is done ({task.path}): a done task cannot be launched; "
                 f"move it to open or in-progress first with gemba mark {task.ref} <status>"
             )
+    errors.extend(team.write_problems(gemba_config.team, gemba_config.me, task, config.LOCAL_FILENAME))
     if errors:
         return fail("launch", "harness not launched:\n" + "\n".join(f"- {error}" for error in errors))
     assert task is not None and gemba_config.harness_providers is not None, "every failed check appended an error"
@@ -276,7 +277,7 @@ def run_remove(args: argparse.Namespace) -> int:
 
     root = gemba_config.root
     try:
-        task = tasks.find_by_ref(root, gemba_config.workstreams, args.ref)
+        task = tasks.find_by_ref(root, gemba_config.workstreams, args.ref, gemba_config.members)
     except tasks.TaskError as exc:
         return refuse_removal([str(exc)])
     if task is None:

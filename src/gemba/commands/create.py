@@ -7,7 +7,7 @@ import datetime
 import sys
 from pathlib import Path
 
-from gemba import config, metadata, tasks, values
+from gemba import config, metadata, tasks, team, values
 
 CREATION_STATUSES = ("open", "in-progress", "blocked")
 
@@ -66,13 +66,17 @@ def run(args: argparse.Namespace) -> int:
         assigned = metadata.assign(schema, {}, assignments, f"'{workstream.id}'")
         errors.extend(assigned.problems)
         task_metadata = assigned.values
+    errors.extend(team.write_problems(gemba_config.team, gemba_config.me, None, config.LOCAL_FILENAME))
 
     if errors:
         return fail("task not created:\n" + "\n".join(f"- {error}" for error in errors))
     assert workstream is not None and created is not None, "every failed check above appended an error"
 
-    ref = tasks.next_ref(gemba_config.root, workstream.prefix)
-    folder = gemba_config.root / tasks.TASKS_DIR / workstream.id
+    # With a team, the task goes into the folder of the member of the clone, under refs of their initials.
+    owner = None if gemba_config.team is None or gemba_config.me is None else gemba_config.team[gemba_config.me]
+    ref = tasks.next_ref(gemba_config.root, workstream.prefix, None if owner is None else owner.initials)
+    folder = gemba_config.root / tasks.TASKS_DIR
+    folder = folder / workstream.id if owner is None else folder / owner.id / workstream.id
     target = folder / tasks.filename(created, ref, args.slug)
     relative = target.relative_to(gemba_config.root).as_posix()
     if target.exists():

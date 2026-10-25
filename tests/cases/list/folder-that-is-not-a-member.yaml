@@ -1,0 +1,34 @@
+name: a folder under tasks that is not a member of the team is reported, its files not listed
+scenario: "task-listing: Folder that is not a member"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  me: manuel
+tree:
+  tasks/manuel/support/2026-10-20-MR-SUP-1-export-times-out.md: "---\nstatus: open\nref: MR-SUP-1\nupdated_at: 2026-10-20\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/bob/support/2026-10-21-BO-SUP-1-old-work.md: "---\nstatus: open\nref: BO-SUP-1\nupdated_at: 2026-10-21\nmetadata: {}\n---\n\n## Updates\n"
+run: [list]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/manuel/support/2026-10-20-MR-SUP-1-export-times-out.md
+      owner: manuel
+      workstream: support
+      archived: false
+      ref: MR-SUP-1
+      date: 2026-10-20
+      title: Export times out
+      status: open
+      updated_at: 2026-10-20
+      done_at: null
+      metadata: {}
+      description: null
+  problems:
+    - path: tasks/bob
+      problem: folder is not a member of the team; its files are not listed
+unchanged: true

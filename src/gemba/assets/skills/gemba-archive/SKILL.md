@@ -76,5 +76,8 @@ From anywhere inside the obeya.
 - An archived task is left out of `gemba list` unless `--include-archived` is given.
   Bringing one back out of `archive/` is the user's own move, made by hand; tell them
   so when they ask, and do not do it for them.
+- In an obeya with a team, only the owner of a task archives it. When the command
+  refuses a task because it belongs to another member, relay the line, suggest asking
+  its owner, and never move the task file to get around it.
 - When `gemba.yaml` changes, follow the new content. This skill never needs an edit when
   a workstream or a rule is added, changed or removed.

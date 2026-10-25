@@ -1,6 +1,6 @@
 ---
 name: gemba-report
-description: Report what was done in a period, a day, a week or a month, across every task of this obeya, with every count and total taken from gemba report. Use whenever the user asks for the daily report, a standup, an end-of-day, weekly or monthly summary, "what did I do today", "yesterday", "this week" or "in September", or how much of an amount went to each workstream, status or value of a field in a period, whatever the workstream.
+description: Report what was done in a period, a day, a week or a month, across every task of this obeya, with every count and total taken from gemba report. Use whenever the user asks for the daily report, a standup, an end-of-day, weekly or monthly summary, "what did I do today", "yesterday", "this week" or "in September", what the team did, or how much of an amount went to each workstream, member, status or value of a field in a period, whatever the workstream.
 ---
 
 # Report a period
@@ -46,9 +46,18 @@ candidates by reading the task folders yourself, and do not compute a number you
 
    It returns the tasks created on or before T and updated on or after F, which are
    exactly the tasks alive in the period. Add `--include-archived` only when the user
-   asks for archived tasks too, and no other filter: the report covers every
-   workstream. Read only the tasks it returns. If the command refuses, relay its
-   message and stop.
+   asks for archived tasks too, and no other filter but the owner below: the report
+   covers every workstream. Read only the tasks it returns. If the command refuses,
+   relay its message and stop.
+
+   Run `gemba config show` first. When it holds `team`, the obeya is shared by a team,
+   and the report covers the user's own work: add `--owner <me>`, with `me` read from
+   that document, to this command and to every `gemba report` of step 6. When the user
+   asks about another member, use `--owner` with that member's folder name, the key of
+   their entry under `team`. When they ask about the whole team, pass no `--owner` and
+   group the numbers of step 6 `--by owner`, so that each member's total and the team's
+   come from the command. When `me` is `null` and the user asks about their own work,
+   ask which member they are.
 4. **Read the signals of each candidate.** Open the file at the record's `path` and
    take:
    - the bullets of every `### D` subsection under `## Updates` whose date D lies from F
@@ -68,7 +77,8 @@ candidates by reading the task folders yourself, and do not compute a number you
    takes the filters of `gemba list` and prints one JSON object:
 
    ```bash
-   gemba report --done-from F --done-to T [--by <grouping> ...] [--sum <field> ...]
+   gemba report --done-from F --done-to T [--owner <member>] \
+     [--by <grouping> ...] [--sum <field> ...]
    ```
 
    - **Selection.** A number field holds one total per task, so the totals of a period
@@ -78,9 +88,10 @@ candidates by reading the task folders yourself, and do not compute a number you
      --where-to <field>=T`) or the `report.rules` of the workstreams involved say
      otherwise. Add `--include-archived` when the user asks for archived tasks too.
      Narrow it with `--workstream`, `--status` or `--where` when the question does.
-   - **Groupings.** `--by workstream`, `--by status`, or `--by <field>` for a field
-     whose declared `type` is `text` or `boolean`, when the user asks for amounts per
-     workstream, per status or per value of a field. Repeat `--by` to group within
+   - **Groupings.** `--by workstream`, `--by status`, `--by owner` in an obeya with a
+     team, or `--by <field>` for a field whose declared `type` is `text` or `boolean`,
+     when the user asks for amounts per workstream, per member, per status or per value
+     of a field. Repeat `--by` to group within
      groups. Map the user's words to fields by the `name` and `description` of every
      field under `metadata` in the entries of the document of step 5, and write every
      value by its field's declared type, as `gemba list` takes them.
@@ -103,8 +114,9 @@ candidates by reading the task folders yourself, and do not compute a number you
    finished from F to T".
 7. **Compose the report** in the language the user converses in, grouped by
    workstream unless the user asks for another grouping, with one entry per task that
-   has a signal for the period: its title, ref and current status, then the bullets of
-   the period, condensed rather than transcribed. A task created or finished in the
+   has a signal for the period: its title, ref and current status, with its owner when
+   the report covers more than one member, then the bullets of the period, condensed
+   rather than transcribed. A task created or finished in the
    period says so, without bullets made up for it. When no candidate has a signal for
    the period, say plainly that nothing was recorded for it. This layout reads well:
 

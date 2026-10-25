@@ -39,13 +39,12 @@ message.
 - **THEN** nothing is listed, the exit status is non-zero and the config problem is reported
 
 ### Requirement: Scan scope
-The command SHALL scan only the folders under `tasks/` of the workstreams of the
-config, those of the workstream filter when given: the `.md` files directly under
-each, and those directly under its `archive/` only with the archived switch, ignoring
-hidden entries and other files. A configured workstream without a folder SHALL
-contribute nothing; a non-hidden entry directly under `tasks/` that is not a
-configured workstream SHALL be reported as a problem, so that no task disappears
-silently.
+In an obeya without a team, the command SHALL scan only the folders under `tasks/` of
+the workstreams of the config, those of the workstream filter when given: the `.md`
+files directly under each, and those directly under its `archive/` only with the
+archived switch, ignoring hidden entries and other files. A configured workstream
+without a folder SHALL contribute nothing; a non-hidden entry directly under `tasks/`
+that is not a configured workstream SHALL be reported as a problem.
 
 #### Scenario: Archived tasks excluded by default
 - **WHEN** `tasks/support/` holds one task and `tasks/support/archive/` holds another, and the listing is run without the archived switch
@@ -88,8 +87,9 @@ config are valid, even when problems were found or no task matched.
 
 ### Requirement: A task record
 A task record SHALL carry exactly `path` (relative to the obeya root, with POSIX
-separators), `workstream`, `archived` (a boolean), `ref`, `date` (the creation date of
-the filename), `title` (the display title derived from the filename), `status`,
+separators), `owner` (its owner's folder) only in an obeya with a team,
+`workstream`, `archived` (a boolean), `ref`, `date` (the creation date of the
+filename), `title` (the display title derived from the filename), `status`,
 `updated_at`, `done_at` (`null` when absent), `metadata` (the frontmatter map as
 written, uninterpreted) and `description` (the first paragraph of the body, or
 `null`), dates as ISO strings.
@@ -105,6 +105,10 @@ written, uninterpreted) and `description` (the first paragraph of the body, or
 #### Scenario: Metadata values keep their type
 - **WHEN** a task's frontmatter has `hours: 3`, `billed: false` and `project: [checkout, landing]`
 - **THEN** the record's `metadata` carries the number `3`, the boolean `false` and the two-item list
+
+#### Scenario: Record of a member's task
+- **WHEN** the shared config declares a team and `tasks/ana/support/2026-10-20-AG-SUP-1-export-times-out.md` is a valid task
+- **THEN** its record carries `owner` `ana` right after `path`, followed by every other key of the record
 
 ### Requirement: Invalid task files are reported and skipped
 A `.md` file in a scanned folder that is not a valid task under the task file format
@@ -281,3 +285,56 @@ task itself SHALL still be listed when it matches the filters.
 #### Scenario: Value of another type reported
 - **WHEN** the status filter is `open`, an `open` task carries `hours: "3"` with `hours` declared as a `number`, and a `done` task carries `billed: "yes"` with `billed` declared as a `boolean`
 - **THEN** the `open` task is listed, and `problems` names both paths, each with its key and type
+
+### Requirement: Scan scope of a team
+When the shared config declares a team, the command SHALL scan
+`tasks/<member>/<workstream>/` and its `archive/` by the rules of the scan scope, for
+every member, active or not, or for those of the owner filter. When neither a
+workstream nor an owner filter is given, a non-hidden entry directly under `tasks/`
+that is not a member, or directly under a member's folder that is not a configured
+workstream, SHALL be reported as a problem.
+
+#### Scenario: Tasks of every member listed
+- **WHEN** the team declares `manuel` and `ana`, `tasks/manuel/support/` holds `MR-SUP-1` created on 2026-10-20, `tasks/ana/operations/` holds `AG-OPS-1` created on 2026-10-21, and `tasks/ana/support/archive/` holds `AG-SUP-1`
+- **THEN** `gemba list` lists `MR-SUP-1` then `AG-OPS-1`, and with the archived switch `AG-SUP-1` too, with `archived` `true`
+
+#### Scenario: Folder that is not a member
+- **WHEN** `tasks/bob/support/` holds a task file and `bob` is not a member of the team
+- **THEN** its files are not listed and a problem names `tasks/bob` as a folder that is not a member of the team
+
+#### Scenario: Folder of a member that is not a workstream
+- **WHEN** `tasks/ana/legacy/` exists and `legacy` is not in the config
+- **THEN** its files are not listed and a problem names `tasks/ana/legacy` as a folder that is not a workstream of the config
+
+### Requirement: The owner filter
+When the shared config declares a team, listing SHALL take an owner filter,
+repeatable, each value a member of the team, whose values are alternatives and restrict
+the scan to the folders of those members, as the workstream filter does. Without a
+team, or for a value that is not a member, the filter SHALL be refused together with
+every other invalid filter.
+
+#### Scenario: Tasks of one member
+- **WHEN** the owner filter is `manuel`, both `manuel` and `ana` have tasks, and `tasks/ana/support/` holds an invalid task file
+- **THEN** only the tasks of `manuel` are listed and the invalid file of `ana` is not reported, because her folder was not scanned
+
+#### Scenario: Owner filter without a team refused
+- **WHEN** the owner filter is given in an obeya whose shared config declares no team
+- **THEN** nothing is listed, the exit status is non-zero, and the message says that the obeya declares no team
+
+#### Scenario: Unknown owner refused
+- **WHEN** the owner filter is `bob`, the team declares `manuel` and `ana`, and a status filter is `closed`
+- **THEN** nothing is listed and one message names `bob`, lists `manuel` and `ana`, and names the invalid status
+
+### Requirement: The agent lists the user's tasks in a team
+In an obeya with a team, the agent SHALL read a request about the user's own tasks,
+such as "what do I have open", as the owner filter with `me`, read from `gemba config
+show`; a request that names a member as that member's folder name; and a request about
+the whole team as no owner filter.
+
+#### Scenario: My open tasks in a team
+- **WHEN** `me` is `manuel` and the user asks what they have open
+- **THEN** the agent runs `gemba list --owner manuel` with the statuses `open`, `in-progress` and `blocked`
+
+#### Scenario: Open tasks of the team
+- **WHEN** the user asks what the team has open
+- **THEN** the agent runs `gemba list` without an owner filter and shows each task with its owner

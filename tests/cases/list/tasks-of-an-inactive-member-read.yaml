@@ -1,0 +1,31 @@
+name: the tasks of an inactive member are listed with their owner, as any task is
+scenario: "task-ownership: Tasks of an inactive member read"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG, active: false }
+local_config:
+  me: manuel
+tree:
+  tasks/ana/support/2026-10-20-AG-SUP-1-export-times-out.md: "---\nstatus: open\nref: AG-SUP-1\nupdated_at: 2026-10-20\nmetadata: {}\n---\n\n## Updates\n"
+run: [list]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/ana/support/2026-10-20-AG-SUP-1-export-times-out.md
+      owner: ana
+      workstream: support
+      archived: false
+      ref: AG-SUP-1
+      date: 2026-10-20
+      title: Export times out
+      status: open
+      updated_at: 2026-10-20
+      done_at: null
+      metadata: {}
+      description: null
+  problems: []
+unchanged: true

@@ -8,10 +8,11 @@ All notable changes to the gemba CLI are recorded here. The format follows
 ## [Unreleased]
 
 The gemba config becomes two files, so that an obeya can be shared: `gemba.yaml`,
-committed, and `gemba.local.yaml`, private to the clone. The obeya is what earlier
-versions called the tasks repo. Two changes refuse a `gemba.yaml` that 0.2 accepted,
-both listed under Changed: the keys that moved to the personal config, and
-`organization`, renamed `obeya`.
+committed, and `gemba.local.yaml`, private to the clone. An obeya may then be shared by
+a team, each member owning their own tasks. The obeya is what earlier versions called
+the tasks repo. Three changes refuse a `gemba.yaml` that 0.2 accepted, all listed under
+Changed: the keys that moved to the personal config, `organization`, renamed `obeya`,
+and a field named `owner`, now reserved.
 
 ### Added
 
@@ -56,6 +57,38 @@ both listed under Changed: the keys that moved to the personal config, and
   a git repository, attached or not, or `no repositories` when there is none. It
   refuses as `add` does when `repos_dir` is not declared or is not a folder, and writes
   nothing.
+- A team in `gemba.yaml`: `team` maps the folder name of each member, kebab-case and
+  not the identifier of a workstream, to their `initials`, uppercase letters no other
+  member uses, and `active`, `true` when absent; a member who leaves is marked
+  `active: false`, never removed, so their initials and refs are never reused. Each
+  clone names its member in `gemba.local.yaml` as `me`. With a team, the tasks of each
+  member live under `tasks/<member>/<workstream>/`, archives included, and `gemba
+  create` writes into the folder of `me` with refs such as `MR-SUP-3`, one counter per
+  member and prefix, so two members never compete for a number. Without `team`, an
+  obeya works as before.
+- A team starts in a new obeya: every command refuses a `team` while `tasks/` holds the
+  workstream folders of an obeya without one, naming them and pointing to the
+  `gemba-migrate` skill. No obeya is converted in place.
+- `gemba config check` prints a `team:` line, with every member and whether they are
+  inactive, and a `me:` line; `gemba config show` prints `team` and `me`. Both only in
+  an obeya with a team.
+- In an obeya with a team, `gemba list` and `gemba report` read the tasks of every
+  member, active or not, whether or not the clone declares `me`; each record of
+  `gemba list` carries `owner`, the member whose folder holds the task, right after
+  `path`; and both take `--owner <member>`, repeatable, which reads only the folders of
+  those members, as `--workstream` reads only those workstreams. A folder under `tasks/`
+  that is not a member, or under a member's folder that is not a workstream, is
+  reported as a problem. Without a team, a record has no `owner` and `--owner` is
+  refused, saying the obeya declares no team.
+- `gemba report --by owner` groups the tasks of an obeya with a team by member, in the
+  order of the team; without a team it is refused, saying the obeya declares no team.
+- The write guard of a team: only the owner of a task writes it. In an obeya with a
+  team, `gemba create`, `record`, `mark`, `set`, `archive` and `harness launch` refuse
+  to write when the clone declares no `me` or names a member who left, and `record`,
+  `mark`, `set`, `archive` and `harness launch` refuse a task of another member, naming
+  it and its owner, together with every other problem of the call. The guard stops
+  accidents, not a determined person: access control belongs to the git host. The
+  skills that write a task relay such a refusal and suggest asking the owner.
 
 ### Changed
 
@@ -72,6 +105,10 @@ both listed under Changed: the keys that moved to the personal config, and
   branches keep their names, so no run loses its branches. Rename it by hand, or ask the
   agent to fix the config: the `gemba-config` skill renames it in the same pass that
   moves `ide`, `repos_dir` and `branch_prefix`.
+- **Breaking:** `owner` is a reserved field name, beside `workstream` and `status`,
+  since a report groups tasks by their owner. Every command refuses a config that
+  declares a field named `owner`; rename the field in `gemba.yaml`. Values already
+  written under that key stay in the task files as they are.
 - The tasks repo is now called the obeya (大部屋, "big room": in lean, the room where a
   team keeps all of its work in sight) everywhere: the help and the messages of every
   command, the skills, the document of `gemba config show`, which prints `obeya` and
@@ -83,9 +120,14 @@ both listed under Changed: the keys that moved to the personal config, and
   with the path of its file, instead of the first one; a check that needs another
   value runs only when that value is valid, so one mistake is reported once.
 - The `gemba-init` skill writes the IDE command and the repositories folder into
-  `gemba.local.yaml`, and the `gemba-config` skill holds the reference of both files,
-  moves the keys of an earlier `gemba.yaml` and renames its `organization`:
-  `gemba skills update` refreshes them.
+  `gemba.local.yaml`, asks whether a team shares the obeya, and configures the clone of
+  a member who joins one; the `gemba-config` skill holds the reference of both files,
+  moves the keys of an earlier `gemba.yaml`, renames its `organization` and maintains
+  the members of the team; `gemba-list` and `gemba-report` read "my tasks" and "what
+  did I do" as the tasks of `me` in an obeya with a team; `gemba-create` never creates
+  a task for another member; and `gemba-record`, `gemba-mark`, `gemba-set`,
+  `gemba-archive` and `gemba-harness` relay a refusal of another member's task:
+  `gemba skills update` refreshes them, run in the obeya and in each harness.
 - `gemba init` writes `/update.md` into the `.gitignore`, so that a draft left at the
   obeya root by a refused `gemba record` never reaches a commit. Running `gemba init`
   again on an obeya made before this version appends the line and writes the

@@ -1,0 +1,47 @@
+name: of two refs, the task of the member of the clone is archived and the task of another member is refused
+scenario: "task-ownership: Another member's task not archived"
+config:
+  default_workstream: support
+  agent_providers: [claude]
+  metadata:
+    - { name: hours, type: number }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  me: manuel
+tree:
+  tasks/manuel/support/2026-10-19-MR-SUP-1-export-times-out.md: |
+    ---
+    status: done
+    ref: MR-SUP-1
+    updated_at: 2026-10-20
+    done_at: 2026-10-20
+    metadata:
+      hours: 2
+    ---
+
+    ## Updates
+  tasks/ana/support/2026-10-20-AG-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: AG-SUP-1
+    updated_at: 2026-10-20
+    metadata:
+      hours: null
+    ---
+
+    ## Updates
+run: [archive, MR-SUP-1, AG-SUP-1]
+exit: 1
+stdout: |
+  archived: tasks/manuel/support/archive/2026-10-19-MR-SUP-1-export-times-out.md
+  not archived: AG-SUP-1 belongs to ana: only its owner writes it
+files_contain:
+  tasks/manuel/support/archive/2026-10-19-MR-SUP-1-export-times-out.md: ["\nref: MR-SUP-1\n"]
+  tasks/ana/support/2026-10-20-AG-SUP-1-login-fails.md: ["\nref: AG-SUP-1\n"]
+absent:
+  - tasks/manuel/support/2026-10-19-MR-SUP-1-export-times-out.md
+  - tasks/ana/support/archive

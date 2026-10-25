@@ -89,10 +89,11 @@ commit it when you like.
 
 Then open the folder with your agent and ask it to configure Gemba. The `gemba-init`
 skill says what an obeya is and asks, one question at a time, what yours holds, which
-gives it its name, the kinds of work you do, which one takes a task that fits no other,
-what to record per task, your agents, your editor and the folder of your repositories.
-It writes your editor and your repositories folder into `gemba.local.yaml`, which stays
-on your machine, and the rest into `gemba.yaml`.
+gives it its name, whether a team shares it, the kinds of work you do, which one takes
+a task that fits no other, what to record per task, your agents, your editor and the
+folder of your repositories. It writes your editor, your repositories folder and, with
+a team, the member you are into `gemba.local.yaml`, which stays on your machine, and
+the rest into `gemba.yaml`.
 
 From there, talk to the agent:
 
@@ -236,7 +237,8 @@ gemba report --done-from 2026-09-01 --done-to 2026-09-30 --by client --sum hours
 ```
 
 which takes the filters of `gemba list`, groups with `--by` (`workstream`, `status`,
-or a text or boolean field) and adds number fields with `--sum`, exactly.
+`owner` in an obeya shared by a team, or a text or boolean field) and adds number
+fields with `--sum`, exactly.
 
 ### Close out
 
@@ -342,9 +344,9 @@ What you can customize, all of it in the config and never in a skill:
 - **Metadata fields**, shared or per workstream, each of one type: `text`, `number`,
   `boolean` or `date`. Gemba reads, filters, groups and adds values by their type and
   never interprets their meaning.
-- **Agent providers**, the name of the obeya, and in your personal config the IDE
-  command (a string, or `{ command: code, args: [-n] }`), the repositories folder and
-  the branch prefix.
+- **Agent providers**, the name of the obeya, the team that shares it, and in your
+  personal config the IDE command (a string, or `{ command: code, args: [-n] }`), the
+  repositories folder, the branch prefix and the member you are.
 - **`context` and `rules` for every process**, at the top level and per workstream, in
   either file: what the agent should know and do when it creates, lists, launches,
   notes, records, marks, archives or checks out, with the workstream's rule winning a
@@ -354,16 +356,75 @@ What you can customize, all of it in the config and never in a skill:
 
 Changing any of it is a config edit: no skill and no code changes.
 
+## Share an obeya with a team
+
+An obeya can be shared by a team of developers who work together, each one owning their
+own tasks. A team starts in a new obeya, made with `gemba init` like any other, whose
+`gemba.yaml` declares the members, each with the name of their folder and their
+initials:
+
+```yaml
+team:
+  manuel: { initials: MR }
+  ana: { initials: AG }
+  bea: { initials: BC, active: false }   # left the team: kept, never removed
+```
+
+Each clone names its member in its own `gemba.local.yaml`:
+
+```yaml
+me: manuel
+```
+
+The tasks of each member then live in their own folder, `tasks/<member>/<workstream>/`,
+archives included, and their refs start with the member's initials, with one counter
+per member and prefix, so two members never compete for a number:
+
+```bash
+gemba create --workstream support --slug export-times-out
+# tasks/manuel/support/2026-10-25-MR-SUP-1-export-times-out.md
+# MR-SUP-1
+```
+
+Everyone reads every task: each record of `gemba list` carries its `owner`, `--owner
+ana` lists the tasks of one member, and `gemba report --by owner` adds up the work of
+each member and of the team. Only the owner writes a task: `gemba record`, `mark`,
+`set`, `archive` and `harness launch` refuse a task of another member, and every
+command that writes refuses a clone whose `me` is missing or names a member who left:
+
+```bash
+gemba mark AG-SUP-1 done
+# gemba mark: task not marked:
+# - AG-SUP-1 belongs to ana: only its owner writes it
+```
+
+Since each member writes only their own folder, git carries the obeya with no backend
+and a pull almost never conflicts; the shared files, `gemba.yaml` and the skills,
+change rarely and go through the team's own review. The guard stops accidents, not a
+determined person: who may push what is set in the git host, with CODEOWNERS per
+folder and branch protection. Harnesses stay on each member's machine, as they do when
+you work alone.
+
+A new member is added to `team` first, with initials no member ever used, through the
+`gemba-config` skill. Then they clone the obeya, run `gemba init` in it, which writes
+what the clone is missing, and ask the agent to configure Gemba: the `gemba-init` skill
+asks which member they are, their editor and their repositories folder, and writes them
+into their `gemba.local.yaml`. The tasks they kept before come in as the next section
+says.
+
 ## Bring tasks from another obeya
 
 When you start in a new obeya, such as the one a team shares, your earlier tasks stay
-in the old one. Nothing converts it: the old obeya stays as it was, as history. Ask
+in the old one. Nothing converts it: the old obeya stays as it was, as history, and
+every command refuses a team declared over the tasks of an obeya kept without one. Ask
 the agent, in the new obeya, to migrate tasks from the old one, naming its path. The
 `gemba-migrate` skill reads the old obeya as data, never following its rules, asks
 which tasks to bring, the ones not done or the finished ones too, and maps each old
 workstream and field to one of the new config with you, one question at a time. A task
 whose harness is still there waits: finish it in the old obeya, or push its work,
-remove the harness and launch the task again in the new one once it is migrated.
+remove the harness and launch the task again in the new one once it is migrated. In an
+obeya shared by a team, the migrated tasks land in your own folder, with refs of your
+initials.
 
 The commands write every task, with a new ref. For a task done in the old obeya:
 

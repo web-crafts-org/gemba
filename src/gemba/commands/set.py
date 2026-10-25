@@ -6,7 +6,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from gemba import config, metadata, platform, tasks
+from gemba import config, metadata, platform, tasks, team
 
 
 def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
@@ -42,13 +42,14 @@ def run(args: argparse.Namespace) -> int:
 
     assignments, errors = metadata.parse_assignments(args.assignments, allow_add=True)
     try:
-        task = tasks.find_by_ref(gemba_config.root, gemba_config.workstreams, args.ref)
+        task = tasks.find_by_ref(gemba_config.root, gemba_config.workstreams, args.ref, gemba_config.members)
     except tasks.TaskError as exc:
         task = None
         errors.append(str(exc))
     else:
         if task is None:
             errors.append(f"no task has ref '{args.ref}' under {tasks.TASKS_DIR}/, archives included")
+    errors.extend(team.write_problems(gemba_config.team, gemba_config.me, task, config.LOCAL_FILENAME))
     assigned = None
     if task is not None:
         schema = gemba_config.effective_schema(task.workstream)

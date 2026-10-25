@@ -13,8 +13,9 @@ from pathlib import Path
 
 import yaml
 
-from gemba import metadata, platform, skills
+from gemba import metadata, platform, skills, team
 from gemba.metadata import Field
+from gemba.team import Member
 from gemba.worktree import DEFAULT_BRANCH_PREFIX
 
 CONFIG_FILENAME = "gemba.yaml"
@@ -48,10 +49,12 @@ LAYERS: dict[str, tuple[str, ...]] = {
     "metadata": (CONFIG_FILENAME,),
     "default_workstream": (CONFIG_FILENAME,),
     "obeya": (CONFIG_FILENAME,),
+    "team": (CONFIG_FILENAME,),
     "agent_providers": (CONFIG_FILENAME, LOCAL_FILENAME),
     "ide": (LOCAL_FILENAME,),
     "repos_dir": (LOCAL_FILENAME,),
     "branch_prefix": (LOCAL_FILENAME,),
+    "me": (LOCAL_FILENAME,),
     **dict.fromkeys(PROCESSES, (CONFIG_FILENAME, LOCAL_FILENAME)),
 }
 # Top-level keys of an earlier version, each mapped to the key that replaced it: refused in either file, naming
@@ -143,6 +146,15 @@ class Config:
     personal_workstreams: dict[str, dict[str, object]] = field(default_factory=dict)
     # Whether the root holds a personal config, an empty one included.
     personal: bool = False
+    # The members of the team by folder name, in config order, or None in an obeya without a team.
+    team: dict[str, Member] | None = None
+    # The member the clone belongs to, as the personal config declares it, or None.
+    me: str | None = None
+
+    @property
+    def members(self) -> tuple[str, ...] | None:
+        """The folder names of the members of the team in config order, or None in an obeya without a team."""
+        return None if self.team is None else tuple(self.team)
 
     @property
     def harness_providers(self) -> tuple[str, ...] | None:
@@ -272,7 +284,8 @@ def load(root: Path | str | None = None, cwd: Path | str | None = None) -> Confi
     local = _read(local_path, "", personal_problems) if local_path.is_file() else {}
     shared = _parse_shared(root, data, shared_problems) if data is not None else None
     catalogue = _catalogue(data) if data is not None else None
-    personal = _parse_personal(local, catalogue, personal_problems) if local is not None else None
+    members = _team_members(data) if data is not None else None
+    personal = _parse_personal(local, catalogue, members, personal_problems) if local is not None else None
 
     problems = [(path, problem) for problem in shared_problems]
     problems += [(local_path, problem) for problem in personal_problems]
@@ -287,6 +300,7 @@ def load(root: Path | str | None = None, cwd: Path | str | None = None) -> Confi
         personal_processes=personal.processes,
         personal_workstreams=personal.workstreams,
         personal=local_path.is_file(),
+        me=personal.me,
     )
 
 
@@ -300,6 +314,7 @@ class _Personal:
     branch_prefix: str
     processes: dict[str, object]
     workstreams: dict[str, dict[str, object]]
+    me: str | None = None
 
 
 def _read(path: Path, shape: str, problems: list[str]) -> dict[object, object] | None:
@@ -342,7 +357,7 @@ def _parse_shared(root: Path, data: dict[object, object], problems: list[str]) -
 
     A check that needs another value runs only when that value is valid: the default
     against a catalogue that is a map, the prefixes and the types over the workstreams
-    that parsed.
+    that parsed, the members and the layout of tasks/ against a catalogue that is a map.
     """
     problems.extend(_misplaced(data, CONFIG_FILENAME))
     base = _parse_fields(data.get("metadata"), metadata.BASE_LIST, problems)
@@ -380,6 +395,10 @@ def _parse_shared(root: Path, data: dict[object, object], problems: list[str]) -
 
     providers = _parse_providers(data.get("agent_providers"), problems)
     obeya = _parse_name("obeya", data.get("obeya"), problems)
+    identifiers = None if catalogue is None else [str(key) for key in catalogue]
+    members = _parse_team(data.get("team"), identifiers, problems)
+    if members is not None and identifiers is not None and (problem := team.layout_problem(root, identifiers)):
+        problems.append(problem)
     if not isinstance(default, str):
         return None
     return Config(
@@ -390,6 +409,7 @@ def _parse_shared(root: Path, data: dict[object, object], problems: list[str]) -
         agent_providers=providers,
         obeya=obeya,
         processes={key: value for key, value in data.items() if isinstance(key, str) and key in PROCESSES},
+        team=members,
     )
 
 
@@ -399,11 +419,24 @@ def _catalogue(data: dict[object, object]) -> list[str] | None:
     return [str(key) for key in catalogue] if isinstance(catalogue, dict) and catalogue else None
 
 
-def _parse_personal(data: dict[object, object], catalogue: list[str] | None, problems: list[str]) -> _Personal:
+def _team_members(data: dict[object, object]) -> tuple[str, ...] | None:
+    """The folder names the team of the shared file declares, even those of a member at fault, so that `me` naming
+    one is not reported again; empty when the file declares no team, None when its team is not a non-empty map."""
+    declared = data.get("team")
+    if declared is None:
+        return ()
+    return tuple(str(key) for key in declared) if isinstance(declared, dict) and declared else None
+
+
+def _parse_personal(
+    data: dict[object, object], catalogue: list[str] | None, members: tuple[str, ...] | None, problems: list[str]
+) -> _Personal:
     """What the personal file declares, every problem appended to `problems`.
 
     `catalogue` holds the workstream identifiers of the shared file, or is None when they
-    are unknown, and then the personal workstreams are not checked against it.
+    are unknown, and then the personal workstreams are not checked against it. `members`
+    holds the folder names of the team of the shared file, empty when it declares none,
+    or is None when they are unknown, and then `me` is not checked against them.
     """
     problems.extend(_misplaced(data, LOCAL_FILENAME))
     _check_processes(data, "top level", problems)
@@ -414,7 +447,84 @@ def _parse_personal(data: dict[object, object], catalogue: list[str] | None, pro
         branch_prefix=_parse_name("branch_prefix", data.get("branch_prefix"), problems) or DEFAULT_BRANCH_PREFIX,
         processes={key: value for key, value in data.items() if isinstance(key, str) and key in PROCESSES},
         workstreams=_parse_personal_workstreams(data.get("workstreams"), catalogue, problems),
+        me=_parse_me(data.get("me"), members, problems),
     )
+
+
+def _parse_team(declaration: object, workstream_ids: list[str] | None, problems: list[str]) -> dict[str, Member] | None:
+    """The members of the team that parsed, by folder name, or None when the config declares no team or a team that
+    is not a non-empty map; every problem is appended to `problems`.
+
+    A folder name equal to a workstream identifier is checked only when `workstream_ids`
+    is known, and repeated initials over the members whose initials parsed.
+    """
+    if declaration is None:
+        return None
+    if not isinstance(declaration, dict) or not declaration:
+        problems.append("team must be a non-empty map keyed by the folder name of each member")
+        return None
+    members: dict[str, Member] = {}
+    holders: dict[str, str] = {}
+    for member_id, entry in declaration.items():
+        where = f"team member '{member_id}'"
+        found: list[str] = []
+        if not isinstance(member_id, str) or not WORKSTREAM_ID_PATTERN.match(member_id):
+            found.append(f"{where}: folder name must be kebab-case (lowercase letters, digits and single hyphens)")
+        elif platform.is_reserved_name(member_id):
+            found.append(f"{where}: folder name is reserved on Windows, where it could not be a folder name")
+        elif workstream_ids is not None and member_id in workstream_ids:
+            found.append(
+                f"{where}: folder name is the identifier of a workstream, whose folder under tasks/ it would be "
+                "taken for"
+            )
+        if not isinstance(entry, dict):
+            problems.extend([*found, f"{where}: must be a map with initials and optionally active"])
+            continue
+        initials = entry.get("initials")
+        if not isinstance(initials, str) or not team.INITIALS_PATTERN.match(initials):
+            found.append(
+                f"{where}: initials must be one or more uppercase ASCII letters (got {initials!r}; "
+                "quote it if YAML reads it as another type)"
+            )
+        active = entry.get("active", True)
+        if not isinstance(active, bool):
+            found.append(f"{where}: active must be true or false (got {active!r})")
+        found.extend(
+            f"{where}: {key} is not a key of a member (allowed: {', '.join(team.MEMBER_KEYS)})"
+            for key in entry
+            if key not in team.MEMBER_KEYS
+        )
+        problems.extend(found)
+        if isinstance(initials, str) and team.INITIALS_PATTERN.match(initials):
+            if initials in holders:
+                problems.append(
+                    f"team members '{holders[initials]}' and '{member_id}' declare the same initials '{initials}'"
+                )
+            else:
+                holders[initials] = str(member_id)
+        if not found and isinstance(member_id, str) and isinstance(initials, str) and isinstance(active, bool):
+            members[member_id] = Member(id=member_id, initials=initials, active=active)
+    return members
+
+
+def _parse_me(declaration: object, members: tuple[str, ...] | None, problems: list[str]) -> str | None:
+    """The member the clone belongs to, or None when the personal config declares none or a bad one.
+
+    `members` holds the folder names of the team, empty when the shared config declares
+    none, or is None when they are unknown.
+    """
+    if declaration is None:
+        return None
+    if not isinstance(declaration, str) or not declaration:
+        problems.append("me must be the folder name of a member of the team")
+        return None
+    if members == ():
+        problems.append(f"me needs a team: {CONFIG_FILENAME} declares none")
+        return None
+    if members is not None and declaration not in members:
+        problems.append(f"me names no member of the team: '{declaration}' (members: {', '.join(members)})")
+        return None
+    return declaration
 
 
 def _parse_personal_workstreams(

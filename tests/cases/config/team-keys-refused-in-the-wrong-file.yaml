@@ -1,0 +1,17 @@
+name: me in gemba.yaml and team in gemba.local.yaml are refused in one message that sends each to its file
+scenario: "gemba-config: Team keys refused in the wrong file"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  me: manuel
+local_config:
+  team:
+    manuel: { initials: MR }
+run: [list]
+exit: 1
+stderr_contains:
+  - "invalid gemba config:\n"
+  - "gemba.yaml: me belongs in gemba.local.yaml, the personal config: move it there"
+  - "gemba.local.yaml: team belongs in gemba.yaml, the shared config: move it there"
+unchanged: true

@@ -41,6 +41,13 @@ That shapes what is and is not a vulnerability here:
 | A push, or any network access beyond the one fetch | Vulnerabilities in development dependencies that do not ship in the published package |
 | Running any program other than `git` and the configured `ide` command | Denial of service against your own machine using your own input |
 
+In an obeya shared by a team, the commands that write a task refuse one that another
+member owns, but they read who you are from `me` in your own `gemba.local.yaml`. That
+guard stops accidents, not a determined person, and is not access control: a teammate
+who edits a file by hand, or declares another `me`, is not stopped by Gemba. Who may
+push what to the shared obeya is set in the git host, with CODEOWNERS per folder and
+branch protection, and what was pushed stays visible in its history.
+
 If you think something sits on the boundary, report it and we will work it out together.
 
 ## What the CLI does on your machine

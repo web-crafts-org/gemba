@@ -1,6 +1,6 @@
 ---
 name: gemba-list
-description: List, find or count tasks in this obeya. Use whenever the user asks to list, show, find, count or filter tasks, or asks "what do I have open", "what am I working on" or what happened on a task, whatever the workstream.
+description: List, find or count tasks in this obeya. Use whenever the user asks to list, show, find, count or filter tasks, or asks "what do I have open", "what am I working on", what the team has open or what happened on a task, whatever the workstream.
 ---
 
 # List tasks
@@ -36,6 +36,15 @@ Python files directly and do not build the list by reading the task folders your
    names no area, or you cannot tell which entries cover it, pass no `--workstream`:
    every workstream is listed. Listing is read-only, so listing too much is cheaper
    than asking.
+
+   When the document holds `team`, the obeya is shared by a team and every task has an
+   owner, the member whose folder holds it. A request about the user's own tasks, such
+   as "what do I have open", gets `--owner <me>`, with `me` read from the document; a
+   request that names a member gets `--owner` with that member's folder name, the key
+   of their entry under `team`; a request about the whole team, or about tasks whoever
+   owns them, gets no `--owner`. When `me` is `null`, ask the user which member they
+   are, and say that their clone names its member as `me` in `gemba.local.yaml`. When
+   the document holds no `team`, never pass `--owner`: the command refuses it.
 3. **Read the `list` block** of every chosen workstream (of every workstream when you
    pass none): `processes.list` of its entry in the document. Read its `context` as
    background and follow every entry of its `rules`, in order, when you run the command
@@ -82,7 +91,8 @@ Python files directly and do not build the list by reading the task folders your
    listed the same tasks earlier in the conversation:
 
    ```bash
-   gemba list [--workstream <id> ...] [--status <status> ...] [--ref <ref>] \
+   gemba list [--workstream <id> ...] [--owner <member> ...] \
+     [--status <status> ...] [--ref <ref>] \
      [--from YYYY-MM-DD] [--to YYYY-MM-DD] \
      [--updated-from YYYY-MM-DD] [--updated-to YYYY-MM-DD] \
      [--done-from YYYY-MM-DD] [--done-to YYYY-MM-DD] \
@@ -98,11 +108,11 @@ Python files directly and do not build the list by reading the task folders your
      run it again, asking the user only when the request itself is unclear. If the
      config is missing or invalid, stop and report the message.
 6. **Read the result.** The command prints one JSON object. `tasks` holds one record per
-   matching task: `path` (relative to the obeya root), `workstream`, `archived`,
-   `ref`, `date` (created), `title`, `status`, `updated_at`, `done_at`, `metadata` and
-   `description`. `problems` holds the files that are not valid tasks and the metadata
-   values that are not of the type their field declares, each with its `path` and the
-   `problem`.
+   matching task: `path` (relative to the obeya root), `owner` (only in an obeya with a
+   team), `workstream`, `archived`, `ref`, `date` (created), `title`, `status`,
+   `updated_at`, `done_at`, `metadata` and `description`. `problems` holds the files
+   that are not valid tasks and the metadata values that are not of the type their field
+   declares, each with its `path` and the `problem`.
 7. **Open a task file only when the answer needs its body**: what happened last, the
    history of the work, the links, what is left to do. Open it from the record's
    `path`. Progress is under `## Updates`, one `### YYYY-MM-DD` subsection per day in
@@ -122,8 +132,9 @@ Python files directly and do not build the list by reading the task folders your
    <N> tasks
    ```
 
-   The layout is a suggestion, not a contract; nothing depends on it. When no task
-   matches, say so plainly and name the filters you used.
+   The layout is a suggestion, not a contract; nothing depends on it. In an obeya with
+   a team, show the owner of each task whenever the listing covers more than the user's
+   own tasks. When no task matches, say so plainly and name the filters you used.
 9. **Relay every problem** the command returned, even when the question was about
    something else: give each path and its problem. Say that a file that is not a valid
    task is left out of the listing until it is fixed, and that a task whose value is of

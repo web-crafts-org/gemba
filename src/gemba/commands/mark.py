@@ -7,7 +7,7 @@ import datetime
 import sys
 from pathlib import Path
 
-from gemba import config, platform, tasks, values
+from gemba import config, platform, tasks, team, values
 
 
 def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
@@ -41,7 +41,7 @@ def run(args: argparse.Namespace) -> int:
     if problem := tasks.status_problem(args.status):
         errors.append(problem)
     try:
-        task = tasks.find_by_ref(gemba_config.root, gemba_config.workstreams, args.ref)
+        task = tasks.find_by_ref(gemba_config.root, gemba_config.workstreams, args.ref, gemba_config.members)
     except tasks.TaskError as exc:
         task = None
         errors.append(str(exc))
@@ -52,6 +52,7 @@ def run(args: argparse.Namespace) -> int:
             errors.append(
                 f"{task.ref} is archived ({task.path}): move the file out of {tasks.ARCHIVE_DIR}/ before marking it"
             )
+    errors.extend(team.write_problems(gemba_config.team, gemba_config.me, task, config.LOCAL_FILENAME))
     today = datetime.date.today()
     day = today if args.date is None else values.iso_date(args.date)
     if day is None:

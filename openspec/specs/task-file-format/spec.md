@@ -11,10 +11,11 @@ reads or writes this format.
 
 ### Requirement: Task location
 A task SHALL be a single Markdown file stored directly under `tasks/<workstream>/` in
-the obeya, where `<workstream>` is a workstream identifier from the
-gemba config. Each workstream folder SHALL contain an `archive/` subfolder into which
-finished tasks are moved unchanged. Both folders SHALL exist in version control even
-when empty, holding a `.gitkeep` file.
+the obeya, where `<workstream>` is a workstream identifier from the gemba config, or
+under `tasks/<member>/<workstream>/` when the shared config declares a team, where
+`<member>` is the folder name of its owner. Each workstream folder SHALL contain an
+`archive/` subfolder into which finished tasks are moved unchanged. Both folders SHALL
+exist in version control even when empty, holding a `.gitkeep` file.
 
 #### Scenario: Task placed in its workstream folder
 - **WHEN** a task is created for workstream `support`
@@ -23,6 +24,10 @@ when empty, holding a `.gitkeep` file.
 #### Scenario: Archived task
 - **WHEN** a task file is moved from `tasks/support/` to `tasks/support/archive/`
 - **THEN** its content is unchanged and processes that list active tasks skip it unless archived tasks are explicitly requested
+
+#### Scenario: Task placed in its member's folder
+- **WHEN** a task is created for workstream `support` in an obeya whose team declares `manuel`, and the personal config declares `me: manuel`
+- **THEN** its file is written directly under `tasks/manuel/support/`, with `tasks/manuel/support/.gitkeep` and `tasks/manuel/support/archive/.gitkeep`, and nowhere else
 
 ### Requirement: Filename
 A task filename SHALL be `YYYY-MM-DD-<ref>-<slug>.md`. `YYYY-MM-DD` is the creation date
@@ -44,12 +49,11 @@ title and no separate title field exists.
 - **THEN** it strips the date, the known ref and the extension, replaces hyphens with spaces and capitalizes the first letter, yielding `Login fails on safari`
 
 ### Requirement: Task ref
-Every task SHALL carry a ref `<PREFIX>-<N>`, `<PREFIX>` being the prefix of the
-workstream it was created in and `<N>` a positive integer without leading zeros. The
-ref SHALL be unique across the obeya, allocated by Gemba, never chosen by the user or
-the agent, and internal: an external identifier, such as a ticket key or a merge
-request number, belongs in metadata or as a link in the body. The ref in the
-frontmatter SHALL equal the ref in the filename.
+Every task SHALL carry a ref `<PREFIX>-<N>`, or `<INITIALS>-<PREFIX>-<N>` in an obeya
+with a team, with its owner's initials, `<PREFIX>` being the prefix of the workstream
+it was created in and `<N>` a positive integer without leading zeros. The ref SHALL be unique across the obeya, allocated by Gemba, never chosen by
+the user or the agent, and internal: an external identifier belongs in metadata or as a
+link in the body. The ref in the frontmatter SHALL equal the ref in the filename.
 
 #### Scenario: Consecutive refs within a workstream
 - **WHEN** the highest existing ref with prefix `CR` anywhere under `tasks/` (including archive folders) is `CR-12`
@@ -66,6 +70,10 @@ frontmatter SHALL equal the ref in the filename.
 #### Scenario: External key offered as ref
 - **WHEN** the user asks for a task to be identified by a ticket key such as `PROD-16283`
 - **THEN** Gemba still allocates an internal ref and records the ticket key in metadata or in the body, never as the ref
+
+#### Scenario: Ref of a member's task
+- **WHEN** `manuel`, with initials `MR`, creates the first task of the workstream with prefix `SUP` on 2026-10-25 with slug `export-times-out`
+- **THEN** the task receives `MR-SUP-1`, its filename is `2026-10-25-MR-SUP-1-export-times-out.md`, and `gemba list` reads it with that ref and the title `Export times out`
 
 ### Requirement: Built-in frontmatter fields
 The frontmatter SHALL be a YAML block between `---` lines at the start of the file

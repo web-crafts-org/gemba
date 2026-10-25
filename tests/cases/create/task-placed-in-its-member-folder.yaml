@@ -1,0 +1,34 @@
+name: in an obeya with a team, a task is written directly under the workstream folder of the member of the clone
+scenario: "task-file-format: Task placed in its member's folder"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  me: manuel
+run: [create, --workstream, support, --slug, export-times-out, --date, 2026-10-25]
+exit: 0
+stdout: |
+  tasks/manuel/support/2026-10-25-MR-SUP-1-export-times-out.md
+  MR-SUP-1
+files:
+  tasks/manuel/support/.gitkeep: ""
+  tasks/manuel/support/archive/.gitkeep: ""
+  tasks/manuel/support/2026-10-25-MR-SUP-1-export-times-out.md: |
+    ---
+    status: open
+    ref: MR-SUP-1
+    updated_at: 2026-10-25
+    metadata: {}
+    ---
+
+    ## Updates
+absent:
+  - tasks/support
+  - tasks/operations
+  - tasks/ana
+  - tasks/manuel/operations

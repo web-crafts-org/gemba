@@ -1,0 +1,14 @@
+name: a me in an obeya whose shared config declares no team is refused, saying me needs a team in gemba.yaml
+scenario: "gemba-config: Member without a team refused"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+local_config:
+  me: manuel
+run: [list]
+exit: 1
+stderr_contains:
+  - "invalid gemba config:\n"
+  - "gemba.local.yaml: me needs a team: gemba.yaml declares none"
+unchanged: true

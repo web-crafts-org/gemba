@@ -1,0 +1,49 @@
+name: show of an obeya with a team prints each member with its initials and active, and me as null when not declared
+scenario: "config-maintenance: Team shown"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG, active: false }
+local_config:
+  ide: code -n
+run: [config, show]
+exit: 0
+stdout_json:
+  obeya: null
+  branch_prefix: gemba
+  repos_dir: null
+  ide: code -n
+  agent_providers: null
+  harness_providers: null
+  default_workstream: support
+  team:
+    manuel: { initials: MR, active: true }
+    ana: { initials: AG, active: false }
+  me: null
+  workstreams:
+    - id: support
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata: []
+      processes:
+        create: &empty { context: null, rules: [] }
+        list: *empty
+        record: *empty
+        report: *empty
+        mark: *empty
+        archive: *empty
+        set: *empty
+        harness:
+          guide: { obeya: null, workstream: null, user: null }
+          launch: *empty
+          note: *empty
+          resolve: *empty
+          remove: *empty
+        worktree:
+          add: *empty
+          list: *empty
+          remove: *empty
+unchanged: true

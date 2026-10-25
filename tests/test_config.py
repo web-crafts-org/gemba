@@ -5,7 +5,7 @@ import textwrap
 import unittest
 from pathlib import Path
 
-from gemba import config, metadata
+from gemba import config, metadata, team
 
 VALID = """\
 default_workstream: operations
@@ -525,7 +525,7 @@ class LayersTest(ConfigTestCase):
         for process in config.PROCESSES:
             self.assertEqual(config.LAYERS[process], both)
         personal = [key for key, files in config.LAYERS.items() if files == (config.LOCAL_FILENAME,)]
-        self.assertEqual(personal, ["ide", "repos_dir", "branch_prefix"])
+        self.assertEqual(personal, ["ide", "repos_dir", "branch_prefix", "me"])
 
     def test_personal_keys_refused_in_the_shared_config_all_at_once(self):
         text = VALID + "ide: code -n\nrepos_dir: ~/projects\nbranch_prefix: nk\n"
@@ -931,6 +931,137 @@ class PersonalBlocksTest(ConfigTestCase):
         loaded = self.load(VALID)
         self.assertEqual((loaded.personal_processes, loaded.personal_workstreams), ({}, {}))
         self.assertEqual(loaded.effective_guide("support"), config.Guide(None, None, None))
+
+
+TEAM = """\
+team:
+  manuel:
+    initials: MR
+  ana:
+    initials: AG
+    active: false
+"""
+
+
+class TeamTest(ConfigTestCase):
+    def problems(self, text, local=None):
+        """The problems of a refused config, as (file name, message) pairs in the order reported."""
+        self.write(text, local)
+        with self.assertRaises(config.ConfigError) as caught:
+            config.load(root=self.root)
+        return [(path.name, message) for path, message in caught.exception.problems]
+
+    def test_absent(self):
+        loaded = self.load(VALID)
+        self.assertEqual((loaded.team, loaded.me, loaded.members), (None, None, None))
+
+    def test_accepted(self):
+        loaded = self.load(VALID + TEAM, local="me: manuel\n")
+        self.assertEqual(
+            loaded.team,
+            {"manuel": team.Member("manuel", "MR", True), "ana": team.Member("ana", "AG", False)},
+        )
+        self.assertEqual((loaded.members, loaded.me), (("manuel", "ana"), "manuel"))
+
+    def test_no_member_declared_for_the_clone(self):
+        loaded = self.load(VALID + TEAM)
+        self.assertEqual((loaded.members, loaded.me), (("manuel", "ana"), None))
+
+    def test_inactive_member_is_valid_config(self):
+        self.assertEqual(self.load(VALID + TEAM, local="me: ana\n").me, "ana")
+
+    def test_every_fault_of_team_and_me_at_once(self):
+        text = VALID + textwrap.dedent(
+            """\
+            team:
+              Ana: { initials: AG }
+              manuel: { initials: mr }
+              bea: { active: true }
+              carl: { initials: CR, active: "yes" }
+              dana: { initials: DN, email: dana@example.com }
+              support: { initials: SP }
+              con: { initials: CN }
+              eve: { initials: EV }
+              fay: { initials: EV, active: maybe }
+              gil: GL
+            """
+        )
+        problems = self.problems(text, local="me: bob\n")
+        expected = [
+            ("gemba.yaml", "team member 'Ana': folder name must be kebab-case"),
+            ("gemba.yaml", "team member 'manuel': initials must be one or more uppercase ASCII letters (got 'mr'"),
+            ("gemba.yaml", "team member 'bea': initials must be one or more uppercase ASCII letters (got None"),
+            ("gemba.yaml", "team member 'carl': active must be true or false (got 'yes')"),
+            ("gemba.yaml", "team member 'dana': email is not a key of a member (allowed: initials, active)"),
+            ("gemba.yaml", "team member 'support': folder name is the identifier of a workstream"),
+            ("gemba.yaml", "team member 'con': folder name is reserved on Windows"),
+            ("gemba.yaml", "team member 'fay': active must be true or false (got 'maybe')"),
+            ("gemba.yaml", "team members 'eve' and 'fay' declare the same initials 'EV'"),
+            ("gemba.yaml", "team member 'gil': must be a map with initials and optionally active"),
+            (
+                "gemba.local.yaml",
+                "me names no member of the team: 'bob' "
+                "(members: Ana, manuel, bea, carl, dana, support, con, eve, fay, gil)",
+            ),
+        ]
+        self.assertEqual(len(problems), len(expected), problems)
+        for (name, message), (expected_name, start) in zip(problems, expected, strict=True):
+            self.assertEqual(name, expected_name)
+            self.assertTrue(message.startswith(start), message)
+
+    def test_member_at_fault_not_echoed_by_me(self):
+        problems = self.problems(VALID + "team:\n  Ana: { initials: AG }\n", local="me: Ana\n")
+        self.assertEqual([name for name, _message in problems], ["gemba.yaml"])
+        self.assertIn("team member 'Ana'", problems[0][1])
+
+    def test_team_that_is_not_a_non_empty_map(self):
+        for declared in ("[manuel]", "{}", "manuel"):
+            with self.subTest(team=declared):
+                problems = self.problems(VALID + f"team: {declared}\n", local="me: manuel\n")
+                self.assertEqual(
+                    problems,
+                    [("gemba.yaml", "team must be a non-empty map keyed by the folder name of each member")],
+                )
+
+    def test_me_without_a_team(self):
+        problems = self.problems(VALID, local="me: manuel\n")
+        self.assertEqual(problems, [("gemba.local.yaml", "me needs a team: gemba.yaml declares none")])
+
+    def test_me_not_a_name(self):
+        problems = self.problems(VALID + TEAM, local="me: [manuel]\n")
+        self.assertEqual(problems, [("gemba.local.yaml", "me must be the folder name of a member of the team")])
+
+    def test_me_not_checked_when_the_shared_file_did_not_parse(self):
+        problems = self.problems("default_workstream: [\n", local="me: manuel\n")
+        self.assertEqual([name for name, _message in problems], ["gemba.yaml"])
+
+    def test_member_not_checked_against_a_catalogue_that_is_not_a_map(self):
+        problems = self.problems(
+            "default_workstream: support\nworkstreams: [support]\nteam:\n  support: { initials: SP }\n"
+        )
+        self.assertFalse([message for _name, message in problems if "team member" in message], problems)
+
+    def test_team_keys_refused_in_the_wrong_file(self):
+        message = self.assertRefused(VALID + "me: manuel\n", local=TEAM)
+        self.assertIn(f"- {self.root / config.CONFIG_FILENAME}: me belongs in gemba.local.yaml", message)
+        self.assertIn(f"- {self.root / config.LOCAL_FILENAME}: team belongs in gemba.yaml", message)
+        self.assertNotIn("me needs a team", message)
+
+    def test_layout_of_an_obeya_without_a_team_refused(self):
+        (self.root / "tasks" / "support").mkdir(parents=True)
+        problems = self.problems(VALID + TEAM, local="me: manuel\n")
+        self.assertEqual(len(problems), 1, problems)
+        self.assertEqual(problems[0][0], "gemba.yaml")
+        self.assertTrue(problems[0][1].startswith("team is declared, but tasks/ holds tasks/support,"), problems)
+
+    def test_member_folders_accepted(self):
+        (self.root / "tasks" / "manuel" / "support").mkdir(parents=True)
+        (self.root / "tasks" / ".hidden").mkdir()
+        self.assertEqual(self.load(VALID + TEAM, local="me: manuel\n").members, ("manuel", "ana"))
+
+    def test_layout_not_checked_without_a_team(self):
+        (self.root / "tasks" / "support").mkdir(parents=True)
+        self.assertIsNone(self.load(VALID).team)
 
 
 if __name__ == "__main__":

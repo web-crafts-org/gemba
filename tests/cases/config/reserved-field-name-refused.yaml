@@ -28,3 +28,16 @@ run: [list]
 exit: 1
 stderr_contains: [invalid gemba config, "workstream 'support' metadata[0]", "field name 'workstream' is reserved"]
 unchanged: true
+---
+name: a field named owner stops the command and is said to be reserved
+scenario: "gemba-config: Reserved field name"
+config:
+  default_workstream: operations
+  metadata:
+    - { name: owner, type: text }
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [config, check]
+exit: 1
+stderr_contains: [invalid gemba config, "metadata[0]", "field name 'owner' is reserved"]
+unchanged: true

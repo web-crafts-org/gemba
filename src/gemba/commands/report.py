@@ -29,7 +29,8 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         action="append",
         default=[],
         metavar="KEY",
-        help="group by workstream, status, or a declared text or boolean field; repeat to group within groups",
+        help="group by workstream, status, owner in an obeya with a team, or a declared text or boolean field; "
+        "repeat to group within groups",
     )
     parser.add_argument(
         "--sum",
@@ -51,12 +52,14 @@ def run(args: argparse.Namespace) -> int:
 
     scope, filters, errors = selection.build(args, gemba_config)
     types = gemba_config.types()
-    errors.extend(report.problems(args.groupings, args.sums, types))
+    errors.extend(report.problems(args.groupings, args.sums, types, gemba_config.members))
     if errors:
         return fail("nothing reported:\n" + "\n".join(f"- {error}" for error in errors))
 
     found, problems = selection.select(gemba_config, scope, filters)
-    result = report.aggregate(found, args.groupings, args.sums, types, list(gemba_config.workstreams))
+    result = report.aggregate(
+        found, args.groupings, args.sums, types, list(gemba_config.workstreams), gemba_config.members
+    )
     document = {
         "by": args.groupings,
         "sum": args.sums,

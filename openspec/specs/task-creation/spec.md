@@ -105,11 +105,11 @@ missing required key, undeclared key and value that does not convert.
 
 ### Requirement: Ref allocation and file creation in one step
 The command SHALL allocate the ref and write the file as a single operation. The ref
-SHALL be the workstream prefix followed by one plus the highest number already used
-with that prefix in any filename under `tasks/`, including every `archive/` folder, or
-`1` when none exists. The command SHALL create the workstream folder and its `archive/`
-folder, each with a `.gitkeep`, when they do not exist. The command SHALL never
-overwrite an existing file.
+SHALL be the workstream prefix, preceded by the initials of `me` in an obeya with a
+team, followed by one plus the highest number already used with that start in any
+filename under `tasks/`, archives included, or `1` when none exists. The
+command SHALL create the workstream folder and its `archive/` folder, each with a
+`.gitkeep`, when they do not exist. The command SHALL never overwrite an existing file.
 
 #### Scenario: Two consecutive creations
 - **WHEN** two tasks are created one after the other in the same workstream whose highest ref was `DEV-4`
@@ -126,6 +126,10 @@ overwrite an existing file.
 #### Scenario: Target path already exists
 - **WHEN** the computed filename already exists
 - **THEN** nothing is written and the collision is reported
+
+#### Scenario: Counters of two members
+- **WHEN** `me` is `manuel` (`MR`), `tasks/manuel/support/archive/` holds `MR-SUP-2` and `tasks/ana/support/` holds `AG-SUP-5`, and a `support` task is created
+- **THEN** it receives `MR-SUP-3` under `tasks/manuel/support/`, and `ana`'s folder is unchanged
 
 ### Requirement: Written file content
 The created file SHALL conform to the task file format: frontmatter with `status`,
