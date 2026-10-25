@@ -16,13 +16,13 @@ includes its target and SHALL NOT create, modify or delete any other folder or f
 under a provider's skills folder, so that skills of other tools that share the folder
 are left as they are. At this change `gemba-create`, `gemba-list`, `gemba-report`,
 `gemba-archive`, `gemba-init` and `gemba-config` belong to the tasks repo,
-`gemba-record` and `gemba-worktree` to the harness, and `gemba-harness`, `gemba-mark`
-and `gemba-set` to both. `gemba init` SHALL write the tasks-repo skills through the
-same registry, so a skill added to it reaches a new tasks repo with no other change.
+`gemba-worktree` to the harness, and `gemba-harness`, `gemba-record`, `gemba-mark` and
+`gemba-set` to both. `gemba init` SHALL write the tasks-repo skills through the same
+registry, so a skill added to it reaches a new tasks repo with no other change.
 
 #### Scenario: Every registered skill is written
 - **WHEN** `gemba skills update` runs in a tasks repo that declares one provider and has no skills folder
-- **THEN** one `SKILL.md` per registered skill whose scope includes the tasks repo appears under that provider's skills folder, each in a folder named after the skill, `gemba-init` and `gemba-config` included, and the command exits 0
+- **THEN** one `SKILL.md` per registered skill whose scope includes the tasks repo appears under that provider's skills folder, each in a folder named after the skill, `gemba-record`, `gemba-init` and `gemba-config` included, and the command exits 0
 
 #### Scenario: Unregistered skills are not touched
 - **WHEN** the provider's skills folder already holds a skill that is not registered, such as one of another tool
