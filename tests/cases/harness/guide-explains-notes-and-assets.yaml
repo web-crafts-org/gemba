@@ -1,0 +1,32 @@
+name: the written guide explains notes, assets and the commits gemba makes when a note is filed
+scenario: "harness-guide: Guide explains notes and assets"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [harness, launch, SUP-1, --no-open]
+exit: 0
+files_contain:
+  harnesses/support/2026-09-30-SUP-1-login-fails/CLAUDE.md:
+    - "Notes are the memory of the run"
+    - "Keep them small and frequent"
+    - "A note is drafted as a plain Markdown file under `notes/` and filed with the"
+    - "`gemba-harness` skill, which names it, dates it and records it."
+    - "frontmatter, a date or a timestamp into a note by hand."
+    - "Save each one under"
+    - "`assets/`, named `<unix-timestamp>-<slug>.<ext>`"
+    - "reference it from the note that explains it."
+    - "gemba commits when the harness is launched and"
+    - "when a note is filed or resolved"

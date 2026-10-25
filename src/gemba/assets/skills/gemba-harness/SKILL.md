@@ -89,9 +89,15 @@ harness root, the folder that holds `harness.yaml`.
    - If the command refuses, its message lists every problem at once. Fix the draft or
      the call and run it again; never work around a refusal by writing the frontmatter
      or renaming the file yourself.
-6. **Relay** the filed path it printed. When the note waits for approval, tell the user
-   so: they approve it by setting `approved: true` in the note's frontmatter from the
-   IDE. A yes in the conversation is not an approval.
+6. **Link the note** in the chat, as a Markdown link whose text and target are both the
+   path the command printed, such as
+   `[notes/2026-09-30-101500-login-trace.md](notes/2026-09-30-101500-login-trace.md)`.
+   That path is the final name, relative to the harness root, which is the folder the
+   IDE opens, so the user opens the note from the chat. Copy it as printed: never give
+   the path of the draft, and never build another path. When the note waits for
+   approval, tell the user so: they approve it by setting `approved: true` in its
+   frontmatter, in the file they open from that link. A yes in the conversation is not
+   an approval.
 
 ## Resolve
 
@@ -114,7 +120,8 @@ When a note filed with `approved: false` is to be acted on:
    ```
 
    If it refuses, relay its message; never edit the frontmatter to make it pass.
-6. **Relay** the path it printed and the outcome.
+6. **Link the note and relay the outcome:** give the resolved note as a Markdown link
+   to the path the command printed, as step 6 of Note does, with what was done.
 
 ## Remove
 

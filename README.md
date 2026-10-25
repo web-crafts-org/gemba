@@ -177,6 +177,7 @@ When the task touches code, the agent checks out the repositories it needs as gi
 worktrees, each on a local branch named after the run:
 
 ```bash
+gemba worktree list --available                      # the repositories that add accepts
 gemba worktree add nakatomi-web                      # from the default branch of origin
 gemba worktree add nakatomi-web --from release/2.4   # from another branch, or move to it
 gemba worktree list                                  # branch, upstream, uncommitted, unpushed

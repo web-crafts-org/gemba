@@ -79,6 +79,15 @@ class ReposDirTest(unittest.TestCase):
             worktree.repo_problem(self.REPOS, "nakatomi-web", None), f"repos_dir {self.REPOS} is not a folder"
         )
 
+    def test_not_a_folder(self):
+        self.assertEqual(worktree.not_a_folder_problem(self.REPOS), f"repos_dir {self.REPOS} is not a folder")
+
+    def test_repos_dir_missing_names_its_file(self):
+        self.assertEqual(
+            worktree.missing_repos_dir_problem("gemba.local.yaml"),
+            "no repos_dir declared: add repos_dir to gemba.local.yaml",
+        )
+
 
 class ParseWorktreesTest(unittest.TestCase):
     def test_records(self):
