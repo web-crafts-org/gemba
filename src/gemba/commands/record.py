@@ -1,4 +1,4 @@
-"""`gemba record`: write the drafted update of a day into the task of a harness."""
+"""`gemba record`: write the drafted update of a day into a task, from its harness or from the tasks repo."""
 
 from __future__ import annotations
 
@@ -15,72 +15,108 @@ from gemba.commands import harness as harness_command
 def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
     parser = subparsers.add_parser(
         "record",
-        help="write the drafted update of a day into the task of a harness",
+        help="write the drafted update of a day into a task, from its harness or from the tasks repo",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=textwrap.fill(
-            f"Write the bullets of a draft under ### YYYY-MM-DD in the {tasks.UPDATES_HEADING} section of the task "
-            "of this harness, appending them when that day already has a subsection, move updated_at to the day "
-            "when it is later, and delete the draft. The path of the draft is relative to the harness root. "
-            "Nothing is committed.",
+            f"Write the bullets of a draft under ### YYYY-MM-DD in the {tasks.UPDATES_HEADING} section of a task, "
+            "appending them when that day already has a subsection, move updated_at to the day when it is later, "
+            "and delete the draft. Inside a harness the task is the one of the harness and the path of the draft "
+            "is relative to the harness root. From the tasks repo the task is named by its ref, archives included, "
+            "and the draft lies directly in the tasks repo root. Nothing is committed.",
             width=79,
         ),
     )
     parser.add_argument(
+        "ref",
+        nargs="?",
+        help="ref of the task, such as SUP-1: required from the tasks repo; inside a harness, only the ref of its task",
+    )
+    parser.add_argument(
         "file",
-        help=f"the draft, such as update.md: lines starting with '{tasks.BULLET_PREFIX}', continued by lines "
-        f"indented by two spaces",
+        help=f"the draft, such as update.md, relative to the root of the harness or of the tasks repo: lines "
+        f"starting with '{tasks.BULLET_PREFIX}', continued by lines indented by two spaces",
     )
     parser.add_argument(
         "--date",
         metavar="YYYY-MM-DD",
         help="the day the update is about (default: today); not after today, not before the task was created",
     )
-    harness_command.add_location(parser)
+    parser.add_argument(
+        "--harness", type=Path, help=f"harness root (default: walk up to the nearest {harness.CONFIG_FILENAME})"
+    )
+    parser.add_argument(
+        "--root", type=Path, help=f"tasks repo root (default: walk up to the nearest {config.CONFIG_FILENAME})"
+    )
     parser.set_defaults(handler=run)
 
 
 def run(args: argparse.Namespace) -> int:
     try:
-        folder = harness_command.locate(args.harness)
+        folder = harness_root(args.harness)
+    except harness.HarnessError as exc:
+        return fail(str(exc))
+    if folder is None and args.ref is None:
+        return fail(
+            "no harness found and no ref given: outside a harness, name the task by its ref, "
+            "as in gemba record <ref> update.md"
+        )
+    try:
         gemba_config = config.load(root=args.root, cwd=folder)
-        identity = harness.read_config(folder, list(skills.PROVIDERS))
+        identity = None if folder is None else harness.read_config(folder, list(skills.PROVIDERS))
     except (harness.HarnessError, config.ConfigError) as exc:
         return fail(str(exc))
 
     root = gemba_config.root
-    task_file = root / identity.task
-    if not task_file.is_file():
-        return fail(
-            f"record not done: the task file {identity.task} named by {harness.CONFIG_FILENAME} "
-            f"was not found there, under {root}"
-        )
-    archived = PurePosixPath(identity.task).parent.name == tasks.ARCHIVE_DIR
-    try:
-        task = tasks.read(task_file, root, identity.workstream, archived)
-    except tasks.TaskError as exc:
-        return fail(f"record not done: {identity.task} is not a valid task: {exc}")
-    text = platform.decode(task_file.read_bytes())
+    errors = []
+    task: tasks.Task | None = None
+    if folder is None or identity is None:
+        place: tasks.Place = "repo"
+        base = root
+        try:
+            task = tasks.find_by_ref(root, gemba_config.workstreams, args.ref)
+        except tasks.TaskError as exc:
+            errors.append(str(exc))
+        else:
+            if task is None:
+                errors.append(f"no task has ref '{args.ref}' under {tasks.TASKS_DIR}/, archives included")
+    else:
+        place, base = "harness", folder
+        task_file = root / identity.task
+        if not task_file.is_file():
+            return fail(
+                f"record not done: the task file {identity.task} named by {harness.CONFIG_FILENAME} "
+                f"was not found there, under {root}"
+            )
+        archived = PurePosixPath(identity.task).parent.name == tasks.ARCHIVE_DIR
+        try:
+            task = tasks.read(task_file, root, identity.workstream, archived)
+        except tasks.TaskError as exc:
+            return fail(f"record not done: {identity.task} is not a valid task: {exc}")
+        if args.ref is not None and (problem := harness.ref_problem(args.ref, identity)):
+            errors.append(problem)
+    text = None if task is None else platform.decode((root / task.path).read_bytes())
 
     today = datetime.date.today()
-    errors = []
     day = today if args.date is None else values.iso_date(args.date)
     if day is None:
         errors.append(f"invalid date '{args.date}': use YYYY-MM-DD")
-    elif problem := tasks.date_problem(day, task.date, today):
+    # Without a task there is no creation date to compare with, only today.
+    elif problem := tasks.date_problem(day, task.date if task is not None else datetime.date.min, today):
         errors.append(problem)
-    bullets, draft_errors = read_draft(folder, args.file)
+    bullets, draft_errors = tasks.read_draft(base, args.file, place)
     errors.extend(f"{args.file} {problem}" for problem in draft_errors)
-    _frontmatter, body = tasks.split(text)
-    if problem := tasks.updates_problem(body):
-        errors.append(f"{task.path} {problem}")
+    if task is not None and text is not None:
+        _frontmatter, body = tasks.split(text)
+        if problem := tasks.updates_problem(body):
+            errors.append(f"{task.path} {problem}")
     if errors:
         return fail("record not done:\n" + "\n".join(f"- {error}" for error in errors))
-    assert day is not None, "an invalid date appended an error"
+    assert task is not None and text is not None and day is not None, "every failed check appended an error"
 
     recorded, previous, updated_at = tasks.record(text, task.date, today, day, bullets)
-    task_file.write_bytes(recorded.encode("utf-8"))
+    (root / task.path).write_bytes(recorded.encode("utf-8"))
     try:
-        (folder / args.file).unlink()
+        (base / args.file).unlink()
     except OSError as exc:
         return fail(
             f"{task.path} is recorded but the draft {args.file} could not be deleted: {exc.strerror}; "
@@ -94,18 +130,15 @@ def run(args: argparse.Namespace) -> int:
     return 0
 
 
-def read_draft(folder: Path, given: str) -> tuple[list[str], list[str]]:
-    """The bullet lines of the draft at `given`, relative to the harness root, and every problem found with it."""
-    path = (folder / given).resolve()
-    if not path.is_relative_to(folder):
-        return [], ["is not inside the harness (paths are relative to the harness root)"]
-    if not path.is_file():
-        return [], ["is not a file" if path.exists() else "does not exist"]
+def harness_root(given: Path | None) -> Path | None:
+    """The harness the record is made in: the one `--harness` names, else the nearest one at or above the working
+    directory; None when there is none, and the record is made from the tasks repo."""
+    if given is not None:
+        return harness_command.locate(given)
     try:
-        text = platform.decode(path.read_bytes())
-    except UnicodeDecodeError:
-        return [], ["is not UTF-8 text"]
-    return tasks.parse_bullets(text)
+        return harness.find_root(Path.cwd())
+    except harness.HarnessError:
+        return None
 
 
 def fail(message: str) -> int:

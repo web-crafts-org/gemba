@@ -7,9 +7,11 @@ from pathlib import Path, PurePosixPath
 from gemba import config, skills, tasks
 
 GITIGNORE = ".gitignore"
-# The lines of the .gitignore that keep out of the tasks repo the harnesses, each a git repository of its own, and
-# the personal config, private to the clone. The second is unanchored like the first: the file only exists at the root.
-IGNORED_LINES = ("harnesses/", config.LOCAL_FILENAME)
+# The lines of the .gitignore that keep out of the tasks repo the harnesses, each a git repository of its own, the
+# personal config, private to the clone, and the draft of an update that a refused record leaves at the root. The first
+# two are unanchored, since each only exists at the root. The third is anchored: a person may keep an update.md of
+# their own elsewhere in the tasks repo, and only the draft at the root must stay out of the history.
+IGNORED_LINES = ("harnesses/", config.LOCAL_FILENAME, "/update.md")
 GITATTRIBUTES = ".gitattributes"
 # The lines of the .gitattributes that keep LF in the files gemba owns, whatever core.autocrlf says; the scope
 # is those files, not `*`, so that an asset a person keeps in the tasks repo is never renormalized.
@@ -28,9 +30,9 @@ def render_config(providers: Sequence[str]) -> str:
 
 
 def gitignore_text(existing: str | None) -> str | None:
-    """The `.gitignore` to write given the one on disk, or None when it already holds both lines.
+    """The `.gitignore` to write given the one on disk, or None when it already holds every line.
 
-    With no file, the two lines; with a file that lacks one or both, the file with the missing
+    With no file, the lines; with a file that lacks any of them, the file with the missing
     lines appended after a final newline, in their order.
     """
     return _completed(existing, IGNORED_LINES)

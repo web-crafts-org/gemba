@@ -1,0 +1,54 @@
+name: an archived task named by ref is recorded in place, under archive/
+scenario: "task-recording: Archived task recorded by ref"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/archive/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-02
+    done_at: 2026-10-02
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2026-10-02
+
+    - Shipped the fix of the session cookie.
+  update.md: |
+    - Reproduced the failure on Safari 17 in a call with the client.
+run: [record, SUP-1, update.md, --date, 2026-10-01]
+exit: 0
+stdout: |
+  tasks/support/archive/2026-09-30-SUP-1-login-fails.md
+  updated_at: 2026-10-02 (unchanged)
+files:
+  tasks/support/archive/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-02
+    done_at: 2026-10-02
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2026-10-01
+
+    - Reproduced the failure on Safari 17 in a call with the client.
+
+    ### 2026-10-02
+
+    - Shipped the fix of the session cookie.
+absent: [update.md, tasks/support/2026-09-30-SUP-1-login-fails.md]

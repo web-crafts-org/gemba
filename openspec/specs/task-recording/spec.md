@@ -2,10 +2,11 @@
 
 ## Purpose
 
-Recording promotes one day of a run into its task file: the agent distills the day's
-notes into bullets inside the harness, and one command writes them as the dated
-subsection of `## Updates` and moves `updated_at` in the same step, so that the task
-file stays the durable record and no update is ever invisible to date-filtered
+Recording writes one day of work into its task file. Inside the harness of the task,
+the agent distills the day's notes of the run into bullets; from the tasks repo, for
+work done outside a run, it drafts what the person tells it. One command writes them as
+the dated subsection of `## Updates` and moves `updated_at` in the same step, so that
+the task file stays the durable record and no update is ever invisible to date-filtered
 listings.
 
 ## Requirements

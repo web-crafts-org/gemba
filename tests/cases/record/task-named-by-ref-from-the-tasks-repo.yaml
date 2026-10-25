@@ -1,0 +1,45 @@
+name: record run from the tasks repo with a ref records on that task, the draft relative to the tasks repo root
+scenario: "task-recording: Task named by ref from the tasks repo"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+  update.md: |
+    - Reviewed the fix of the session cookie with the client.
+cwd: tasks/support
+run: [record, SUP-1, update.md, --date, 2026-10-01]
+exit: 0
+stdout: |
+  tasks/support/2026-09-30-SUP-1-login-fails.md
+  updated_at: 2026-09-30 -> 2026-10-01
+files:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-10-01
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+
+    ### 2026-10-01
+
+    - Reviewed the fix of the session cookie with the client.
+absent: [update.md, harnesses]

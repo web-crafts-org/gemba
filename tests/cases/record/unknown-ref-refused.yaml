@@ -1,0 +1,36 @@
+name: a ref no task has, archived or not, is refused from the tasks repo and the draft is kept
+scenario: "task-recording: Unknown ref refused"
+config:
+  default_workstream: operations
+  agent_providers: [claude]
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app.
+
+    ## Updates
+  tasks/support/archive/2026-09-20-SUP-2-export-timeout.md: |
+    ---
+    status: done
+    ref: SUP-2
+    updated_at: 2026-09-21
+    done_at: 2026-09-21
+    metadata: {}
+    ---
+
+    ## Updates
+  update.md: |
+    - Reviewed the fix of the session cookie with the client.
+run: [record, SUP-9, update.md]
+exit: 1
+stderr_contains: [record not done, "no task has ref 'SUP-9' under tasks/, archives included"]
+unchanged: true

@@ -61,6 +61,7 @@ stdout: |
   written .claude/skills/gemba-create/SKILL.md
   written .claude/skills/gemba-list/SKILL.md
   written .claude/skills/gemba-harness/SKILL.md
+  written .claude/skills/gemba-record/SKILL.md
   written .claude/skills/gemba-report/SKILL.md
   written .claude/skills/gemba-mark/SKILL.md
   written .claude/skills/gemba-archive/SKILL.md
@@ -70,6 +71,7 @@ stdout: |
   written .agents/skills/gemba-create/SKILL.md
   written .agents/skills/gemba-list/SKILL.md
   written .agents/skills/gemba-harness/SKILL.md
+  written .agents/skills/gemba-record/SKILL.md
   written .agents/skills/gemba-report/SKILL.md
   written .agents/skills/gemba-mark/SKILL.md
   written .agents/skills/gemba-archive/SKILL.md

@@ -73,10 +73,11 @@ gemba init ~/nakatomi-tasks       # a tasks repo for the organization you work w
 ```
 
 `gemba init` writes a minimal `gemba.yaml`, the `tasks/` folder, a `.gitignore` that
-keeps the harnesses and your personal config, `gemba.local.yaml`, out of the history, a
-`.gitattributes` that keeps LF line endings in the files Gemba owns, and the skills for
-every agent it knows (`--providers claude` keeps only one). It runs no git: make the
-folder a repository and commit it when you like.
+keeps the harnesses, your personal config, `gemba.local.yaml`, and a draft of an update
+left at the root, `update.md`, out of the history, a `.gitattributes` that keeps LF line
+endings in the files Gemba owns, and the skills for every agent it knows
+(`--providers claude` keeps only one). It runs no git: make the folder a repository and
+commit it when you like.
 
 Then open the folder with your agent and ask it to configure Gemba. The `gemba-init`
 skill asks, one question at a time, for your organization, the kinds of work you do,
@@ -195,6 +196,16 @@ gemba record update.md --date 2026-09-30   # a past day
 The bullets land under `### 2026-09-30` in the task's `## Updates` section,
 `updated_at` moves forward, and the draft is deleted. Nothing is committed: the tasks
 repo is yours to review and commit.
+
+Work done outside a harness, such as a meeting or a review, is recorded from the tasks
+repo. Tell the agent what was done: it writes only that into `update.md` at the tasks
+repo root, never the notes of a harness, and names the task by its ref, archived or
+not:
+
+```bash
+gemba record SUP-1 update.md                     # today
+gemba record SUP-1 update.md --date 2026-09-30   # a past day
+```
 
 ### Report
 

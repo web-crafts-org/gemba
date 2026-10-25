@@ -13,6 +13,7 @@ stdout: |
   unchanged .claude/skills/gemba-create/SKILL.md
   unchanged .claude/skills/gemba-list/SKILL.md
   unchanged .claude/skills/gemba-harness/SKILL.md
+  unchanged .claude/skills/gemba-record/SKILL.md
   unchanged .claude/skills/gemba-report/SKILL.md
   unchanged .claude/skills/gemba-mark/SKILL.md
   unchanged .claude/skills/gemba-archive/SKILL.md
@@ -22,6 +23,7 @@ stdout: |
   unchanged .agents/skills/gemba-create/SKILL.md
   unchanged .agents/skills/gemba-list/SKILL.md
   unchanged .agents/skills/gemba-harness/SKILL.md
+  unchanged .agents/skills/gemba-record/SKILL.md
   unchanged .agents/skills/gemba-report/SKILL.md
   unchanged .agents/skills/gemba-mark/SKILL.md
   unchanged .agents/skills/gemba-archive/SKILL.md

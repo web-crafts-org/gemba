@@ -37,35 +37,37 @@ class RenderConfigTest(unittest.TestCase):
 
 
 class GitignoreTest(unittest.TestCase):
-    BOTH = "harnesses/\ngemba.local.yaml\n"
+    LINES = "harnesses/\ngemba.local.yaml\n/update.md\n"
 
     def test_no_file(self):
-        self.assertEqual(repo.gitignore_text(None), self.BOTH)
+        self.assertEqual(repo.gitignore_text(None), self.LINES)
 
     def test_empty_file(self):
-        self.assertEqual(repo.gitignore_text(""), self.BOTH)
+        self.assertEqual(repo.gitignore_text(""), self.LINES)
 
-    def test_file_without_either_line(self):
-        self.assertEqual(repo.gitignore_text("cli/.venv/\n"), f"cli/.venv/\n{self.BOTH}")
+    def test_file_without_any_line(self):
+        self.assertEqual(repo.gitignore_text("cli/.venv/\n"), f"cli/.venv/\n{self.LINES}")
 
     def test_file_without_a_final_newline(self):
-        self.assertEqual(repo.gitignore_text("cli/.venv/"), f"cli/.venv/\n{self.BOTH}")
+        self.assertEqual(repo.gitignore_text("cli/.venv/"), f"cli/.venv/\n{self.LINES}")
 
-    def test_file_without_one_line(self):
-        self.assertEqual(repo.gitignore_text("harnesses/\n"), self.BOTH)
-        self.assertEqual(repo.gitignore_text("harnesses/"), self.BOTH)
+    def test_file_without_some_lines(self):
+        self.assertEqual(repo.gitignore_text("harnesses/\n"), self.LINES)
+        self.assertEqual(repo.gitignore_text("harnesses/"), self.LINES)
+        self.assertEqual(repo.gitignore_text("harnesses/\ngemba.local.yaml\n"), self.LINES)
         self.assertEqual(
-            repo.gitignore_text("gemba.local.yaml\ncli/.venv/\n"), "gemba.local.yaml\ncli/.venv/\nharnesses/\n"
+            repo.gitignore_text("gemba.local.yaml\ncli/.venv/\n"),
+            "gemba.local.yaml\ncli/.venv/\nharnesses/\n/update.md\n",
         )
 
-    def test_file_with_both_lines(self):
-        self.assertIsNone(repo.gitignore_text(f"cli/.venv/\n{self.BOTH}"))
-        self.assertIsNone(repo.gitignore_text("gemba.local.yaml\nharnesses/"))
-        self.assertIsNone(repo.gitignore_text("harnesses/\r\ngemba.local.yaml\r\n"))
+    def test_file_with_every_line(self):
+        self.assertIsNone(repo.gitignore_text(f"cli/.venv/\n{self.LINES}"))
+        self.assertIsNone(repo.gitignore_text("/update.md\ngemba.local.yaml\nharnesses/"))
+        self.assertIsNone(repo.gitignore_text("harnesses/\r\ngemba.local.yaml\r\n/update.md\r\n"))
 
     def test_similar_lines_do_not_count(self):
-        text = "harnesses/old/\n/gemba.local.yaml.bak\n"
-        self.assertEqual(repo.gitignore_text(text), f"{text}{self.BOTH}")
+        text = "harnesses/old/\n/gemba.local.yaml.bak\nupdate.md\n"
+        self.assertEqual(repo.gitignore_text(text), f"{text}{self.LINES}")
 
 
 class GitattributesTest(unittest.TestCase):

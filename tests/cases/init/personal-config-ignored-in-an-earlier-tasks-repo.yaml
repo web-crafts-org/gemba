@@ -1,4 +1,4 @@
-name: init in a tasks repo made by an earlier version appends the personal config to the .gitignore and keeps the rest
+name: init in a tasks repo made by an earlier version appends the personal config and the draft to the .gitignore and keeps the rest
 scenario: "repo-initialization: Personal config ignored in an earlier tasks repo"
 cwd: .
 setup:
@@ -15,6 +15,7 @@ stdout: |
   kept .claude/skills/gemba-create/SKILL.md
   kept .claude/skills/gemba-list/SKILL.md
   kept .claude/skills/gemba-harness/SKILL.md
+  kept .claude/skills/gemba-record/SKILL.md
   kept .claude/skills/gemba-report/SKILL.md
   kept .claude/skills/gemba-mark/SKILL.md
   kept .claude/skills/gemba-archive/SKILL.md
@@ -23,6 +24,6 @@ stdout: |
   kept .claude/skills/gemba-config/SKILL.md
   next step: open this tasks repo with your agent and ask it to configure gemba (the gemba-init skill)
 files:
-  .gitignore: "harnesses/\ngemba.local.yaml\n"
+  .gitignore: "harnesses/\ngemba.local.yaml\n/update.md\n"
   .gitattributes: "*.md text eol=lf\n*.yaml text eol=lf\n"
 absent: [gemba.local.yaml, .agents]

@@ -147,6 +147,17 @@ def read_config(harness_root: Path, known_providers: Sequence[str]) -> HarnessCo
     )
 
 
+def ref_problem(given: str, harness_config: HarnessConfig) -> str | None:
+    """Why `given` cannot name the task recorded inside the harness of `harness_config`, or None when it is the ref of
+    that task."""
+    if given == harness_config.ref:
+        return None
+    return (
+        f"{given} is not the task of this harness, {harness_config.ref}: "
+        f"record {given} from the tasks repo or from its own harness"
+    )
+
+
 @dataclass(frozen=True)
 class Manifest:
     """What a run holds, shown before its harness is removed."""

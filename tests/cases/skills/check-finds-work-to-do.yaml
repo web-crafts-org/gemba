@@ -19,6 +19,7 @@ stdout: |
   edited .claude/skills/gemba-create/SKILL.md
   missing .claude/skills/gemba-list/SKILL.md
   missing .claude/skills/gemba-harness/SKILL.md
+  missing .claude/skills/gemba-record/SKILL.md
   missing .claude/skills/gemba-report/SKILL.md
   missing .claude/skills/gemba-mark/SKILL.md
   missing .claude/skills/gemba-archive/SKILL.md

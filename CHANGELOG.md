@@ -28,6 +28,14 @@ under Changed.
   and `guide.user`.
 - `gemba init` writes `gemba.local.yaml` into the `.gitignore` and appends it to an
   existing one: running it again on a tasks repo made before this version adds it.
+- `gemba record <ref> <file>` records a task from the tasks repo, for work done outside
+  a harness, such as a meeting or a review: the task is named by its ref, archives
+  included, and the draft lies directly in the tasks repo root. Inside a harness the
+  ref is optional and, when given, must be the ref of its task, so
+  `gemba record update.md` keeps its meaning.
+- The `gemba-record` skill is written into the tasks repo too: from there the agent
+  records what you tell it was done on a task, such as a meeting or a review, and never
+  the notes of a harness, whose run is recorded from inside it.
 
 ### Changed
 
@@ -42,6 +50,10 @@ under Changed.
 - The `gemba-init` skill writes the IDE command and the repositories folder into
   `gemba.local.yaml`, and the `gemba-config` skill holds the reference of both files
   and moves the keys of an earlier `gemba.yaml`: `gemba skills update` refreshes them.
+- `gemba init` writes `/update.md` into the `.gitignore`, so that a draft left at the
+  tasks repo root by a refused `gemba record` never reaches a commit. Running
+  `gemba init` again on a tasks repo made before this version appends the line and
+  writes the `gemba-record` skill; `gemba skills update` writes the skill alone.
 
 ## [0.2.0] - 2026-10-13
 
