@@ -39,14 +39,17 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         description=(
             f"Create {harness.HARNESSES_DIR}/<workstream>/<task file name>/ for the task with this ref: "
             f"{harness.CONFIG_FILENAME}, {harness.TASK_LINK}, the guide and the harness skills of every agent "
-            f"provider of gemba.yaml, {harness.NOTES_DIR}/, {harness.ASSETS_DIR}/ and {harness.WORKTREES_DIR}/, "
+            f"provider of the harnesses (those of {config.LOCAL_FILENAME} when it declares them, else those of "
+            f"{config.CONFIG_FILENAME}), {harness.NOTES_DIR}/, {harness.ASSETS_DIR}/ and {harness.WORKTREES_DIR}/, "
             "as a git repository with one commit. A harness already launched is left as it is. On every launch an "
-            "open task moves to in-progress, and the IDE command of gemba.yaml, when declared, is started with the "
-            "harness path."
+            f"open task moves to in-progress, and the IDE command of {config.LOCAL_FILENAME}, when declared, is "
+            "started with the harness path."
         ),
     )
     launch.add_argument("ref", help="ref of the task, such as SUP-1")
-    launch.add_argument("--no-open", action="store_true", help="do not start the IDE command of gemba.yaml")
+    launch.add_argument(
+        "--no-open", action="store_true", help=f"do not start the IDE command of {config.LOCAL_FILENAME}"
+    )
     launch.add_argument("--root", type=Path, help="obeya root (default: walk up to the nearest gemba.yaml)")
     launch.set_defaults(handler=run_launch)
 

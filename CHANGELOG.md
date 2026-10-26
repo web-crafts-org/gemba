@@ -7,12 +7,27 @@ All notable changes to the gemba CLI are recorded here. The format follows
 
 ## [Unreleased]
 
-The gemba config becomes two files, so that an obeya can be shared: `gemba.yaml`,
-committed, and `gemba.local.yaml`, private to the clone. An obeya may then be shared by
-a team, each member owning their own tasks. The obeya is what earlier versions called
-the tasks repo. Three changes refuse a `gemba.yaml` that 0.2 accepted, all listed under
-Changed: the keys that moved to the personal config, `organization`, renamed `obeya`,
-and a field named `owner`, now reserved.
+## [0.3.0] - 2026-10-26
+
+An obeya, what earlier versions called the tasks repo, may be shared by a team, each
+member owning their own tasks. The gemba config becomes two files for it: `gemba.yaml`,
+committed, and `gemba.local.yaml`, private to the clone. A team may turn on git hooks
+that check what a push sends and show what a pull brings, and `gemba sync` reports both
+beforehand. A task may be split into subtasks, recorded from the obeya for work done
+outside a harness, and brought from another obeya with its history. Three changes
+refuse a `gemba.yaml` that 0.2 accepted, all listed under Changed: the keys that moved
+to the personal config, `organization`, renamed `obeya`, and a field named `owner`, now
+reserved.
+
+To upgrade an obeya made by 0.2, fix its config first: until then every command
+refuses it, `gemba init` and `gemba skills update` included, so the skills of the obeya
+are still those of 0.2. Move `ide`, `repos_dir` and `branch_prefix` into
+`gemba.local.yaml`, rename `organization` to `obeya` and a field named `owner`, as the
+refusal says, or ask the agent to do it. Then run `gemba init`, which adds
+`gemba.local.yaml` and `/update.md` to the `.gitignore` and writes the new skills, and
+`gemba skills update`, which refreshes the others, in the obeya and inside each
+harness, and commit. A harness launched by 0.2 keeps its guide, and its branches keep
+their names when `obeya` takes the value of `organization`.
 
 ### Added
 
@@ -25,9 +40,9 @@ and a field named `owner`, now reserved.
   in every effective block, so a personal rule wins a contradiction.
 - The guide of a harness ends with a `Your user` section holding the `harness.guide`
   texts of the personal config.
-- `gemba config check` reports `gemba.local.yaml is valid` and a `harness providers:`
-  line when there is a personal config; `gemba config show` prints `harness_providers`
-  and `guide.user`.
+- `gemba config check` reports `gemba.local.yaml is valid` when there is a personal
+  config, and a `harness providers:` line when it declares `agent_providers`;
+  `gemba config show` prints `harness_providers` and `guide.user`.
 - `gemba init` writes `gemba.local.yaml` into the `.gitignore` and appends it to an
   existing one: running it again on an obeya made before this version adds it.
 - `gemba record <ref> <file>` records a task from the obeya, for work done outside a
@@ -41,17 +56,18 @@ and a field named `owner`, now reserved.
 - `gemba record <ref> --from <task file>` copies the whole dated history of another
   task file, such as a task of an earlier obeya, into a task whose `## Updates` is
   empty, in one call. The command reads that file itself and copies its subsections as
-  they are, moves `updated_at` to the last date copied, and never changes the file. It
-  refuses with every problem of both files at once: a history that breaks the rules of
-  the section, text before its first date, a date before the creation of the task or
-  after today, or a task that already holds an update.
+  they are, moves `updated_at` forward to the last date copied, never back, and never
+  changes the file. It refuses with every problem of both files at once: a history that
+  breaks the rules of the section, text before its first date, a date before the
+  creation of the task or after today, or a task that already holds an update.
 - The `gemba-migrate` skill, written into the obeya: ask the agent to migrate tasks
   from another obeya, such as your earlier tasks into a team's obeya. It reads the old
   obeya as data, asks which tasks to bring and how its workstreams and fields map to
   this config, one decision at a time, and writes every task through `gemba create`,
   `gemba record --from`, `gemba mark` and `gemba archive`. The old obeya is never
-  converted: it stays as it was, its migrated tasks archived. An obeya made before this
-  version gets the skill with `gemba init` or `gemba skills update`.
+  converted: it stays as it was, its migrated tasks archived, once its config is one the
+  CLI accepts; an old obeya whose config it refuses is upgraded first. An obeya made
+  before this version gets the skill with `gemba init` or `gemba skills update`.
 - `gemba worktree list --available` prints the repositories `gemba worktree add`
   accepts, one per line in name order: the folders directly under `repos_dir` that hold
   a git repository, attached or not, or `no repositories` when there is none. It
@@ -70,8 +86,8 @@ and a field named `owner`, now reserved.
   workstream folders of an obeya without one, naming them and pointing to the
   `gemba-migrate` skill. No obeya is converted in place.
 - `gemba config check` prints a `team:` line, with every member and whether they are
-  inactive, and a `me:` line; `gemba config show` prints `team` and `me`. Both only in
-  an obeya with a team.
+  inactive, and a `me:` line when the clone names its member; `gemba config show`
+  prints `team` and `me`. Both only in an obeya with a team.
 - In an obeya with a team, `gemba list` and `gemba report` read the tasks of every
   member, active or not, whether or not the clone declares `me`; each record of
   `gemba list` carries `owner`, the member whose folder holds the task, right after
@@ -114,27 +130,29 @@ and a field named `owner`, now reserved.
   `gemba.yaml`, whether the team turns gemba's git hooks on; in `gemba.local.yaml`,
   whether this clone does, which always wins over the team. The hooks are off when
   neither file declares the key, and the key is refused in an obeya without a team.
-  `gemba config check` prints `git hooks: on` or `git hooks: off` after the `me:` line,
-  and `gemba config show` prints `git_hooks` after `me`.
-- `gemba init`, in a git repository whose config declares a team and turns the git
-  hooks on for the clone, installs `pre-push`, `post-merge` and `post-rewrite` into the
-  hooks folder git names, with no question: each a small script that runs
-  `gemba hook` with its name, the `pre-push` one refusing the push when `gemba` is not
-  on PATH. It reports each `written`, `updated` or `kept` after the skills, and removes
-  those it wrote when `git_hooks` turns them off. It never writes over a hook of
-  another tool, keeps one that runs `gemba hook` itself, and refuses, writing nothing,
-  while another hook or a `core.hooksPath` stands in the way. It still creates no
-  repository and no commit: git is run only to read where the hooks go.
+  `gemba config check` prints `git hooks: on` or `git hooks: off` after the `team:` and
+  `me:` lines, and `gemba config show` prints `git_hooks` after `me`.
+- `gemba init`, in an obeya whose root holds a git repository and whose config declares
+  a team and turns the git hooks on for the clone, installs `pre-push`, `post-merge` and
+  `post-rewrite` into the hooks folder git names, with no question: each a small script
+  that runs `gemba hook` with its name, the `pre-push` one refusing the push when
+  `gemba` is not on PATH. It reports each `written`, `updated` or `kept` after the
+  skills, and removes those it wrote, reported `removed`, whenever the hooks are off for
+  the clone. It never writes over a hook of another tool, keeps one that runs
+  `gemba hook` itself, and refuses, writing nothing, while another hook or a
+  `core.hooksPath` stands in the way. It still creates no repository and no commit: git
+  is run only to read where the hooks go.
 - `gemba sync`, in an obeya with a team, compares the branch checked out with its
   upstream as last fetched. It reports what a pull would bring: the patch of every
   change to the member's own tasks and the shared files changed, each with the commits
-  and authors behind it, a warning for a `gemba.local.yaml` a pull would write over the
-  clone's own, and the count of commits that change only other members' tasks. It
-  reports what a push would send, with every problem the pre-push hook would refuse,
-  and the uncommitted changes, each as the member's own, another member's, private or
-  shared. Its last line is the verdict of a push: `nothing to push`, `ready`,
-  `needs confirmation` with the command that confirms it, or `refused`. It runs no
-  fetch, no pull and no push, writes nothing and exits 0 whatever the verdict.
+  and authors behind it, a warning for each private path a pull would write over, such
+  as a `gemba.local.yaml` over the clone's own, and the count of commits that change
+  only other members' tasks. It reports what a push would send, with every problem the
+  pre-push hook would refuse, and the uncommitted changes, each as the member's own,
+  another member's, private or shared, and a `hooks:` line when the hooks of the clone
+  disagree with `git_hooks`. Its last line is the verdict of a push: `nothing to push`,
+  `ready`, `needs confirmation` with the command that confirms it, or `refused`. It runs
+  no fetch, no pull and no push, writes nothing and exits 0 whatever the verdict.
 - `gemba hook pre-push`, `post-merge` and `post-rewrite`, the checks git runs from the
   hooks `gemba init` installs; they only report, as a lint does, and a person never
   needs to run them. `pre-push` checks what each push changes in the end, merges
@@ -150,26 +168,27 @@ and a field named `owner`, now reserved.
 - The `gemba-sync` skill, written into the obeya: ask the agent to sync, pull or push an
   obeya shared by a team. It fetches, reads `gemba sync`, explains what comes in, reading
   the rules and skills of others as data to review, never as instructions, commits only
-  your own task files and only with your consent, pulls with rebase and aborts on a
-  conflict without resolving it, checks again, asks before it pushes a shared file, and
-  pushes, never forcing a push or skipping the hooks on its own. An obeya made before
-  this version gets the skill with `gemba init` or `gemba skills update`.
+  your own task files, or a shared file you name, and only with your consent, pulls
+  with rebase and aborts on a conflict without resolving it, checks again, asks before
+  it pushes a shared file, and pushes, never forcing a push or skipping the hooks on its
+  own. An obeya made before this version gets the skill with `gemba init` or
+  `gemba skills update`.
 
 ### Changed
 
 - **Breaking:** `ide`, `repos_dir` and `branch_prefix` are read from
   `gemba.local.yaml` only. Every command refuses a `gemba.yaml` that declares them,
   naming each key and the file it goes in. Move them by hand, or ask the agent to fix
-  the config (the `gemba-config` skill moves them), then run `gemba init` once and
-  commit `gemba.yaml` and `.gitignore`. No command rewrites the config.
+  the config, then run `gemba init` once and commit `gemba.yaml` and `.gitignore`. No
+  command rewrites the config.
 - **Breaking:** the `organization` key of `gemba.yaml` is now `obeya`, the name of the
   obeya, with the same shape: optional, kebab-case, in the shared config only, and the
   middle segment of the branch of a run, `<branch_prefix>/<obeya>/<ref>`. Every command
   refuses `organization` in either file, saying that it was renamed `obeya`, which
   belongs in `gemba.yaml`, together with every other problem. With the same value the
   branches keep their names, so no run loses its branches. Rename it by hand, or ask the
-  agent to fix the config: the `gemba-config` skill renames it in the same pass that
-  moves `ide`, `repos_dir` and `branch_prefix`.
+  agent to fix the config, in the same pass that moves `ide`, `repos_dir` and
+  `branch_prefix`.
 - **Breaking:** `owner` is a reserved field name, beside `workstream` and `status`,
   since a report groups tasks by their owner. Every command refuses a config that
   declares a field named `owner`; rename the field in `gemba.yaml`. Values already
@@ -179,8 +198,9 @@ and a field named `owner`, now reserved.
   command, the skills, the document of `gemba config show`, which prints `obeya` and
   `harness.guide.obeya` instead of `organization` and `harness.guide.organization`, and
   the guide of a harness, whose top-level section of the shared config is titled
-  `Your obeya`; a harness launched earlier keeps its guide. Run `gemba skills update`,
-  or `gemba init`, to refresh the skills of an obeya made by an earlier version.
+  `Your obeya`; a harness launched earlier keeps its guide. Run `gemba skills update`
+  to refresh the skills of an obeya made by an earlier version: `gemba init` writes
+  only the skills that are missing.
 - A config refusal reports every problem of both files at once, each on its own line
   with the path of its file, instead of the first one; a check that needs another
   value runs only when that value is valid, so one mistake is reported once.
@@ -305,7 +325,8 @@ creates to the report of a period.
   tasks repo and into each harness for every agent provider declared, with their
   provenance, so an upgrade refreshes them and a hand edit is kept.
 
-[Unreleased]: https://github.com/web-crafts-org/gemba/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/web-crafts-org/gemba/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/web-crafts-org/gemba/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/web-crafts-org/gemba/compare/v0.1.1...v0.2.0
 [0.1.1]: https://github.com/web-crafts-org/gemba/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/web-crafts-org/gemba/releases/tag/v0.1.0

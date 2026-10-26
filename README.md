@@ -554,8 +554,8 @@ paragraph that names the old ref and obeya; `gemba record --from` copies the dat
 history as it is, and a task archived in the old obeya is archived in the new one too.
 The last command closes the loop: the migrated tasks are archived in the old obeya.
 Nothing is committed: both obeyas are yours to review and commit. An obeya made by an
-earlier version whose config the current CLI refuses is upgraded first, with the
-`gemba-config` skill run from inside it.
+earlier version whose config the current CLI refuses is upgraded first, as
+[CHANGELOG.md](CHANGELOG.md) says for the version that changed the config.
 
 ## On Windows
 
