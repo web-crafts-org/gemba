@@ -20,9 +20,12 @@ the obeya can now be pulled and pushed safely.
   a private path is refused; one that changes a shared file needs a confirmation bound
   to the commit pushed; the member's own task files must read as tasks, carry the
   member's initials and hold no ref twice, the case of a task created from two clones
-  without a pull in between. Every problem is reported at once.
+  without a pull in between. Each outgoing commit is checked, and so is what the push
+  changes in the end, so that what a merge does by itself, a resolution or an old copy
+  kept over another member's change, is seen too. Every problem is reported at once.
 - **What a pull brings.** The incoming commits that change the member's own tasks are
-  shown with their diff, the shared files they change are listed, and a commit that
+  shown with their diff, and so is what an incoming merge changes beyond them; the
+  shared files they change are listed, and a commit that
   carries a personal config, which a pull would write over the member's own, is
   warned about. Nothing incoming blocks.
 - **`gemba sync`.** A read-only command, a bare verb on the obeya: it reports what a

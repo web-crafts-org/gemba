@@ -25,14 +25,31 @@ skills folders, `.gitignore` and `.gitattributes`.
 ### Requirement: The outgoing commits of a push
 The outgoing commits of a push SHALL be the commits reachable from the commit pushed to a
 branch of the remote and not from that branch's previous commit, or, for a branch the
-remote does not have, from no branch of that remote. Merge commits SHALL be left out.
-Every outgoing commit SHALL be checked against the map, and the member's own task files
-as of the commit pushed.
+remote does not have, from no branch of that remote. Every outgoing commit that is not a
+merge SHALL be checked against the map, so that a change made and undone among them is
+seen too.
 
 #### Scenario: New branch checked
 - **WHEN** `me` is `manuel`, the hooks are installed, and `git push origin HEAD:review` creates the branch `review` on the remote with a commit that changes a task under `tasks/ana/support/`
 - **THEN** the push is refused, the hook names the commit, the path and `ana`, and the remote has no branch `review`
 - **Cases**: adds `tests/cases/hook/new-branch-checked.yaml`
+
+### Requirement: What a push changes in the end
+The net change of a push SHALL be every path whose content at the commit pushed differs
+from its content at each commit the outgoing commits start from. It SHALL be checked
+against the map as an outgoing commit is, and a path that the check of a commit already
+reports SHALL not be reported again: what remains comes from a merge, which the report
+names.
+
+#### Scenario: Merge that reverts another member's task not pushed
+- **WHEN** `me` is `manuel`, the hooks are installed, the remote holds a commit of `ana` that edits `AG-SUP-1`, the clone merges it with a commit of its own while keeping its old copy of `AG-SUP-1`, and `git push` runs
+- **THEN** git refuses the push, the hook names the merge, the file of `AG-SUP-1` and `ana`, and the remote branch is unchanged
+- **Cases**: adds `tests/cases/hook/merge-that-reverts-another-members-task-not-pushed.yaml`
+
+#### Scenario: Merge of a pull pushed
+- **WHEN** `me` is `manuel`, the hooks are installed, the clone holds a commit that edits `MR-SUP-1`, the remote a commit of `ana` that edits `AG-SUP-1`, `git pull --no-rebase` merges them, and `git push` runs
+- **THEN** the push succeeds, the hook prints nothing, and the remote branch holds the merge
+- **Cases**: adds `tests/cases/hook/merge-of-a-pull-pushed.yaml`
 
 ### Requirement: Another member's folder is not pushed
 An outgoing commit that changes a path in the folder of another member SHALL be refused,
@@ -55,8 +72,9 @@ leaves the clone.
 - **Cases**: adds `tests/cases/hook/personal-config-not-pushed.yaml`
 
 ### Requirement: The member's own task files are valid
-Every `.md` file under `tasks/<me>/` that an outgoing commit adds or changes SHALL, as of
-the commit pushed, lie in the folder of a workstream of the config or in its `archive/`,
+Every `.md` file under `tasks/<me>/` that an outgoing commit or the net change of the push
+adds or changes SHALL, as of the commit pushed, lie in the folder of a workstream of the
+config or in its `archive/`,
 read as a task by the reading rules of the task file format, and hold a ref that carries
 the initials of `me`; otherwise the push SHALL be refused, naming the file and the rule.
 
@@ -72,7 +90,8 @@ the initials of `me`; otherwise the push SHALL be refused, naming the file and t
 
 ### Requirement: No ref held twice
 When two files under `tasks/<me>/`, archives included, hold the same ref as of the commit
-pushed, and an outgoing commit adds or changes either of them, the push SHALL be refused,
+pushed, and an outgoing commit or the net change adds or changes either of them, the push
+SHALL be refused,
 naming the ref and both files, as when the member created a task in two clones without a
 pull in between.
 
@@ -136,7 +155,8 @@ print its problems and exit 1, and the other verbs SHALL print them and exit 0.
 
 ### Requirement: What came in is shown after a pull
 `gemba hook post-merge`, and `gemba hook post-rewrite` after a rebase, SHALL print on the
-standard error each commit that came in and changes the member's own folder, with its
+standard error each commit that came in, merges aside, and changes the member's own
+folder, with its
 patch on that folder alone, and each that changes shared or private paths, naming them;
 commits that change only other members' folders SHALL be counted. Both SHALL exit 0 and
 write nothing; with nothing of the member's own, shared or private, they print nothing.
@@ -150,6 +170,17 @@ write nothing; with nothing of the member's own, shared or private, they print n
 - **WHEN** `me` is `manuel`, the hooks are installed, the clone holds a commit of its own, the remote a commit that edits `MR-SUP-1` and another that edits `gemba.yaml`, and `git pull --rebase` brings them
 - **THEN** the pull succeeds, the standard error names the commit that edits `MR-SUP-1` with the lines it changed and the one that edits `gemba.yaml`, and not the commit of the clone
 - **Cases**: adds `tests/cases/hook/change-shown-after-a-rebasing-pull.yaml`
+
+### Requirement: What a merge brought in is shown
+The paths of the member's own folder, shared or private, that a pull changed in the end
+and that no commit listed changes SHALL be shown too, as brought by the merges that came
+in, naming them, with the patch of the member's own folder. `gemba sync` SHALL show what
+a pull would bring the same way.
+
+#### Scenario: Change brought by a merge shown after a pull
+- **WHEN** `me` is `manuel`, the hooks are installed, the remote holds a merge of `ana` whose resolution edits `MR-SUP-1`, which neither of its parents changed, and `git pull` brings it
+- **THEN** the pull succeeds, and the standard error names the merge, the file of `MR-SUP-1` and the lines the merge changed
+- **Cases**: adds `tests/cases/hook/change-brought-by-a-merge-shown-after-a-pull.yaml`
 
 ### Requirement: A personal config coming in is warned about
 When a commit that comes in changes a private path, the report of what came in SHALL warn
