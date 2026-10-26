@@ -1,0 +1,65 @@
+name: sync names the commit that edits a task of ana as the pre-push hook does, and ends with push refused
+scenario: "obeya-sync: Refused push to come"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+        .gitignore: |
+          harnesses/
+          gemba.local.yaml
+          /update.md
+        README.md: |
+          The obeya of the support team.
+        tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+          ---
+          status: open
+          ref: MR-SUP-1
+          updated_at: 2026-10-20
+          metadata: {}
+          ---
+
+          Export times out.
+
+          ## Updates
+        tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+          ---
+          status: open
+          ref: AG-SUP-1
+          updated_at: 2026-10-21
+          metadata: {}
+          ---
+
+          Login fails on Safari.
+
+          ## Updates
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: manuel\n"
+tree_after_setup:
+  repos/obeya/tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+    ---
+    status: done
+    ref: AG-SUP-1
+    updated_at: 2026-10-21
+    done_at: 2026-10-21
+    metadata: {}
+    ---
+
+    Login fails on Safari.
+
+    ## Updates
+git_after_setup:
+  - [repos/obeya, add, tasks/ana/support/2026-10-21-AG-SUP-1-login.md]
+  - [repos/obeya, commit, --quiet, -m, "Close AG-SUP-1"]
+run: [sync]
+exit: 0
+stdout_contains:
+  - "outgoing: 1 commit\n- {short:repos/obeya:HEAD} Gemba Cases: Close AG-SUP-1\nrefused:\n- {short:repos/obeya:HEAD} changes tasks/ana/support/2026-10-21-AG-SUP-1-login.md, in the folder of ana: only ana writes it\n"
+  - "push: refused\n"

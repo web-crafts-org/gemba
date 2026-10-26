@@ -699,7 +699,7 @@ def read(path: Path, root: Path, workstream: str, archived: bool, owner: str | N
         raise TaskError("the file is not UTF-8 text") from None
     except OSError as exc:
         raise TaskError(f"the file cannot be read: {exc.strerror}") from None
-    return _parse(path.name, text, path.relative_to(root).as_posix(), workstream, archived, owner)
+    return parse(path.name, text, path.relative_to(root).as_posix(), workstream, archived, owner)
 
 
 def read_source(path: Path) -> tuple[str | None, list[str]]:
@@ -718,13 +718,13 @@ def read_source(path: Path) -> tuple[str | None, list[str]]:
     except OSError as exc:
         return None, [f"cannot be read: {exc.strerror}"]
     try:
-        _parse(path.name, text, path.name, workstream="", archived=False, owner=None)
+        parse(path.name, text, path.name, workstream="", archived=False, owner=None)
     except TaskError as exc:
         return None, [f"is not a valid task: {exc}"]
     return text, []
 
 
-def _parse(name: str, text: str, path: str, workstream: str, archived: bool, owner: str | None) -> Task:
+def parse(name: str, text: str, path: str, workstream: str, archived: bool, owner: str | None) -> Task:
     """The task named `name` whose content is `text`, by the reading rules of the task file format; `path`,
     `workstream`, `archived` and `owner` only locate it."""
     match = FILENAME_PATTERN.match(name)

@@ -50,6 +50,7 @@ SKILLS = (
     Skill("gemba-mark", "both"),
     Skill("gemba-archive", "obeya"),
     Skill("gemba-set", "both"),
+    Skill("gemba-sync", "obeya"),
     Skill("gemba-worktree", "harness"),
     Skill("gemba-init", "obeya"),
     Skill("gemba-config", "obeya"),

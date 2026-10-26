@@ -16,6 +16,7 @@ stdout: |
   written .claude/skills/gemba-mark/SKILL.md
   written .claude/skills/gemba-archive/SKILL.md
   written .claude/skills/gemba-set/SKILL.md
+  written .claude/skills/gemba-sync/SKILL.md
   written .claude/skills/gemba-init/SKILL.md
   written .claude/skills/gemba-config/SKILL.md
   written .claude/skills/gemba-migrate/SKILL.md
@@ -27,6 +28,7 @@ stdout: |
   written .agents/skills/gemba-mark/SKILL.md
   written .agents/skills/gemba-archive/SKILL.md
   written .agents/skills/gemba-set/SKILL.md
+  written .agents/skills/gemba-sync/SKILL.md
   written .agents/skills/gemba-init/SKILL.md
   written .agents/skills/gemba-config/SKILL.md
   written .agents/skills/gemba-migrate/SKILL.md
@@ -58,6 +60,7 @@ files_contain:
   .claude/skills/gemba-mark/SKILL.md: &mark ["---\nname: gemba-mark\n", "  generatedBy: \"{version}\"\n"]
   .claude/skills/gemba-archive/SKILL.md: &archive ["---\nname: gemba-archive\n", "  generatedBy: \"{version}\"\n"]
   .claude/skills/gemba-set/SKILL.md: &set ["---\nname: gemba-set\n", "  generatedBy: \"{version}\"\n"]
+  .claude/skills/gemba-sync/SKILL.md: &sync ["---\nname: gemba-sync\n", "  generatedBy: \"{version}\"\n"]
   .claude/skills/gemba-init/SKILL.md: &init ["---\nname: gemba-init\n", "  generatedBy: \"{version}\"\n"]
   .claude/skills/gemba-config/SKILL.md: &config ["---\nname: gemba-config\n", "  generatedBy: \"{version}\"\n"]
   .claude/skills/gemba-migrate/SKILL.md: &migrate ["---\nname: gemba-migrate\n", "  generatedBy: \"{version}\"\n"]
@@ -69,6 +72,7 @@ files_contain:
   .agents/skills/gemba-mark/SKILL.md: *mark
   .agents/skills/gemba-archive/SKILL.md: *archive
   .agents/skills/gemba-set/SKILL.md: *set
+  .agents/skills/gemba-sync/SKILL.md: *sync
   .agents/skills/gemba-init/SKILL.md: *init
   .agents/skills/gemba-config/SKILL.md: *config
   .agents/skills/gemba-migrate/SKILL.md: *migrate

@@ -130,7 +130,8 @@ subcommand; the README explains each process.
   `gemba-create` drives `gemba create`. The task is the implicit object, so a
   subcommand that acts on a task is a bare verb; any other object with verbs of its
   own is a group (`gemba harness <verb>`, `gemba config <verb>`) driven by one skill.
-  A maintenance group a person runs, such as `gemba skills`, has no skill. The rule is
+  A group that a person runs to maintain the obeya, such as `gemba skills`, or that git
+  runs from a hook, such as `gemba hook`, has no skill. The rule is
   `openspec/specs/process-naming/spec.md`.
 - **Adding a process:** a spec under `openspec/specs/`, its cases, a domain module or
   functions in one, an adapter in `commands/`, its entry in `COMMANDS` of `cli.py`, a

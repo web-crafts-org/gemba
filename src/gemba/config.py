@@ -51,6 +51,7 @@ LAYERS: dict[str, tuple[str, ...]] = {
     "obeya": (CONFIG_FILENAME,),
     "team": (CONFIG_FILENAME,),
     "agent_providers": (CONFIG_FILENAME, LOCAL_FILENAME),
+    "git_hooks": (CONFIG_FILENAME, LOCAL_FILENAME),
     "ide": (LOCAL_FILENAME,),
     "repos_dir": (LOCAL_FILENAME,),
     "branch_prefix": (LOCAL_FILENAME,),
@@ -150,6 +151,8 @@ class Config:
     team: dict[str, Member] | None = None
     # The member the clone belongs to, as the personal config declares it, or None.
     me: str | None = None
+    # Whether gemba's git hooks are on for the clone: the personal value when declared, else the shared one, else off.
+    git_hooks: bool = False
 
     @property
     def members(self) -> tuple[str, ...] | None:
@@ -301,6 +304,7 @@ def load(root: Path | str | None = None, cwd: Path | str | None = None) -> Confi
         personal_workstreams=personal.workstreams,
         personal=local_path.is_file(),
         me=personal.me,
+        git_hooks=personal.git_hooks if personal.git_hooks is not None else shared.git_hooks,
     )
 
 
@@ -315,6 +319,7 @@ class _Personal:
     processes: dict[str, object]
     workstreams: dict[str, dict[str, object]]
     me: str | None = None
+    git_hooks: bool | None = None
 
 
 def _read(path: Path, shape: str, problems: list[str]) -> dict[object, object] | None:
@@ -399,6 +404,7 @@ def _parse_shared(root: Path, data: dict[object, object], problems: list[str]) -
     members = _parse_team(data.get("team"), identifiers, problems)
     if members is not None and identifiers is not None and (problem := team.layout_problem(root, identifiers)):
         problems.append(problem)
+    hooks = _parse_hooks(data.get("git_hooks"), data.get("team") is None, problems)
     if not isinstance(default, str):
         return None
     return Config(
@@ -410,6 +416,7 @@ def _parse_shared(root: Path, data: dict[object, object], problems: list[str]) -
         obeya=obeya,
         processes={key: value for key, value in data.items() if isinstance(key, str) and key in PROCESSES},
         team=members,
+        git_hooks=bool(hooks),
     )
 
 
@@ -448,6 +455,7 @@ def _parse_personal(
         processes={key: value for key, value in data.items() if isinstance(key, str) and key in PROCESSES},
         workstreams=_parse_personal_workstreams(data.get("workstreams"), catalogue, problems),
         me=_parse_me(data.get("me"), members, problems),
+        git_hooks=_parse_hooks(data.get("git_hooks"), members == (), problems),
     )
 
 
@@ -523,6 +531,22 @@ def _parse_me(declaration: object, members: tuple[str, ...] | None, problems: li
         return None
     if members is not None and declaration not in members:
         problems.append(f"me names no member of the team: '{declaration}' (members: {', '.join(members)})")
+        return None
+    return declaration
+
+
+def _parse_hooks(declaration: object, without_team: bool, problems: list[str]) -> bool | None:
+    """Whether a file turns gemba's git hooks on, or None when it declares nothing or a bad value.
+
+    `without_team` says that the shared config declares no team, where the key has no use.
+    """
+    if declaration is None:
+        return None
+    if not isinstance(declaration, bool):
+        problems.append(f"git_hooks must be true or false (got {declaration!r})")
+        return None
+    if without_team:
+        problems.append(f"git_hooks needs a team: {CONFIG_FILENAME} declares none")
         return None
     return declaration
 

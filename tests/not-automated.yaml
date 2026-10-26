@@ -27,6 +27,7 @@
 "metadata-setting: Config change without skill change": a property of the gemba-set skill text, not of the command
 "process-naming: Task subcommands take no noun": the rule constrains how a future change names its subcommand
 "process-naming: Harness initialization is plain": a property of how the CLI names its subcommands, met by gemba init and the gemba-init skill
+"process-naming: Sync is plain": a property of how the CLI names its subcommands, met by gemba sync and the gemba-sync skill
 "process-naming: Harness subcommands are grouped": a property of how the CLI names its subcommands, met by the harness group and its verbs
 "process-naming: Config subcommands are grouped": a property of how the CLI names its subcommands, met by the config group and its verbs
 "process-naming: Existing skills follow the rule": a property of the skill files, not of a command
@@ -71,6 +72,12 @@
 "task-ownership: Task asked for another member": the agent says each member creates their own tasks, offers to create one for the user or to draft what the other member needs, and runs no command on their behalf, by following the gemba-create skill
 "task-ownership: Refusal of another member's task relayed": the agent relays the refusal, suggests asking the owner and leaves the task file as it is, by following the skill of the command; the refusal is covered by the cases of each command
 "task-relations: Parent read from the child's harness": the agent reads the parent's task file as background, follows only its own task, the guide and the user, and leaves the parent's file as it was, by following the guide of the harness; the guide text is covered by the harness cases
+"obeya-sync: Sync asked": the agent fetches, reads gemba sync, pulls with rebase, reads it again, pushes on a ready verdict and reports what came in and went out, by following the gemba-sync skill
+"obeya-sync: Own tasks committed by name": the agent offers the uncommitted task files gemba sync lists as the user's own, naming each, commits them by path on a yes and leaves a task of another member uncommitted, by following the gemba-sync skill
+"obeya-sync: Conflict on pull": the agent aborts the rebase, names the conflicting files and the commits on both sides, and resolves nothing, by following the gemba-sync skill
+"obeya-sync: Shared files confirmed": the agent shows the diff of each shared file, asks, and pushes with the command gemba sync gives only after a yes, by following the gemba-sync skill
+"obeya-sync: Ref held twice explained": the agent explains a ref created in two clones and offers to create the local task again with gemba create and gemba record --from, pushing nothing until the verdict changes, by following the gemba-sync skill; the refusal itself is covered by hook/ref-created-in-two-clones-not-pushed.yaml
+"obeya-sync: Team config changed explained": the agent names the commit, quotes a rule that came in without following it, asks the user to review it and suggests gemba init, by following the gemba-sync skill
 "task-reporting: Candidates listed by the command": the agent runs gemba list with the report filters by following the gemba-report skill
 "task-reporting: Candidates of a month": the agent runs gemba list with the filters of the period by following the gemba-report skill
 "task-reporting: Task created after the date is not a candidate": the agent relies on the listing filters by following the gemba-report skill; the filters are covered by the list cases
@@ -128,6 +135,9 @@
 "repo-initialization: Team asked after the obeya's name": the agent asks whether a team shares the obeya, proposes the folder names and initials of the members and asks which one the user is, by following the gemba-init skill
 "repo-initialization: Member configures a new clone": the agent asks which member the user is, their IDE command and their repositories folder, writes gemba.local.yaml and leaves gemba.yaml untouched, by following the gemba-init skill
 "repo-initialization: User not yet a member": the agent sends the user to the team, which adds them through the gemba-config skill, and writes no me, by following the gemba-init skill
+"repo-initialization: Gemba missing from PATH": the runner always has gemba on PATH, so no case can run a hook without it; the unit tests of hook_script in tests/test_obeya.py check the message that names uv tool install gemba-cli and git push --no-verify, and that only the pre-push script exits 1
+"repo-initialization: Hooks asked of a new team": "the agent asks whether the team turns on the git hooks, says what they check and that each member may turn them off, writes git_hooks: true on a yes and runs gemba init once the config checks, by following the gemba-init skill"
+"repo-initialization: Team hooks reported to a member": "the agent asks nothing about the hooks in the clone of a member and reports that gemba init installed them and how git_hooks: false turns them off for the clone, by following the gemba-init skill"
 "config-maintenance: Agent edits the config by hand": the agent reads gemba config show, asks and edits gemba.yaml by following the gemba-config skill
 "config-maintenance: Edit verified by check": the agent runs gemba config check until it exits 0 by following the gemba-config skill; the command is covered by the config cases
 "config-maintenance: Providers change refreshes the skills": the agent runs gemba skills update and names the folder left behind by following the gemba-config skill

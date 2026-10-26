@@ -6,11 +6,11 @@ from collections.abc import Sequence
 from importlib.metadata import version
 from typing import NoReturn
 
-from gemba.commands import archive, config, create, harness, init, mark, record, report, skills, worktree
+from gemba.commands import archive, config, create, harness, hook, init, mark, record, report, skills, sync, worktree
 from gemba.commands import list as list_  # named after the process; the alias keeps list() usable
 from gemba.commands import set as set_  # named after the process; the alias keeps set() usable
 
-COMMANDS = (init, create, list_, skills, config, harness, record, mark, archive, report, set_, worktree)
+COMMANDS = (init, create, list_, skills, config, harness, record, mark, archive, report, set_, worktree, sync, hook)
 
 
 class ArgumentParser(argparse.ArgumentParser):

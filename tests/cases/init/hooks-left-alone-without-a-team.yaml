@@ -1,0 +1,24 @@
+name: init in the clone of an obeya without a team leaves a hook of another tool as it is and names no hook
+scenario: "repo-initialization: Hooks left alone without a team"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          agent_providers: [claude]
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+        .gitignore: "harnesses/\ngemba.local.yaml\n/update.md\n"
+cwd: repos/obeya
+tree:
+  repos/obeya/.git/hooks/pre-push: "#!/bin/sh\nexec lint-staged\n"
+run: [init]
+exit: 0
+stdout_contains:
+  - "written .claude/skills/gemba-migrate/SKILL.md\nnext step:"
+files:
+  repos/obeya/.git/hooks/pre-push: "#!/bin/sh\nexec lint-staged\n"
+absent:
+  - repos/obeya/.git/hooks/post-merge
+  - repos/obeya/.git/hooks/post-rewrite

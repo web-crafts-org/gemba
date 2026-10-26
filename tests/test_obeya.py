@@ -124,5 +124,124 @@ class ProblemsTest(unittest.TestCase):
         self.assertIn(f"{Path('/srv/acme/notes')} is inside the obeya {Path('/srv/acme')}", message)
 
 
+class HookScriptTest(unittest.TestCase):
+    def test_each_script_runs_gemba_hook_with_its_name(self):
+        for name in obeya.HOOKS:
+            with self.subTest(hook=name):
+                lines = obeya.hook_script(name).split("\n")
+                self.assertEqual(lines[:2], ["#!/bin/sh", obeya.HOOK_MARKER])
+                self.assertEqual(lines[-2:], [f'exec gemba hook {name} "$@"', ""])
+                self.assertNotIn("\r", obeya.hook_script(name))
+
+    def test_without_gemba_on_path_the_message_names_the_install_and_the_bypass(self):
+        for name in obeya.HOOKS:
+            with self.subTest(hook=name):
+                script = obeya.hook_script(name)
+                self.assertIn("if ! command -v gemba >/dev/null 2>&1; then\n", script)
+                self.assertIn(
+                    f"gemba hook {name}: gemba is not on PATH: install it with uv tool install gemba-cli", script
+                )
+                self.assertIn('git push --no-verify skips these checks" >&2\n', script)
+
+    def test_only_pre_push_fails_closed(self):
+        self.assertIn("  exit 1\nfi\n", obeya.hook_script("pre-push"))
+        for name in ("post-merge", "post-rewrite"):
+            with self.subTest(hook=name):
+                self.assertIn("  exit 0\nfi\n", obeya.hook_script(name))
+
+
+class HookStateTest(unittest.TestCase):
+    def test_missing(self):
+        self.assertEqual(obeya.hook_state("pre-push", None), "missing")
+
+    def test_current(self):
+        for name in obeya.HOOKS:
+            with self.subTest(hook=name):
+                self.assertEqual(obeya.hook_state(name, obeya.hook_script(name)), "current")
+
+    def test_script_of_another_hook_is_not_current(self):
+        self.assertEqual(obeya.hook_state("pre-push", obeya.hook_script("post-merge")), "earlier")
+
+    def test_earlier(self):
+        text = f"#!/bin/sh\n{obeya.HOOK_MARKER}\nexec gemba hook pre-push\n"
+        self.assertEqual(obeya.hook_state("pre-push", text), "earlier")
+
+    def test_chained(self):
+        for text in (
+            '#!/bin/sh\nlint-staged || exit 1\ngemba hook pre-push "$@"\n',
+            '#!/bin/sh\nexec gemba hook pre-push "$@"\n',
+            "#!/bin/sh\n  gemba hook pre-push $1 $2 || exit 1\nnpm test\n",
+        ):
+            with self.subTest(text=text):
+                self.assertEqual(obeya.hook_state("pre-push", text), "chained")
+
+    def test_other(self):
+        for text in (
+            "",
+            "#!/bin/sh\nexec lint-staged\n",
+            "#!/bin/sh\n# gemba hook pre-push\n",
+            "#!/bin/sh\ngemba hook pre-pushed\n",
+            '#!/bin/sh\ngemba hook post-merge "$@"\n',
+        ):
+            with self.subTest(text=text):
+                self.assertEqual(obeya.hook_state("pre-push", text), "other")
+
+
+class HookActionTest(unittest.TestCase):
+    def test_on(self):
+        expected: dict[obeya.HookState, obeya.HookAction | None] = {
+            "missing": "written",
+            "earlier": "updated",
+            "current": "kept",
+            "chained": "kept",
+            "other": "refused",
+        }
+        for state, action in expected.items():
+            with self.subTest(state=state):
+                self.assertEqual(obeya.hook_action(state, on=True, redirected=False), action)
+
+    def test_on_under_a_hooks_path(self):
+        expected: dict[obeya.HookState, obeya.HookAction | None] = {
+            "missing": "refused",
+            "earlier": "refused",
+            "current": "kept",
+            "chained": "kept",
+            "other": "refused",
+        }
+        for state, action in expected.items():
+            with self.subTest(state=state):
+                self.assertEqual(obeya.hook_action(state, on=True, redirected=True), action)
+
+    def test_off(self):
+        expected: dict[obeya.HookState, obeya.HookAction | None] = {
+            "missing": None,
+            "earlier": "removed",
+            "current": "removed",
+            "chained": None,
+            "other": None,
+        }
+        for state, action in expected.items():
+            with self.subTest(state=state):
+                self.assertEqual(obeya.hook_action(state, on=False, redirected=False), action)
+
+    def test_off_under_a_hooks_path_removes_nothing(self):
+        states: tuple[obeya.HookState, ...] = ("missing", "earlier", "current", "chained", "other")
+        for state in states:
+            with self.subTest(state=state):
+                self.assertIsNone(obeya.hook_action(state, on=False, redirected=True))
+
+    def test_problems_name_the_hook_and_both_ways_out(self):
+        self.assertEqual(
+            obeya.hook_problem(".git/hooks/pre-push", "pre-push"),
+            '.git/hooks/pre-push is a hook gemba did not write: run gemba hook pre-push "$@" from it, or turn the '
+            "hooks off for this clone with git_hooks: false in gemba.local.yaml",
+        )
+        self.assertEqual(
+            obeya.hook_problem(".githooks/post-merge", "post-merge", ".githooks"),
+            'core.hooksPath is set to .githooks, where gemba writes no hook: run gemba hook post-merge "$@" from '
+            ".githooks/post-merge, or turn the hooks off for this clone with git_hooks: false in gemba.local.yaml",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,17 @@
+name: a clone that turns the git hooks on, under a team that declares nothing about them, is summarized by check as git hooks on
+scenario: "gemba-config: Hooks turned on for a clone"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  me: manuel
+  git_hooks: true
+run: [config, check]
+exit: 0
+stdout_contains:
+  - "me: manuel\ngit hooks: on\n"
+unchanged: true

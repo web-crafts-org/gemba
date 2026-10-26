@@ -1,0 +1,81 @@
+name: sync in a clone with incoming, outgoing and uncommitted changes leaves the tree, the clone's .git and the remote byte for byte as they were
+scenario: "obeya-sync: Sync writes nothing"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+        .gitignore: |
+          harnesses/
+          gemba.local.yaml
+          /update.md
+        README.md: |
+          The obeya of the support team.
+        tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+          ---
+          status: open
+          ref: MR-SUP-1
+          updated_at: 2026-10-20
+          metadata: {}
+          ---
+
+          Export times out.
+
+          ## Updates
+        tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+          ---
+          status: open
+          ref: AG-SUP-1
+          updated_at: 2026-10-21
+          metadata: {}
+          ---
+
+          Login fails on Safari.
+
+          ## Updates
+    unfetched:
+      main:
+        tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+          ---
+          status: blocked
+          ref: MR-SUP-1
+          updated_at: 2026-10-20
+          metadata: {}
+          ---
+
+          Export times out.
+
+          ## Updates
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: manuel\n"
+tree_after_setup:
+  repos/obeya/tasks/manuel/support/2026-10-25-MR-SUP-2-invoices.md: |
+    ---
+    status: open
+    ref: MR-SUP-2
+    updated_at: 2026-10-25
+    metadata: {}
+    ---
+
+    Invoices are sent twice.
+
+    ## Updates
+  repos/obeya/README.md: "The obeya of the support team, shared by two.\n"
+git_after_setup:
+  - [repos/obeya, fetch, --quiet]
+  - [repos/obeya, add, tasks/manuel/support/2026-10-25-MR-SUP-2-invoices.md]
+  - [repos/obeya, commit, --quiet, -m, "Add MR-SUP-2"]
+run: [sync]
+exit: 0
+stdout_contains:
+  - "incoming: 1 commit\n"
+  - "outgoing: 1 commit\n"
+  - "uncommitted:\n- shared: README.md\n"
+unchanged: true

@@ -1,0 +1,28 @@
+name: a pre-push hook that an earlier gemba wrote is rewritten with the current text and reported updated
+scenario: "repo-initialization: Earlier hook of gemba updated"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          agent_providers: [claude]
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+          git_hooks: true
+        .gitignore: "harnesses/\ngemba.local.yaml\n/update.md\n"
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: manuel\n"
+  repos/obeya/.git/hooks/pre-push: "#!/bin/sh\n# Written by gemba init for the git hooks of a team (git_hooks); gemba init removes it.\nexec gemba hook pre-push\n"
+run: [init]
+exit: 0
+stdout_contains:
+  - "written .claude/skills/gemba-migrate/SKILL.md\nupdated .git/hooks/pre-push\nwritten .git/hooks/post-merge\nwritten .git/hooks/post-rewrite\nnext step:"
+files_contain:
+  repos/obeya/.git/hooks/pre-push: ["#!/bin/sh\n# Written by gemba init for the git hooks of a team (git_hooks); gemba init removes it.\n", "if ! command -v gemba", "exec gemba hook pre-push \"$@\"\n"]
+lf_only:
+  - repos/obeya/.git/hooks/pre-push

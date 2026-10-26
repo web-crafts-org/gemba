@@ -1,0 +1,69 @@
+name: a push of a commit that edits gemba.yaml is refused, naming the commit and the file and giving the command that confirms it
+scenario: "obeya-sync: Shared file not pushed unconfirmed"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          agent_providers: [claude]
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+          git_hooks: true
+        .gitignore: |
+          harnesses/
+          gemba.local.yaml
+          /update.md
+        tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+          ---
+          status: open
+          ref: MR-SUP-1
+          updated_at: 2026-10-20
+          metadata: {}
+          ---
+
+          Export times out.
+
+          ## Updates
+        tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+          ---
+          status: open
+          ref: AG-SUP-1
+          updated_at: 2026-10-21
+          metadata: {}
+          ---
+
+          Login fails on Safari.
+
+          ## Updates
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: manuel\n"
+setup:
+  - [init]
+tree_after_setup:
+  repos/obeya/gemba.yaml: |
+    default_workstream: support
+    agent_providers: [claude]
+    workstreams:
+      support: { prefix: SUP, description: Investigate a client-reported problem }
+    team:
+      manuel: { initials: MR }
+      ana: { initials: AG }
+    git_hooks: true
+    create:
+      rules:
+        - name the client in the title
+git_after_setup:
+  - [repos/obeya, add, gemba.yaml]
+  - [repos/obeya, commit, --quiet, -m, "Name the client in the title"]
+run: [git, push]
+exit: 1
+stderr_contains:
+  - "gemba hook pre-push: push to refs/heads/main refused:\n- {short:repos/obeya:HEAD} changes the shared file gemba.yaml\n- confirm them with git -c gemba.shared={rev:repos/obeya:HEAD} push\nthe gemba-sync skill explains each problem; git push --no-verify skips these checks"
+git_log:
+  remotes/obeya.git:
+    - "add main"

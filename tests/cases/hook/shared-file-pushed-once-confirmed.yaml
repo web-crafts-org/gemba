@@ -1,0 +1,70 @@
+name: the same push confirmed for its commit with gemba.shared succeeds and the hook prints nothing
+scenario: "obeya-sync: Shared file pushed once confirmed"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          agent_providers: [claude]
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+          git_hooks: true
+        .gitignore: |
+          harnesses/
+          gemba.local.yaml
+          /update.md
+        tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+          ---
+          status: open
+          ref: MR-SUP-1
+          updated_at: 2026-10-20
+          metadata: {}
+          ---
+
+          Export times out.
+
+          ## Updates
+        tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+          ---
+          status: open
+          ref: AG-SUP-1
+          updated_at: 2026-10-21
+          metadata: {}
+          ---
+
+          Login fails on Safari.
+
+          ## Updates
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: manuel\n"
+setup:
+  - [init]
+tree_after_setup:
+  repos/obeya/gemba.yaml: |
+    default_workstream: support
+    agent_providers: [claude]
+    workstreams:
+      support: { prefix: SUP, description: Investigate a client-reported problem }
+    team:
+      manuel: { initials: MR }
+      ana: { initials: AG }
+    git_hooks: true
+    create:
+      rules:
+        - name the client in the title
+git_after_setup:
+  - [repos/obeya, add, gemba.yaml]
+  - [repos/obeya, commit, --quiet, -m, "Name the client in the title"]
+run: [git, -c, "gemba.shared={rev:repos/obeya:HEAD}", push]
+exit: 0
+stderr_excludes:
+  - "gemba hook"
+git_log:
+  remotes/obeya.git:
+    - "Name the client in the title"
+    - "add main"

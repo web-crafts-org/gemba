@@ -16,6 +16,7 @@ files_contain:
   .claude/skills/gemba-mark/SKILL.md: ["---\nname: gemba-mark\n"]
   .claude/skills/gemba-archive/SKILL.md: ["---\nname: gemba-archive\n"]
   .claude/skills/gemba-set/SKILL.md: ["---\nname: gemba-set\n"]
+  .claude/skills/gemba-sync/SKILL.md: ["---\nname: gemba-sync\n"]
   .claude/skills/gemba-init/SKILL.md: ["---\nname: gemba-init\n"]
   .claude/skills/gemba-config/SKILL.md: ["---\nname: gemba-config\n"]
   .claude/skills/gemba-migrate/SKILL.md: ["---\nname: gemba-migrate\n"]
@@ -38,6 +39,7 @@ stdout: |
   written .claude/skills/gemba-mark/SKILL.md
   written .claude/skills/gemba-archive/SKILL.md
   written .claude/skills/gemba-set/SKILL.md
+  written .claude/skills/gemba-sync/SKILL.md
   written .claude/skills/gemba-init/SKILL.md
   written .claude/skills/gemba-config/SKILL.md
   written .claude/skills/gemba-migrate/SKILL.md

@@ -1,0 +1,56 @@
+name: a push of a commit that forced gemba.local.yaml into the history is refused, naming the commit and the file
+scenario: "obeya-sync: Personal config not pushed"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          agent_providers: [claude]
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+          git_hooks: true
+        .gitignore: |
+          harnesses/
+          gemba.local.yaml
+          /update.md
+        tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+          ---
+          status: open
+          ref: MR-SUP-1
+          updated_at: 2026-10-20
+          metadata: {}
+          ---
+
+          Export times out.
+
+          ## Updates
+        tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+          ---
+          status: open
+          ref: AG-SUP-1
+          updated_at: 2026-10-21
+          metadata: {}
+          ---
+
+          Login fails on Safari.
+
+          ## Updates
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: manuel\n"
+setup:
+  - [init]
+git_after_setup:
+  - [repos/obeya, add, -f, gemba.local.yaml]
+  - [repos/obeya, commit, --quiet, -m, "Share my config"]
+run: [git, push]
+exit: 1
+stderr_contains:
+  - "gemba hook pre-push: push to refs/heads/main refused:\n- {short:repos/obeya:HEAD} changes gemba.local.yaml, private to each clone: it never leaves the clone\n"
+git_log:
+  remotes/obeya.git:
+    - "add main"

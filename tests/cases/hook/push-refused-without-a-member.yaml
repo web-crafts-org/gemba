@@ -1,0 +1,63 @@
+name: gemba hook pre-push in a clone of a team that declares no me refuses a pushed ref with one outgoing commit, naming the members
+scenario: "obeya-sync: Push refused without a member"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          agent_providers: [claude]
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+          git_hooks: true
+        .gitignore: |
+          harnesses/
+          gemba.local.yaml
+          /update.md
+        tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+          ---
+          status: open
+          ref: MR-SUP-1
+          updated_at: 2026-10-20
+          metadata: {}
+          ---
+
+          Export times out.
+
+          ## Updates
+        tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+          ---
+          status: open
+          ref: AG-SUP-1
+          updated_at: 2026-10-21
+          metadata: {}
+          ---
+
+          Login fails on Safari.
+
+          ## Updates
+cwd: repos/obeya
+tree_after_setup:
+  repos/obeya/tasks/manuel/support/2026-10-25-MR-SUP-2-invoices.md: |
+    ---
+    status: open
+    ref: MR-SUP-2
+    updated_at: 2026-10-25
+    metadata: {}
+    ---
+
+    Invoices are sent twice.
+
+    ## Updates
+git_after_setup:
+  - [repos/obeya, add, tasks/manuel/support/2026-10-25-MR-SUP-2-invoices.md]
+  - [repos/obeya, commit, --quiet, -m, "Add MR-SUP-2"]
+run: [hook, pre-push, origin, ../../remotes/obeya.git]
+stdin: "refs/heads/main {rev:repos/obeya:HEAD} refs/heads/main {rev:repos/obeya:origin/main}\n"
+exit: 1
+stderr_contains:
+  - "no member declared for this clone: add me to gemba.local.yaml, the personal config (members: manuel, ana)"
+  - "the gemba-sync skill explains each problem; git push --no-verify skips these checks"

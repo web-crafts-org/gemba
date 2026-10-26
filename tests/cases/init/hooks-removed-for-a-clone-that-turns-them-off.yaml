@@ -1,0 +1,31 @@
+name: init in a clone that turns off the hooks it installed deletes the three and reports each removed
+scenario: "repo-initialization: Hooks removed for a clone that turns them off"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          agent_providers: [claude]
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+          git_hooks: true
+        .gitignore: "harnesses/\ngemba.local.yaml\n/update.md\n"
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: manuel\n"
+setup:
+  - [init]
+tree_after_setup:
+  repos/obeya/gemba.local.yaml: "me: manuel\ngit_hooks: false\n"
+run: [init]
+exit: 0
+stdout_contains:
+  - "kept .claude/skills/gemba-migrate/SKILL.md\nremoved .git/hooks/pre-push\nremoved .git/hooks/post-merge\nremoved .git/hooks/post-rewrite\nnext step:"
+absent:
+  - repos/obeya/.git/hooks/pre-push
+  - repos/obeya/.git/hooks/post-merge
+  - repos/obeya/.git/hooks/post-rewrite

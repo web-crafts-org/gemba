@@ -48,7 +48,12 @@ fill a value the user did not give or confirm.
    person included, and propose for each a folder name, kebab-case and not the
    identifier of a workstream, and initials, one or more uppercase ASCII letters no
    other member uses: their tasks will live under `tasks/<member>/` with refs such as
-   `MR-SUP-3`. Then ask which member the person is.
+   `MR-SUP-3`. Then ask which member the person is. Then ask whether the team turns on
+   Gemba's git hooks: inside every `git push` they check what goes out against the
+   members' folders, refusing a change to another member's tasks or to a file private
+   to each clone and asking before a shared file such as `gemba.yaml` goes out, and after
+   a pull they show what changed in the person's own tasks. Say that each member may
+   turn them off for their own clone. A yes becomes `git_hooks: true` in `gemba.yaml`.
 3. **The kinds of work.** Ask what kinds of work the person does. Propose one workstream
    per kind, each with:
    - an identifier, kebab-case;
@@ -88,13 +93,17 @@ Then:
 9. **Write the config** by following the `gemba-config` skill from its step 4: write
    the IDE command, the repositories folder and, with a team, the member the person is,
    as `me`, into `gemba.local.yaml`, which you create at the obeya root, and every other
-   answer, the `team` among them, into `gemba.yaml`, keeping the
+   answer, the `team` and `git_hooks` among them, into `gemba.yaml`, keeping the
    comments of the scaffold; run `gemba config check` until it exits 0, and run
    `gemba skills update` when the `agent_providers` of `gemba.yaml` changed, telling the
-   user which skills folder is left for them to delete.
+   user which skills folder is left for them to delete. When the team turned the hooks
+   on, run `gemba init` once more from the obeya root, after `gemba config check` passes:
+   in a git repository it installs them, and relay the hooks it reports. When the obeya
+   is not a git repository yet, it installs none: say that running `gemba init` again
+   once it is one installs them, as it does in each member's clone.
 10. **Report** the resulting config: the workstreams with their prefixes, the default,
-    the fields, the team and the member the person is, the providers, the IDE command and
-    the repositories folder. Say that `gemba.local.yaml` stays on this machine and that
+    the fields, the team, the member the person is and whether the git hooks are on and
+    installed, the providers, the IDE command and the repositories folder. Say that `gemba.local.yaml` stays on this machine and that
     git ignores it, so each person who uses the obeya writes their own: with a team, each
     member who clones the obeya runs `gemba init` in it and configures their clone with
     this skill. End by naming the edits that come later, through the `gemba-config`
@@ -122,7 +131,12 @@ member has just cloned the obeya and run `gemba init` in it. Configure their clo
    which you create at the obeya root, by following the `gemba-config` skill from its
    step 4, and run `gemba config check` until it exits 0. Never edit `gemba.yaml`.
 5. **Report** the personal config, say that it stays on this machine and that git
-   ignores it, and that the person's tasks will live under `tasks/<me>/`. Do not commit.
+   ignores it, and that the person's tasks will live under `tasks/<me>/`. When
+   `git_hooks` of `gemba config show` is `true`, the team turned Gemba's git hooks on: ask
+   nothing about them, and say that `gemba init` installed them in this clone, that they
+   check every push and show what a pull changes in the person's tasks, and that
+   `git_hooks: false` in `gemba.local.yaml`, then `gemba init`, turns them off for this
+   clone. Do not commit.
 
 ## Rules
 

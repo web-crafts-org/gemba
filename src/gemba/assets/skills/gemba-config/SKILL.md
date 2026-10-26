@@ -1,6 +1,6 @@
 ---
 name: gemba-config
-description: Explain, check, show and edit the config of this obeya, gemba.yaml, shared by everyone who uses it, and gemba.local.yaml, private to this clone. Use whenever the user asks to add, change or remove a workstream, a field, a member of the team, a provider, the IDE command, the repositories folder, the branch prefix or the context and rules of a process, for everyone who uses the obeya or for themselves alone, asks to share the obeya with a team, or asks what the config can hold.
+description: Explain, check, show and edit the config of this obeya, gemba.yaml, shared by everyone who uses it, and gemba.local.yaml, private to this clone. Use whenever the user asks to add, change or remove a workstream, a field, a member of the team, a provider, the IDE command, the repositories folder, the branch prefix, gemba's git hooks or the context and rules of a process, for everyone who uses the obeya or for themselves alone, asks to share the obeya with a team, or asks what the config can hold.
 ---
 
 # Maintain the gemba config
@@ -46,6 +46,7 @@ naming the file it belongs in; a key gemba does not know is ignored in both.
 | `repos_dir` | `gemba.local.yaml` | the folder of the repositories a run may check out as worktrees: absolute, starting with `~`, or relative to the obeya root | `gemba worktree add` refuses to run |
 | `branch_prefix` | `gemba.local.yaml` | a kebab-case name, the first segment of the branch of a run | `gemba` |
 | `me` | `gemba.local.yaml` | the folder name of the member of the team this clone belongs to, active or not; refused when `gemba.yaml` declares no team or no such member | with a team, the commands that write a task refuse to run; every task can still be read |
+| `git_hooks` | both | `true` or `false`, only in an obeya with a team: in `gemba.yaml`, whether the team turns on gemba's git hooks, which check every push against the folders of the members and show what a pull changes in the member's own tasks; in `gemba.local.yaml`, whether this clone does, which always wins over the team. `gemba init` installs the hooks, or removes those it wrote, as both files resolve it | off: `gemba init` installs no hook |
 
 The top level of either file may also hold the process blocks described below,
 `create`, `list`, `record`, `report`, `mark`, `archive`, `set`, `harness` and
@@ -195,6 +196,9 @@ member reads every task.
   never reused.
 - Each member declares their own `me`, in the personal config of their own clone. Never
   write `me` for another person.
+- The team turns on gemba's git hooks with `git_hooks: true` in `gemba.yaml`, and each
+  member may turn them on or off for their own clone in `gemba.local.yaml`. They exist
+  only with a team: `git_hooks` is refused in an obeya without one.
 - A team starts in a new obeya. Never add `team` to an obeya whose `tasks/` holds tasks:
   every command refuses a team while `tasks/` holds the workstream folders of an obeya
   without one. Explain this, leave `gemba.yaml` as it is, and offer the `gemba-migrate`
@@ -217,7 +221,7 @@ member reads every task.
    and whether every workstream shares it or one workstream holds it; for a member of
    the team, their folder name and initials; for a rule or a context, the process or
    verb and whether it applies to every workstream or to one.
-   For a key both files may hold, `agent_providers`, a context, a rule or a
+   For a key both files may hold, `agent_providers`, `git_hooks`, a context, a rule or a
    `harness.guide`, ask whether it is for everyone who uses the obeya, in
    `gemba.yaml`, or for the user alone, in `gemba.local.yaml`, unless they said so.
    Check each value against the reference and the current state: an identifier or a
@@ -253,10 +257,23 @@ member reads every task.
    delete. A change to the `agent_providers` of `gemba.local.yaml` needs no refresh: it
    applies to the next harness launched. A harness keeps the providers it was launched
    with.
-7. **Report** what changed in each file, the summary `gemba config check` printed and
-   what follows from the edit: the skills written, a folder left to delete, tasks whose
-   values no longer match a field, and, for a member added, that they declare `me` in
-   the personal config of their own clone. Do not commit: the user reviews and commits
+7. **Install or remove the hooks when `git_hooks` changed** in either file, from the
+   obeya root:
+
+   ```bash
+   gemba init
+   ```
+
+   It writes only what is missing, and in a git repository of an obeya with a team it
+   installs the three hooks when `git_hooks` resolves to on for this clone, or removes
+   those it wrote when it resolves to off. When it refuses a hook of another tool, or a
+   `core.hooksPath`, relay every line: the user runs `gemba hook <name> "$@"` from that
+   hook, or turns the hooks off for this clone. A change to the `git_hooks` of
+   `gemba.yaml` reaches the other members when they pull it and run `gemba init`.
+8. **Report** what changed in each file, the summary `gemba config check` printed and
+   what follows from the edit: the skills written, a folder left to delete, the hooks
+   installed or removed, tasks whose values no longer match a field, and, for a member
+   added, that they declare `me` in the personal config of their own clone. Do not commit: the user reviews and commits
    the obeya, which never holds `gemba.local.yaml`.
 
 ## Keys of an earlier config

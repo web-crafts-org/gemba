@@ -1,0 +1,51 @@
+name: show of an obeya whose team turns the git hooks on prints git_hooks true for a clone that declares nothing about them
+scenario: "gemba-config: Hooks turned on by the team"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+  git_hooks: true
+local_config:
+  me: manuel
+run: [config, show]
+exit: 0
+stdout_json:
+  obeya: null
+  branch_prefix: gemba
+  repos_dir: null
+  ide: null
+  agent_providers: null
+  harness_providers: null
+  default_workstream: support
+  team:
+    manuel: { initials: MR, active: true }
+    ana: { initials: AG, active: true }
+  me: manuel
+  git_hooks: true
+  workstreams:
+    - id: support
+      prefix: SUP
+      description: Investigate a client-reported problem
+      metadata: []
+      processes:
+        create: &empty { context: null, rules: [] }
+        list: *empty
+        record: *empty
+        report: *empty
+        mark: *empty
+        archive: *empty
+        set: *empty
+        harness:
+          guide: { obeya: null, workstream: null, user: null }
+          launch: *empty
+          note: *empty
+          resolve: *empty
+          remove: *empty
+        worktree:
+          add: *empty
+          list: *empty
+          remove: *empty
+unchanged: true

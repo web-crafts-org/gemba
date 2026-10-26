@@ -28,7 +28,8 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
         description=(
             f"Validate {config.CONFIG_FILENAME} and {config.LOCAL_FILENAME}, when it exists, as every command does "
             "before acting. A valid config is summarized with its workstreams and prefixes, its default workstream, "
-            "the members of its team and the member of the clone when it declares a team, its agent providers and "
+            "the members of its team, the member of the clone and whether gemba's git hooks are on for it when it "
+            "declares a team, its agent providers and "
             "the providers the personal config declares for a launch; an invalid one is "
             "reported with every problem of both files, each with the path of its file, and the command exits 1."
         ),
@@ -43,7 +44,8 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
             "Validate the config as check does and print the effective config, merged from both files, as one JSON "
             "object: the top-level keys, the defaults applied and null where nothing is declared, "
             "`harness_providers`, the providers a launch writes the harness for, in an obeya with a team `team`, "
-            "each member with its initials and whether it is active, and `me`, and `workstreams`, in catalogue "
+            "each member with its initials and whether it is active, `me` and `git_hooks`, whether gemba's git "
+            "hooks are on for the clone, and `workstreams`, in catalogue "
             "order, each with its prefix, its description, its effective metadata schema and, under `processes`, "
             "the effective block of every process and verb: the shared base block, the workstream's, then the "
             "personal ones."
@@ -77,6 +79,7 @@ def run_check(args: argparse.Namespace) -> int:
         print(f"team: {members}")
         if gemba_config.me is not None:
             print(f"me: {gemba_config.me}")
+        print(f"git hooks: {'on' if gemba_config.git_hooks else 'off'}")
     print(f"agent providers: {providers}")
     if gemba_config.personal_providers is not None:
         print(f"harness providers: {', '.join(gemba_config.personal_providers)}")
@@ -110,6 +113,7 @@ def run_show(args: argparse.Namespace) -> int:
             member.id: {"initials": member.initials, "active": member.active} for member in gemba_config.team.values()
         }
         document["me"] = gemba_config.me
+        document["git_hooks"] = gemba_config.git_hooks
     document["workstreams"] = [workstream(gemba_config, workstream_id) for workstream_id in shown]
     print(selection.dump(document))
     return 0

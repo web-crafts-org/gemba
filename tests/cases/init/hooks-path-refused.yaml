@@ -1,0 +1,30 @@
+name: with the hooks on and core.hooksPath set, init refuses, naming core.hooksPath, its folder and the three hooks, and writes nothing
+scenario: "repo-initialization: Hooks path refused"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          agent_providers: [claude]
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+          git_hooks: true
+        .gitignore: "harnesses/\ngemba.local.yaml\n/update.md\n"
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: manuel\n"
+  repos/obeya/.githooks/.gitkeep: ""
+git_after_setup:
+  - [repos/obeya, config, core.hooksPath, .githooks]
+run: [init]
+exit: 1
+stderr_contains:
+  - "nothing written:\n"
+  - "core.hooksPath is set to .githooks, where gemba writes no hook: run gemba hook pre-push \"$@\" from .githooks/pre-push, or turn the hooks off for this clone with git_hooks: false in gemba.local.yaml"
+  - "core.hooksPath is set to .githooks, where gemba writes no hook: run gemba hook post-merge \"$@\" from .githooks/post-merge, or turn the hooks off for this clone with git_hooks: false in gemba.local.yaml"
+  - "core.hooksPath is set to .githooks, where gemba writes no hook: run gemba hook post-rewrite \"$@\" from .githooks/post-rewrite, or turn the hooks off for this clone with git_hooks: false in gemba.local.yaml"
+unchanged: true

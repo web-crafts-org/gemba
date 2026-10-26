@@ -161,6 +161,7 @@ class RegistryTest(unittest.TestCase):
                 "gemba-mark": "both",
                 "gemba-archive": "obeya",
                 "gemba-set": "both",
+                "gemba-sync": "obeya",
                 "gemba-worktree": "harness",
                 "gemba-init": "obeya",
                 "gemba-config": "obeya",

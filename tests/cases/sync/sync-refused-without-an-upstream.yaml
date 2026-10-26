@@ -1,0 +1,51 @@
+name: sync on a branch with no upstream is refused, naming the branch
+scenario: "obeya-sync: Sync refused without an upstream"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+        .gitignore: |
+          harnesses/
+          gemba.local.yaml
+          /update.md
+        README.md: |
+          The obeya of the support team.
+        tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+          ---
+          status: open
+          ref: MR-SUP-1
+          updated_at: 2026-10-20
+          metadata: {}
+          ---
+
+          Export times out.
+
+          ## Updates
+        tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+          ---
+          status: open
+          ref: AG-SUP-1
+          updated_at: 2026-10-21
+          metadata: {}
+          ---
+
+          Login fails on Safari.
+
+          ## Updates
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: manuel\n"
+git_after_setup:
+  - [repos/obeya, checkout, --quiet, -b, review]
+run: [sync]
+exit: 1
+stderr_contains:
+  - "branch review has no upstream"
+unchanged: true

@@ -1,0 +1,26 @@
+name: with the hooks on, a pre-push hook of another tool that does not run gemba hook refuses init, which writes nothing
+scenario: "repo-initialization: Hook of another refused"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          agent_providers: [claude]
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+          git_hooks: true
+        .gitignore: "harnesses/\ngemba.local.yaml\n/update.md\n"
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: manuel\n"
+  repos/obeya/.git/hooks/pre-push: "#!/bin/sh\nexec lint-staged\n"
+run: [init]
+exit: 1
+stderr_contains:
+  - "nothing written:\n"
+  - ".git/hooks/pre-push is a hook gemba did not write: run gemba hook pre-push \"$@\" from it, or turn the hooks off for this clone with git_hooks: false in gemba.local.yaml"
+unchanged: true

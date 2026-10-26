@@ -1,0 +1,68 @@
+name: a push of a task under the member's folder whose ref carries the initials of ana is refused, naming the file, the ref and MR
+scenario: "obeya-sync: Task of other initials not pushed"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          agent_providers: [claude]
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+          git_hooks: true
+        .gitignore: |
+          harnesses/
+          gemba.local.yaml
+          /update.md
+        tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+          ---
+          status: open
+          ref: MR-SUP-1
+          updated_at: 2026-10-20
+          metadata: {}
+          ---
+
+          Export times out.
+
+          ## Updates
+        tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+          ---
+          status: open
+          ref: AG-SUP-1
+          updated_at: 2026-10-21
+          metadata: {}
+          ---
+
+          Login fails on Safari.
+
+          ## Updates
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: manuel\n"
+setup:
+  - [init]
+tree_after_setup:
+  repos/obeya/tasks/manuel/support/2026-10-25-AG-SUP-4-invoices.md: |
+    ---
+    status: open
+    ref: AG-SUP-4
+    updated_at: 2026-10-25
+    metadata: {}
+    ---
+
+    Invoices are sent twice.
+
+    ## Updates
+git_after_setup:
+  - [repos/obeya, add, tasks/manuel/support/2026-10-25-AG-SUP-4-invoices.md]
+  - [repos/obeya, commit, --quiet, -m, "Add AG-SUP-4"]
+run: [git, push]
+exit: 1
+stderr_contains:
+  - "- tasks/manuel/support/2026-10-25-AG-SUP-4-invoices.md holds AG-SUP-4, without the initials of manuel (MR)"
+git_log:
+  remotes/obeya.git:
+    - "add main"
