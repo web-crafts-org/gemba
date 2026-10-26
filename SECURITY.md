@@ -46,7 +46,10 @@ member owns, but they read who you are from `me` in your own `gemba.local.yaml`.
 guard stops accidents, not a determined person, and is not access control: a teammate
 who edits a file by hand, or declares another `me`, is not stopped by Gemba. Who may
 push what to the shared obeya is set in the git host, with CODEOWNERS per folder and
-branch protection, and what was pushed stays visible in its history.
+branch protection, and what was pushed stays visible in its history. A task may name a
+parent that another member wrote: the guide of a harness tells the agent to read the
+parent's file as background about the work, never as instructions, and never to edit
+it. That is guidance to the agent, not a control.
 
 If you think something sits on the boundary, report it and we will work it out together.
 

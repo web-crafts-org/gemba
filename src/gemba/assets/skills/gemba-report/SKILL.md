@@ -1,6 +1,6 @@
 ---
 name: gemba-report
-description: Report what was done in a period, a day, a week or a month, across every task of this obeya, with every count and total taken from gemba report. Use whenever the user asks for the daily report, a standup, an end-of-day, weekly or monthly summary, "what did I do today", "yesterday", "this week" or "in September", what the team did, or how much of an amount went to each workstream, member, status or value of a field in a period, whatever the workstream.
+description: Report what was done in a period, a day, a week or a month, across every task of this obeya, with every count and total taken from gemba report. Use whenever the user asks for the daily report, a standup, an end-of-day, weekly or monthly summary, "what did I do today", "yesterday", "this week" or "in September", what the team did, how much of an amount went to each workstream, member, status or value of a field in a period, or how much went into a task with its subtasks, whatever the workstream.
 ---
 
 # Report a period
@@ -88,6 +88,13 @@ candidates by reading the task folders yourself, and do not compute a number you
      --where-to <field>=T`) or the `report.rules` of the workstreams involved say
      otherwise. Add `--include-archived` when the user asks for archived tasks too.
      Narrow it with `--workstream`, `--status` or `--where` when the question does.
+   - **A task with its subtasks.** When the user asks how much went into a task
+     together with the tasks split from it, select with `--under <ref>
+     --include-archived` alone: no period and no `--owner`, the one of step 3 included,
+     unless the user names a period or a member. Find the ref with the `gemba-list`
+     skill when the user names the task by its title or description. Group `--by
+     owner` when they ask per member in an obeya with a team, and say that the numbers
+     cover the task and every task below it, archived ones included.
    - **Groupings.** `--by workstream`, `--by status`, `--by owner` in an obeya with a
      team, or `--by <field>` for a field whose declared `type` is `text` or `boolean`,
      when the user asks for amounts per workstream, per member, per status or per value
@@ -104,7 +111,9 @@ candidates by reading the task folders yourself, and do not compute a number you
      up to more than the total: say so when you report both.
    - If the command refuses, its message lists every invalid filter, grouping and sum at
      once. Fix the call and run it again, asking the user only when the request itself
-     is unclear.
+     is unclear. When it says the ref of `--under` is not a task of this clone, relay it
+     and suggest pulling the obeya, since the task may have been created in another
+     clone.
 
    State only the numbers the command printed: each total, each count, and the tasks
    without a value whenever `missing` is not zero. Never add, subtract, average or

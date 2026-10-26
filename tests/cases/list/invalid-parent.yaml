@@ -1,0 +1,50 @@
+name: a parent that is not a ref, or that is the task's own ref, makes the file invalid, naming parent
+scenario: "task-file-format: Invalid parent"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-09-30-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    parent: sup-1
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-09-30-SUP-2-export-fails.md: |
+    ---
+    status: open
+    ref: SUP-2
+    parent: 7
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-09-30-SUP-3-safari-css.md: |
+    ---
+    status: open
+    ref: SUP-3
+    parent: SUP-3
+    updated_at: 2026-09-30
+    metadata: {}
+    ---
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks: []
+  problems:
+    - path: tasks/support/2026-09-30-SUP-1-login-fails.md
+      problem: "parent must be a ref such as SUP-1 or MR-SUP-1, not 'sup-1'"
+    - path: tasks/support/2026-09-30-SUP-2-export-fails.md
+      problem: "parent must be a ref such as SUP-1 or MR-SUP-1, not 7"
+    - path: tasks/support/2026-09-30-SUP-3-safari-css.md
+      problem: "parent 'SUP-3' is the task's own ref"
+unchanged: true

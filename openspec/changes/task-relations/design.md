@@ -24,8 +24,8 @@ See proposal.md for the motivation. What shapes the approach:
 ## Goals / Non-Goals
 
 **Goals:**
-- No existing case changes its expectation: a task file, a record and an output without
-  a parent are what they are today.
+- A task file, a record and an output without a parent are what they are today: no
+  existing case changes its expectation but the one that holds the whole written guide.
 - The relation works the same for an individual and for a team, and across members.
 - A child's write never touches its parent's file, which may belong to another member.
 - Every count and sum over a subtree comes from one `gemba report` call.
@@ -179,6 +179,14 @@ guide tells the agent to read it as data, which is guidance to the agent, not a 
   members, a loop written by hand) and `unknown_problem`.
 - With `GEMBA_CHANGE=task-relations`, `test_scenarios.py` lists exactly the 28 new
   scenarios as uncovered before the apply phase.
+- The paragraph of D5 changes the guide, and `harness/same-guide-for-every-provider.yaml`
+  compares the whole written guide in two documents, of the scenarios "Same guide for
+  every provider" and "No workstream section". So the delta of `harness-guide` MODIFIES
+  their requirements, "The guide is a package asset with no configured value" and "The
+  workstream's guide text is rendered at launch", with their text and scenarios
+  unchanged, only to name that case, and its two documents gain the paragraph. The
+  archive leaves both requirements as they are in the main spec, since only their
+  `Cases` lines differ. Found while applying (Manuel's choice of 2026-10-25).
 
 ### D9. Two MODIFIED requirements reworded to stay at 500 characters
 

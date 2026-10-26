@@ -67,7 +67,8 @@ that names no task.
 - `task-reporting`: the agent taking the numbers of a task with its subtasks from
   `gemba report --under`.
 - `task-marking`: the agent pointing out a parent whose children are all done.
-- `harness-guide`: the guide names the parent as data.
+- `harness-guide`: the guide names the parent as data; the two requirements whose
+  scenarios hold the whole guide name the case that changes with it.
 - `task-migration`: the parent follows a migrated task.
 
 ## Impact
@@ -84,5 +85,7 @@ that names no task.
 - Skills: `gemba-create`, `gemba-list`, `gemba-report`, `gemba-mark`, `gemba-migrate`.
 - Tests: new cases under `create/`, `list/`, `report/`, `mark/`, `archive/` and
   `harness/`, new entries in `tests/not-automated.yaml`, unit tests of `tasks.py` and a
-  new `tests/test_relations.py`. No existing case changes its expectation.
+  new `tests/test_relations.py`. One existing case changes its expectation:
+  `harness/same-guide-for-every-provider.yaml`, which holds the whole written guide,
+  gains the paragraph on the parent; every other case, record and output stays as it is.
 - Docs: `README.md`, `AGENTS.md`, `SECURITY.md`, `CHANGELOG.md`. No new dependency.

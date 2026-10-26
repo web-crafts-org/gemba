@@ -1,0 +1,53 @@
+name: in an obeya with a team, a member creates a child of another member's task in their own folder, and nothing of the other member changes
+scenario: "task-relations: Parent of another member"
+config:
+  default_workstream: development
+  workstreams:
+    development: { prefix: DEV, description: Build a feature }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  me: manuel
+tree:
+  tasks/ana/development/2026-10-20-AG-DEV-1-reports-export.md: |
+    ---
+    status: in-progress
+    ref: AG-DEV-1
+    updated_at: 2026-10-20
+    metadata: {}
+    ---
+
+    Export the monthly reports
+
+    ## Updates
+run: [create, --workstream, development, --slug, export-csv, --date, 2026-10-25, --parent, AG-DEV-1]
+exit: 0
+stdout: |
+  tasks/manuel/development/2026-10-25-MR-DEV-1-export-csv.md
+  MR-DEV-1
+files:
+  tasks/manuel/development/2026-10-25-MR-DEV-1-export-csv.md: |
+    ---
+    status: open
+    ref: MR-DEV-1
+    parent: AG-DEV-1
+    updated_at: 2026-10-25
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/ana/development/2026-10-20-AG-DEV-1-reports-export.md: |
+    ---
+    status: in-progress
+    ref: AG-DEV-1
+    updated_at: 2026-10-20
+    metadata: {}
+    ---
+
+    Export the monthly reports
+
+    ## Updates
+absent:
+  - tasks/ana/development/archive
+  - tasks/ana/development/.gitkeep

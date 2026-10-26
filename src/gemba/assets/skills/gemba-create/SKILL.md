@@ -1,6 +1,6 @@
 ---
 name: gemba-create
-description: Register a new task in this obeya. Use whenever the user asks to register, create, track or add a task, TODO or work item, whatever the workstream.
+description: Register a new task in this obeya. Use whenever the user asks to register, create, track or add a task, TODO or work item, or a subtask split from another task, whatever the workstream.
 ---
 
 # Create a task
@@ -34,7 +34,9 @@ Python files directly and do not write the task file by hand.
    ref that starts with their initials. A task for another member is that member's to
    create: when the user asks for one, say that each member creates their own tasks,
    offer to create one for the user instead or to draft what the other member needs to
-   create theirs, and run no command on their behalf.
+   create theirs, and run no command on their behalf. When the user splits a task among
+   members, create the user's part with `--parent` (step 9) and draft what each other
+   member needs to create theirs, with the same `--parent`.
 3. **Choose the workstream.** Compare the request with the `description` of every entry
    of `workstreams` in the document:
    - one description clearly covers the work: use that workstream without asking;
@@ -74,7 +76,7 @@ Python files directly and do not write the task file by hand.
 
    ```bash
    gemba create --workstream <id> --slug <slug> \
-     [--date YYYY-MM-DD] [--status in-progress|blocked] \
+     [--date YYYY-MM-DD] [--status in-progress|blocked] [--parent <ref>] \
      [--description "<short description>"] [--set <key>=<value> ...]
    ```
 
@@ -84,14 +86,20 @@ Python files directly and do not write the task file by hand.
    - Pass `--set` once per value, written as step 7 says; repeat the key of a `text`
      field to give a list. Values are never read as YAML: text is kept exactly as
      written. Quote the argument for the shell when it contains spaces.
+   - Pass `--parent <ref>` when the user asks for a subtask, to split a task, or to
+     register work as part of another task: the ref of that task, found with the
+     `gemba-list` skill when the user names it by its title or description. The parent
+     may be of any workstream, status or member, archived or not; its file is never
+     touched. The parent is written only now: no command changes it afterwards.
    - Never choose a ref: the command allocates it. An external identifier such as a
      ticket key or a link goes into a declared metadata field or into the body, never
      into the slug.
 
    If the command refuses, its message lists every problem at once, including every
    missing and every undeclared key and every value that is not of its field's type. Fix the call, asking the user when a value is
-   missing, and run it again. Never work around a refusal by writing or editing the
-   file yourself.
+   missing, and run it again. When it says the parent is not a task of this clone,
+   relay it and suggest pulling the obeya, since the parent may have been created in
+   another clone. Never work around a refusal by writing or editing the file yourself.
 10. **Complete the body.** The command prints the created path, relative to the obeya
    root, and the ref. If you did not pass `--description`, write a short description
    above `## Updates` now. Add links to any external references the user gave below

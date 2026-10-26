@@ -39,7 +39,9 @@ One word for one thing, in the specs, the skills, the code and the chat.
 - A **task** is one unit of work, recorded in one **task file** under
   `tasks/<workstream>/`, or `tasks/<member>/<workstream>/` in an obeya with a team,
   identified by its **ref** (`PREFIX-N`, or `INITIALS-PREFIX-N` with a team, such as
-  `MR-SUP-3`). A **workstream** is a folder under `tasks/` plus its block in the gemba
+  `MR-SUP-3`). The **parent** of a task is the task it was split from, which the child
+  names when it is created, and never the reverse: the children of a task are found by
+  a scan. A **workstream** is a folder under `tasks/` plus its block in the gemba
   config. An **update** is one dated entry under `## Updates`; recording it is the
   process, `record`.
 - A **run** is the execution of a task, from launch to removal. A **harness** is the
@@ -93,8 +95,8 @@ subcommand; the README explains each process.
   (`tasks/`, `harnesses/`). No module and no skill contains a configured value; every
   one is read from the gemba config at run time.
 - **Commands own the frontmatter, agents own the body.** Only commands write
-  `status`, `ref`, the dates and `metadata` of a task; the skills are forbidden from
-  writing frontmatter by hand. Refs are never reused, archives included.
+  `status`, `ref`, `parent`, the dates and `metadata` of a task; the skills are
+  forbidden from writing frontmatter by hand. Refs are never reused, archives included.
 - **Domain modules and adapters.** The modules of `src/gemba/` hold the rules and have
   no side effects beyond reading files; `commands/*.py` are the adapters, one per
   process, each exposing `register(subparsers)` and returning an exit code, owning the

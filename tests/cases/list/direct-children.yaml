@@ -1,0 +1,43 @@
+name: the parent filter lists the direct children of a task, of any workstream, and neither a grandchild nor a task without a parent
+scenario: "task-listing: Direct children"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-10-01-SUP-1-login-fails-on-safari.md: "---\nstatus: in-progress\nref: SUP-1\nupdated_at: 2026-10-01\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/support/2026-10-02-SUP-2-safari-css.md: "---\nstatus: open\nref: SUP-2\nparent: SUP-1\nupdated_at: 2026-10-02\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/operations/2026-10-03-OPS-1-notify-the-client.md: "---\nstatus: open\nref: OPS-1\nparent: SUP-1\nupdated_at: 2026-10-03\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/support/2026-10-04-SUP-3-css-of-the-cart.md: "---\nstatus: open\nref: SUP-3\nparent: SUP-2\nupdated_at: 2026-10-04\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/support/2026-10-05-SUP-4-export-fails.md: "---\nstatus: open\nref: SUP-4\nupdated_at: 2026-10-05\nmetadata: {}\n---\n\n## Updates\n"
+run: [list, --parent, SUP-1]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-10-02-SUP-2-safari-css.md
+      workstream: support
+      archived: false
+      ref: SUP-2
+      parent: SUP-1
+      date: 2026-10-02
+      title: Safari css
+      status: open
+      updated_at: 2026-10-02
+      done_at: null
+      metadata: {}
+      description: null
+    - path: tasks/operations/2026-10-03-OPS-1-notify-the-client.md
+      workstream: operations
+      archived: false
+      ref: OPS-1
+      parent: SUP-1
+      date: 2026-10-03
+      title: Notify the client
+      status: open
+      updated_at: 2026-10-03
+      done_at: null
+      metadata: {}
+      description: null
+  problems: []
+unchanged: true

@@ -22,15 +22,17 @@ GITKEEP = ".gitkeep"
 
 SLUG_PATTERN = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 # A ref is `<PREFIX>-<N>`, or `<INITIALS>-<PREFIX>-<N>` in an obeya with a team; both are read in any obeya, since
-# the source of a copied history may come from an obeya of the other kind. The slug is lowercase, so the ref ends
-# where it starts.
+# the source of a copied history may come from an obeya of the other kind.
+REF_PATTERN = r"(?:[A-Z]+-)?[A-Z]+-[1-9][0-9]*"
+# The slug is lowercase, so the ref ends where it starts.
 FILENAME_PATTERN = re.compile(
-    r"^(?P<date>\d{4}-\d{2}-\d{2})-(?P<ref>(?:[A-Z]+-)?[A-Z]+-[1-9][0-9]*)-(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)\.md$"
+    rf"^(?P<date>\d{{4}}-\d{{2}}-\d{{2}})-(?P<ref>{REF_PATTERN})-(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)\.md$"
 )
 STATUSES = ("open", "in-progress", "blocked", "done")
 DONE = "done"
-# The keys of the frontmatter in the order gemba writes them; done_at only while the task is done.
-FRONTMATTER_KEYS = ("status", "ref", "updated_at", "done_at", "metadata")
+# The keys of the frontmatter in the order gemba writes them; parent only for a child, done_at only while the task is
+# done.
+FRONTMATTER_KEYS = ("status", "ref", "parent", "updated_at", "done_at", "metadata")
 UPDATES_HEADING = "## Updates"
 SECTION_PREFIX = "## "
 # A heading under `## Updates`; its text must be the ISO date of the subsection.
@@ -58,7 +60,8 @@ class TaskError(Exception):
 class Task:
     """A task read from disk, with the fields of its listing record in record order.
 
-    `owner` is the member whose folder holds the task in an obeya with a team, else None.
+    `owner` is the member whose folder holds the task in an obeya with a team, else None;
+    `parent` is the ref of the task it was split from, else None.
     """
 
     path: str
@@ -66,6 +69,7 @@ class Task:
     workstream: str
     archived: bool
     ref: str
+    parent: str | None
     date: datetime.date
     title: str
     status: str
@@ -82,10 +86,13 @@ class Filters:
     An empty collection or None leaves that filter out. Date ranges are inclusive.
     `metadata` holds the metadata conditions, and `schemas` the keys of the effective
     schema of each workstream, which tell a key the task lacks from one it may not hold.
+    `parent` matches the direct children of a ref, and `subtree` the refs of a subtree.
     """
 
     statuses: Collection[str] = ()
     ref: str | None = None
+    parent: str | None = None
+    subtree: Collection[str] | None = None
     created_from: datetime.date | None = None
     created_to: datetime.date | None = None
     updated_from: datetime.date | None = None
@@ -190,9 +197,13 @@ def render(
     updated_at: datetime.date,
     metadata: dict[str, object],
     description: str | None = None,
+    parent: str | None = None,
 ) -> str:
-    """Full task file content: frontmatter in fixed key order, then the body."""
-    frontmatter = dump_frontmatter({"status": status, "ref": ref, "updated_at": updated_at, "metadata": metadata})
+    """Full task file content: frontmatter in fixed key order, `parent` only when given, then the body."""
+    data: dict[str, object] = {"status": status, "ref": ref}
+    if parent is not None:
+        data["parent"] = parent
+    frontmatter = dump_frontmatter({**data, "updated_at": updated_at, "metadata": metadata})
     body = f"{UPDATES_HEADING}\n"
     if description and description.strip():
         body = f"{description.strip()}\n\n{body}"
@@ -648,6 +659,10 @@ def matches(task: Task, filters: Filters) -> bool:
         return False
     if filters.ref is not None and task.ref != filters.ref:
         return False
+    if filters.parent is not None and task.parent != filters.parent:
+        return False
+    if filters.subtree is not None and task.ref not in filters.subtree:
+        return False
     if not _within(task.date, filters.created_from, filters.created_to):
         return False
     if not _within(task.updated_at, filters.updated_from, filters.updated_to):
@@ -734,6 +749,7 @@ def _parse(name: str, text: str, path: str, workstream: str, archived: bool, own
         raise TaskError(f"ref is missing (the filename says '{match['ref']}')")
     if ref != match["ref"]:
         raise TaskError(f"ref {_show(ref)} in the frontmatter does not match '{match['ref']}' in the filename")
+    parent = _parent(data, ref)
     updated_at = _date_field(data, "updated_at")
     if updated_at is None:
         raise TaskError("updated_at is missing")
@@ -746,6 +762,7 @@ def _parse(name: str, text: str, path: str, workstream: str, archived: bool, own
         workstream=workstream,
         archived=archived,
         ref=ref,
+        parent=parent,
         date=created,
         title=display_title(name, ref),
         status=status,
@@ -821,6 +838,18 @@ def _date_field(data: dict[object, object], key: str) -> datetime.date | None:
     if isinstance(value, str) and (parsed := values.iso_date(value)) is not None:
         return parsed
     raise TaskError(f"{key} must be an ISO date (YYYY-MM-DD), not {_show(value)}")
+
+
+def _parent(data: dict[object, object], ref: str) -> str | None:
+    """The ref of the parent, None when absent or null; whether a task holds it is not a reading rule."""
+    value = data.get("parent")
+    if value is None:
+        return None
+    if not isinstance(value, str) or re.fullmatch(REF_PATTERN, value) is None:
+        raise TaskError(f"parent must be a ref such as SUP-1 or MR-SUP-1, not {_show(value)}")
+    if value == ref:
+        raise TaskError(f"parent '{value}' is the task's own ref")
+    return value
 
 
 def _metadata(data: dict[object, object]) -> dict[str, object]:

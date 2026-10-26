@@ -1,0 +1,71 @@
+name: the last child marked done leaves its parent as it was, still in progress
+scenario: "task-relations: Last child done leaves the parent open"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+tree:
+  tasks/support/2026-10-01-SUP-1-login-fails-on-safari.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-10-01
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-10-02-SUP-2-safari-css.md: |
+    ---
+    status: done
+    ref: SUP-2
+    parent: SUP-1
+    updated_at: 2026-10-03
+    done_at: 2026-10-03
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-10-02-SUP-3-safari-cookies.md: |
+    ---
+    status: open
+    ref: SUP-3
+    parent: SUP-1
+    updated_at: 2026-10-02
+    metadata: {}
+    ---
+
+    ## Updates
+run: [mark, SUP-3, done, --date, 2026-10-04]
+exit: 0
+files:
+  tasks/support/2026-10-02-SUP-3-safari-cookies.md: |
+    ---
+    status: done
+    ref: SUP-3
+    parent: SUP-1
+    updated_at: 2026-10-04
+    done_at: 2026-10-04
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-10-01-SUP-1-login-fails-on-safari.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-10-01
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-10-02-SUP-2-safari-css.md: |
+    ---
+    status: done
+    ref: SUP-2
+    parent: SUP-1
+    updated_at: 2026-10-03
+    done_at: 2026-10-03
+    metadata: {}
+    ---
+
+    ## Updates

@@ -7,7 +7,7 @@ import datetime
 import sys
 from pathlib import Path
 
-from gemba import config, metadata, tasks, team, values
+from gemba import config, metadata, relations, tasks, team, values
 
 CREATION_STATUSES = ("open", "in-progress", "blocked")
 
@@ -23,6 +23,11 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
     parser.add_argument("--date", help="creation date as YYYY-MM-DD (default: today)")
     parser.add_argument("--status", default="open", help="open (default), in-progress or blocked")
     parser.add_argument("--description", help="short description written at the top of the body")
+    parser.add_argument(
+        "--parent",
+        metavar="REF",
+        help="ref of the task this one is split from, archived or not, of any workstream or member",
+    )
     parser.add_argument(
         "--set",
         dest="assignments",
@@ -66,6 +71,8 @@ def run(args: argparse.Namespace) -> int:
         assigned = metadata.assign(schema, {}, assignments, f"'{workstream.id}'")
         errors.extend(assigned.problems)
         task_metadata = assigned.values
+    if args.parent is not None:
+        errors.extend(parent_problems(gemba_config, args.parent))
     errors.extend(team.write_problems(gemba_config.team, gemba_config.me, None, config.LOCAL_FILENAME))
 
     if errors:
@@ -85,13 +92,23 @@ def run(args: argparse.Namespace) -> int:
     for path in (folder, folder / tasks.ARCHIVE_DIR):
         path.mkdir(parents=True, exist_ok=True)
         (path / tasks.GITKEEP).touch(exist_ok=True)
-    content = tasks.render(args.status, ref, created, task_metadata, args.description)
+    content = tasks.render(args.status, ref, created, task_metadata, args.description, args.parent)
     with target.open("x", encoding="utf-8", newline="\n") as handle:
         handle.write(content)
 
     print(relative)
     print(ref)
     return 0
+
+
+def parent_problems(gemba_config: config.Config, ref: str) -> list[str]:
+    """Why `ref` cannot be the parent of the new task: no task of the clone holds it, or several do. Its file is only
+    read, in any folder of the obeya, archives and every member's included."""
+    try:
+        parent = tasks.find_by_ref(gemba_config.root, gemba_config.workstreams, ref, gemba_config.members)
+    except tasks.TaskError as exc:
+        return [str(exc)]
+    return [relations.unknown_problem("parent", ref)] if parent is None else []
 
 
 def parse_date(text: str | None) -> tuple[datetime.date | None, str | None]:

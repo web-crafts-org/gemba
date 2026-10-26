@@ -1,0 +1,33 @@
+name: a task created with a parent holds it right after its ref, the other keys as for any new task
+scenario: "task-file-format: Frontmatter of a child task"
+config:
+  default_workstream: support
+  metadata:
+    - { name: client, type: text }
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+tree:
+  tasks/support/2026-09-29-SUP-1-login-fails-on-safari.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-09-29
+    metadata:
+      client: acme
+    ---
+
+    ## Updates
+run: [create, --workstream, support, --slug, safari-css, --date, 2026-09-30, --parent, SUP-1]
+exit: 0
+files:
+  tasks/support/2026-09-30-SUP-2-safari-css.md: |
+    ---
+    status: open
+    ref: SUP-2
+    parent: SUP-1
+    updated_at: 2026-09-30
+    metadata:
+      client: null
+    ---
+
+    ## Updates

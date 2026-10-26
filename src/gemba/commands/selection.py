@@ -7,7 +7,7 @@ import datetime
 import json
 from dataclasses import dataclass
 
-from gemba import config, metadata, tasks, values
+from gemba import config, metadata, relations, tasks, values
 
 # Destination of each date option, named after the Filters field it fills.
 DATE_OPTIONS = (
@@ -58,6 +58,17 @@ def add_options(parser: argparse.ArgumentParser) -> None:
         help="folder name of a member of the team, in an obeya with a team; repeat for several (default: every member)",
     )
     parser.add_argument("--ref", help="exact task ref, such as SUP-1")
+    parser.add_argument(
+        "--parent", metavar="REF", help="the direct children of the task with that ref, a task of the clone"
+    )
+    parser.add_argument(
+        "--under",
+        metavar="REF",
+        help=(
+            "the task with that ref and every task below it, found across workstreams, members and archives; "
+            "the other filters still decide which of them are listed"
+        ),
+    )
     parser.add_argument(
         "--from", dest="created_from", metavar="YYYY-MM-DD", help="created on or after (the filename date)"
     )
@@ -132,6 +143,8 @@ def build(args: argparse.Namespace, gemba_config: config.Config) -> tuple[Scope,
         args.conditions, args.lower, args.upper, gemba_config.types()
     )
     errors.extend(condition_errors)
+    subtree, relation_errors = relation_filters(args, gemba_config)
+    errors.extend(relation_errors)
 
     # A workstream or owner filter is the scan scope: no other folder is read or reported.
     scope = Scope(
@@ -143,6 +156,8 @@ def build(args: argparse.Namespace, gemba_config: config.Config) -> tuple[Scope,
     filters = tasks.Filters(
         statuses=args.statuses,
         ref=args.ref,
+        parent=args.parent,
+        subtree=subtree,
         created_from=dates["created_from"],
         created_to=dates["created_to"],
         updated_from=dates["updated_from"],
@@ -156,6 +171,25 @@ def build(args: argparse.Namespace, gemba_config: config.Config) -> tuple[Scope,
         },
     )
     return scope, filters, errors
+
+
+def relation_filters(args: argparse.Namespace, gemba_config: config.Config) -> tuple[frozenset[str] | None, list[str]]:
+    """The refs of the subtree of `--under`, and the refusal of a `--parent` or `--under` ref no task holds.
+
+    A relation crosses workstreams, members and archives, so with either option the
+    whole obeya is scanned once, whatever the scope; the problems of that scan are left
+    to the scan of the scope, which reports those of its own folders.
+    """
+    given = [(option, ref) for option, ref in (("--parent", args.parent), ("--under", args.under)) if ref is not None]
+    if not given:
+        return None, []
+    found, _problems = tasks.scan(
+        gemba_config.root, gemba_config.workstreams, include_archived=True, owners=gemba_config.members
+    )
+    refs = {task.ref for task in found}
+    errors = [relations.unknown_problem(option, ref) for option, ref in given if ref not in refs]
+    subtree = None if args.under is None else relations.subtree(found, args.under)
+    return subtree, errors
 
 
 def select(
