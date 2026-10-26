@@ -11,8 +11,8 @@ and pushes through the `gemba-sync` skill; the CLI never pulls or pushes.
 ## ADDED Requirements
 
 ### Requirement: The ownership map of a change
-In an obeya with a team, every path a commit changes SHALL be, for the member of the
-clone, `me`: its own under `tasks/<me>/`; another member's under the folder of any other
+In an obeya with a team, every path a push or a pull changes SHALL be, for the member of
+the clone, `me`: its own under `tasks/<me>/`; another member's under the folder of any other
 member of the team, active or not; private for `gemba.local.yaml` at the root and for
 anything under `harnesses/`; and shared for every other path, such as `gemba.yaml`, the
 skills folders, `.gitignore` and `.gitattributes`.
@@ -25,9 +25,9 @@ skills folders, `.gitignore` and `.gitattributes`.
 ### Requirement: The outgoing commits of a push
 The outgoing commits of a push SHALL be the commits reachable from the commit pushed to a
 branch of the remote and not from that branch's previous commit, or, for a branch the
-remote does not have, from no branch of that remote. Every outgoing commit that is not a
-merge SHALL be checked against the map, so that a change made and undone among them is
-seen too.
+remote does not have, from no branch of that remote. A problem found in what the push
+changes SHALL name the outgoing commits, merges aside, that change its path, or the
+merges among them when none of those does.
 
 #### Scenario: New branch checked
 - **WHEN** `me` is `manuel`, the hooks are installed, and `git push origin HEAD:review` creates the branch `review` on the remote with a commit that changes a task under `tasks/ana/support/`
@@ -36,10 +36,10 @@ seen too.
 
 ### Requirement: What a push changes in the end
 The net change of a push SHALL be every path whose content at the commit pushed differs
-from its content at each commit the outgoing commits start from. It SHALL be checked
-against the map as an outgoing commit is, and a path that the check of a commit already
-reports SHALL not be reported again: what remains comes from a merge, which the report
-names.
+from its content at each commit the outgoing commits start from, merges included. It
+SHALL be what the push is checked on against the map, one problem per path, so that what
+a merge does by itself is seen and the other members' changes a merge pull brings are
+not taken for the member's.
 
 #### Scenario: Merge that reverts another member's task not pushed
 - **WHEN** `me` is `manuel`, the hooks are installed, the remote holds a commit of `ana` that edits `AG-SUP-1`, the clone merges it with a commit of its own while keeping its old copy of `AG-SUP-1`, and `git push` runs
@@ -52,9 +52,9 @@ names.
 - **Cases**: adds `tests/cases/hook/merge-of-a-pull-pushed.yaml`
 
 ### Requirement: Another member's folder is not pushed
-An outgoing commit that changes a path in the folder of another member SHALL be refused,
-naming the commit, the path and the member, whether the change adds, edits or deletes
-the file.
+A push whose net change holds a path in the folder of another member SHALL be refused,
+naming the path, the member and the commits that change it, whether the path is added,
+edited or deleted.
 
 #### Scenario: Another member's task not pushed
 - **WHEN** `me` is `manuel`, the hooks are installed, and `git push` sends a commit that edits `AG-SUP-1` under `tasks/ana/support/`
@@ -62,21 +62,27 @@ the file.
 - **Cases**: adds `tests/cases/hook/another-members-task-not-pushed.yaml`
 
 ### Requirement: Private paths are not pushed
-An outgoing commit that changes `gemba.local.yaml` at the root, or any path under
-`harnesses/`, SHALL be refused, naming the commit and the path, and saying that it never
-leaves the clone.
+A push SHALL be refused when an outgoing commit, merges aside, changes `gemba.local.yaml`
+at the root or any path under `harnesses/`, or when its net change holds one, naming the
+path and the commit and saying that it never leaves the clone, even when a later commit
+removes the path again, since the history of the remote would keep it.
 
 #### Scenario: Personal config not pushed
 - **WHEN** `me` is `manuel`, the hooks are installed, and `git push` sends a commit that forced `gemba.local.yaml` into the history
 - **THEN** git refuses the push, the hook names the commit and `gemba.local.yaml`, and the remote branch is unchanged
 - **Cases**: adds `tests/cases/hook/personal-config-not-pushed.yaml`
 
+#### Scenario: Personal config added and removed not pushed
+- **WHEN** `me` is `manuel`, the hooks are installed, and `git push` sends a commit that forced `gemba.local.yaml` into the history and a later one that removes it
+- **THEN** git refuses the push, the hook names the first commit and `gemba.local.yaml`, and the remote branch is unchanged
+- **Cases**: adds `tests/cases/hook/personal-config-added-and-removed-not-pushed.yaml`
+
 ### Requirement: The member's own task files are valid
-Every `.md` file under `tasks/<me>/` that an outgoing commit or the net change of the push
-adds or changes SHALL, as of the commit pushed, lie in the folder of a workstream of the
-config or in its `archive/`,
-read as a task by the reading rules of the task file format, and hold a ref that carries
-the initials of `me`; otherwise the push SHALL be refused, naming the file and the rule.
+Every `.md` file under `tasks/<me>/` that the net change of the push adds or changes
+SHALL, as of the commit pushed, lie in the folder of a workstream of the config or in its
+`archive/`, read as a task by the reading rules of the task file format, and hold a ref
+that carries the initials of `me`; otherwise the push SHALL be refused, naming the file
+and the rule.
 
 #### Scenario: Unreadable own task not pushed
 - **WHEN** `me` is `manuel`, the hooks are installed, and `git push` sends a commit that adds a file under `tasks/manuel/support/` whose frontmatter has no `status`
@@ -90,10 +96,9 @@ the initials of `me`; otherwise the push SHALL be refused, naming the file and t
 
 ### Requirement: No ref held twice
 When two files under `tasks/<me>/`, archives included, hold the same ref as of the commit
-pushed, and an outgoing commit or the net change adds or changes either of them, the push
-SHALL be refused,
-naming the ref and both files, as when the member created a task in two clones without a
-pull in between.
+pushed, and the net change of the push adds or changes either of them, the push SHALL be
+refused, naming the ref and both files, as when the member created a task in two clones
+without a pull in between.
 
 #### Scenario: Ref created in two clones not pushed
 - **WHEN** `me` is `manuel`, the hooks are installed, the remote holds `MR-SUP-3` pushed from another clone of `manuel`, the clone holds a commit that adds another `MR-SUP-3`, `git pull --rebase` brings the first, and `git push` runs
@@ -101,8 +106,9 @@ pull in between.
 - **Cases**: adds `tests/cases/hook/ref-created-in-two-clones-not-pushed.yaml`
 
 ### Requirement: Shared files need a confirmation
-An outgoing commit that changes a shared path SHALL be refused, naming the commit and the
-paths and saying how to confirm, unless the push is confirmed for the commit pushed, by
+A push whose net change holds shared paths SHALL be refused, naming each with the commits
+that change it and saying how to confirm, unless the push is confirmed for the commit
+pushed, by
 `git -c gemba.shared=<its full id> push`. A confirmation SHALL cover only the commit it
 names and SHALL lift no other refusal.
 
@@ -130,7 +136,7 @@ no fetch, no pull and no push, and write nothing.
 
 #### Scenario: Every problem of a push listed
 - **WHEN** `me` is `manuel`, the hooks are installed, and `git push` sends one commit that edits a task of `ana` and another that forced `gemba.local.yaml` into the history
-- **THEN** git refuses the push, and the standard error holds one line for each commit, then names the `gemba-sync` skill and `git push --no-verify`
+- **THEN** git refuses the push, and the standard error holds one line for the task of `ana` and one for `gemba.local.yaml`, each naming its commit, then names the `gemba-sync` skill and `git push --no-verify`
 - **Cases**: adds `tests/cases/hook/every-problem-of-a-push-listed.yaml`
 
 ### Requirement: A push needs the member of the clone
@@ -155,11 +161,11 @@ print its problems and exit 1, and the other verbs SHALL print them and exit 0.
 
 ### Requirement: What came in is shown after a pull
 `gemba hook post-merge`, and `gemba hook post-rewrite` after a rebase, SHALL print on the
-standard error each commit that came in, merges aside, and changes the member's own
-folder, with its
-patch on that folder alone, and each that changes shared or private paths, naming them;
-commits that change only other members' folders SHALL be counted. Both SHALL exit 0 and
-write nothing; with nothing of the member's own, shared or private, they print nothing.
+standard error the paths of the member's own folder that the pull changed in the end,
+with their patch, and the shared and private paths it changed, each with the commits that
+change it, or the merges when none of the others does; commits that change only other
+members' folders SHALL be counted. Both SHALL exit 0 and write nothing, and print nothing
+when none of those paths changed.
 
 #### Scenario: Change to your task shown after a pull
 - **WHEN** `me` is `manuel`, the hooks are installed, the remote holds a commit that edits `MR-SUP-1` under `tasks/manuel/support/`, and `git pull --no-rebase` brings it
@@ -171,20 +177,15 @@ write nothing; with nothing of the member's own, shared or private, they print n
 - **THEN** the pull succeeds, the standard error names the commit that edits `MR-SUP-1` with the lines it changed and the one that edits `gemba.yaml`, and not the commit of the clone
 - **Cases**: adds `tests/cases/hook/change-shown-after-a-rebasing-pull.yaml`
 
-### Requirement: What a merge brought in is shown
-The paths of the member's own folder, shared or private, that a pull changed in the end
-and that no commit listed changes SHALL be shown too, as brought by the merges that came
-in, naming them, with the patch of the member's own folder. `gemba sync` SHALL show what
-a pull would bring the same way.
-
 #### Scenario: Change brought by a merge shown after a pull
 - **WHEN** `me` is `manuel`, the hooks are installed, the remote holds a merge of `ana` whose resolution edits `MR-SUP-1`, which neither of its parents changed, and `git pull` brings it
 - **THEN** the pull succeeds, and the standard error names the merge, the file of `MR-SUP-1` and the lines the merge changed
 - **Cases**: adds `tests/cases/hook/change-brought-by-a-merge-shown-after-a-pull.yaml`
 
 ### Requirement: A personal config coming in is warned about
-When a commit that comes in changes a private path, the report of what came in SHALL warn
-that a pull writes it over the clone's own file, naming the commit and the path.
+When what comes in changes a private path in the end, the report of what came in SHALL
+warn that a pull writes it over the clone's own file, naming the path and the commits
+that change it.
 
 #### Scenario: Personal config coming in warned about
 - **WHEN** `me` is `manuel`, the upstream holds a fetched commit that forced `gemba.local.yaml` into the history, and `gemba sync` runs

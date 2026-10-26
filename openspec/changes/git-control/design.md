@@ -68,13 +68,13 @@ side effect: the adapters read git and hand it plain data.
 - `Commit` holds the full id, the short id, the author's name, the subject and the
   paths it changes. `OwnFile` holds a path under `tasks/<me>/` and its text as of the
   commit pushed, or `None` when it was deleted there.
-- `outgoing(commits, merges, net, own_files, own_paths, context, confirmed)` returns the
-  problems and the shared lines (D4, D5); `incoming(commits, merges, net, patches,
-  context)` returns the lines of what came in (D6). `commits` are the commits of the range
-  that are not merges, `merges` its merge commits, named by a line of the net change, and
-  `net` the paths of the net change (D3). `confirmed(values, tip)` says whether a
-  `gemba.shared` value names
-  the commit pushed; `confirm_command(tip)` gives `git -c gemba.shared=<tip> push`.
+- `outgoing(net, commits, merges, own_files, own_paths, context, confirmed)` returns the
+  problems and the shared lines (D4, D5); `incoming(net, commits, merges, patch,
+  context)` returns the lines of what came in (D6). `net` holds the paths of the net
+  change (D3), `commits` the commits of the range that are not merges, each with the
+  paths it changes, and `merges` its merges; together they name the commits behind a
+  path. `confirmed(values, tip)` says whether a `gemba.shared` value names the commit
+  pushed; `confirm_command(tip)` gives `git -c gemba.shared=<tip> push`.
   `context` carries `me`, the initials of `me`, the members and the workstream
   identifiers, taken from `Config` by the adapter.
 - The validity of a task file reuses the reading rules: `tasks.py` exposes `_parse` as
@@ -101,10 +101,9 @@ command run on the obeya. Each one is an argument list, with
   --name-only -z <tip>` for a range with no base;
 - `ls-tree -r --name-only -z <tip> -- tasks/<me>/` and `cat-file blob <tip>:<path>` for
   the member's own files as of the commit pushed, each decoded with `platform.decode`;
-- `show --no-color --no-ext-diff --no-textconv --format= <id> -- tasks/<me>/` for the
-  patch of a commit on the member's folder, and `diff --no-color --no-ext-diff
-  --no-textconv <base> <tip> -- <paths>` for the patch of a net change: no external diff
-  and no text conversion, so no program a config names runs;
+- `diff --no-color --no-ext-diff --no-textconv <base> <tip> -- <paths>` for the patch of
+  the member's own tasks in a net change: no external diff and no text conversion, so no
+  program a config names runs;
 - `status --porcelain=v1 -z --no-renames --untracked-files=all` for the uncommitted
   changes, ignored files left out;
 - `config --get-all gemba.shared` for the confirmation, and `rev-parse --git-path
@@ -121,43 +120,44 @@ words the refusal. The root must hold `.git`, as `git_lines` requires.
   known to the clone, `<local id> --not` every `refs/remotes/<remote>/` ref, read with
   `for-each-ref`. Ids are checked as 40 or 64 hexadecimal digits before they reach an
   argument list. `gemba sync` takes the range `HEAD --not @{upstream}`.
-- Each commit of the range that is not a merge is checked on its own. A merge is not:
-  compared with its first parent, the merge of a pull carries every change of the other
-  members.
-- The net change of the range is what the merges add. Its bases are the boundary commits
-  of the range, the lines of `rev-list --boundary` that start with `-`, reduced with
-  `merge-base --independent`; a path is in the net change when `diff --name-only` lists
-  it against every base, and a range with no base counts every path of its tip. In a
-  fast-forward the one base is the remote's previous commit, so the net change is what
-  the push changes on the remote; after a merge pull it is the upstream, which already
-  holds the other members' changes, so they are not counted.
-- Both checks are kept: the net change misses a change made and undone among the
-  outgoing commits, which still enters the history; the commits miss what a merge does
-  by itself, a resolution or an old copy kept. A path of the net change that a line of a
-  commit already names, for the same reason, is not reported again (D4).
+- The net change of the range is what the push is checked on (D4). Its bases are the
+  boundary commits of the range, the lines of `rev-list --boundary` that start with `-`,
+  reduced with `merge-base --independent`; a path is in the net change when `diff
+  --name-only` lists it against every base, and a range with no base counts every path of
+  its tip. In a fast-forward the one base is the remote's previous commit, so the net
+  change is what the push changes on the remote, merges included; after a merge pull it
+  is the upstream, which already holds the other members' changes, so they are not
+  counted. No commit is checked against its first parent: so compared, the merge of a
+  pull would carry every change of the other members.
+- The commits of the range that are not merges are read for two things: to name the
+  commits behind each path of a problem, from the paths each changes, and to refuse a
+  private path that any of them changes, even one a later commit removes, since the
+  remote's history would keep it. A change to another member's file or to a shared file
+  made and undone among them leaves the remote's tree as it was and is not reported.
 
 ### D4. The checks of an outgoing change
 
-Every problem is collected, in this order, each one line:
+Every problem is collected, in this order, each one line. `<who>` names the commits of
+the range that are not merges and change the path, as `<short>`, `<short> and <short>`
+or `<short>, <short> and <short>`, or, when none does, its merges, as `merge <short>` or
+`merges <short> and <short>`:
 
-- `<short> changes <path>, in the folder of <member>: only <member> writes it`, per path;
-- `<short> changes <path>, private to each clone: it never leaves the clone`, per path;
-- for each `.md` file under `tasks/<me>/` that an outgoing commit or the net change adds
-  or changes and that exists as of the commit pushed: `<path> is not in a workstream
-  folder of tasks/<me>/` when it lies outside `tasks/<me>/<workstream>/` and its
-  `archive/`;
-  `<path> is not a valid task: <rule>`; `<path> holds <ref>, without the initials of
-  <me> (<INITIALS>)`;
+- `<who> changes <path>, in the folder of <member>: only <member> writes it`, for each
+  such path of the net change;
+- `<short> changes <path>, private to each clone: it never leaves the clone`, for each
+  commit that is not a merge and each private path it changes, and the same line with
+  `<who>` for a private path of the net change that no such commit changes;
+- for each `.md` file under `tasks/<me>/` that the net change adds or changes and that
+  exists as of the commit pushed: `<path> is not in a workstream folder of tasks/<me>/`
+  when it lies outside `tasks/<me>/<workstream>/` and its `archive/`; `<path> is not a
+  valid task: <rule>`; `<path> holds <ref>, without the initials of <me> (<INITIALS>)`;
 - `<ref> is held by <path> and <path>: a ref is never held twice`, over the filenames
-  of `tasks/<me>/` as of the commit pushed, when one of them is changed by an outgoing
-  commit or the net change;
-- without a confirmation, `<short> changes shared files: <path>, <path>` per commit,
-  then one line `confirm them with git -c gemba.shared=<full id of the commit pushed>
-  push`.
+  of `tasks/<me>/` as of the commit pushed, when one of them is in the net change;
+- without a confirmation, `<who> changes the shared file <path>` per path, then one line
+  `confirm them with git -c gemba.shared=<full id of the commit pushed> push`.
 
-A path of the net change that no line of a commit names for the same reason gets the
-line a commit would, with `merge <short>`, or `merges <short>, <short>` when the range
-holds several, in place of the commit: `merge 7e8f9a0 changes
+A path changed by three commits makes one line, and a merge that keeps an old copy of
+another member's file reads `merge 7e8f9a0 changes
 tasks/ana/support/2026-10-20-AG-SUP-1-export.md, in the folder of ana: only ana writes
 it`.
 
@@ -186,18 +186,17 @@ reads; a question on the terminal, which an agent and a GUI client cannot answer
   input, or `HEAD` when it holds no line; with `amend` it does nothing. `gemba sync` takes
   `@{upstream} --not HEAD`. Each range gives its commits that are not merges, its merges
   and its net change, as in D3.
-- For each commit that is not a merge, in order: `- <short> <author>: <subject>`, then
-  `  changes your tasks: <paths>` and its patch on `tasks/<me>/`, each line indented by
-  four spaces; `  changes shared files: <paths>`; `  changes <path>, private to each
-  clone: the pull wrote it over yours` after a pull, or `a pull writes it over yours` in
-  `gemba sync`. A commit that changes only other members' folders is not listed; their
-  number closes the report as `- <n> commits change only the tasks of other members`.
-- The paths of the net change in the member's folder, shared or private, that no listed
-  commit changes, follow as `- merge <short> <author>: <subject>`, or `- merges <short>,
-  <short>`, with the same lines, the patch taken from the first base to the tip.
+- The report lists the paths of the net change, each `by <who>` as in D4, every commit
+  followed by its author, `1a2b3c4 (Ana Gómez)`: `- your tasks:`, then `  <path>, by
+  <who>` per path and the patch of those paths from the first base to the tip, each line
+  indented by four spaces; `- shared files:`, then `  <path>, by <who>` per path; and
+  `- <path>, private to each clone, by <who>: the pull wrote it over yours` after a pull,
+  or `a pull writes it over yours` in `gemba sync`. The commits that are not merges and
+  change only other members' folders close the report as `- <n> commits change only the
+  tasks of other members`.
 - The hooks print `gemba hook <verb>: <n> commits came in` and those lines on the
-  standard error, only when one commit or merge is listed, and always exit 0; git
-  ignores what a `post-merge` or `post-rewrite` returns, and the report is all they owe.
+  standard error, only when one path is listed, and always exit 0; git ignores what a
+  `post-merge` or `post-rewrite` returns, and the report is all they owe.
 
 ### D7. `gemba sync`
 
@@ -210,8 +209,8 @@ upstream`). Otherwise it prints to the standard output, and exits 0:
 ```text
 branch main, upstream origin/main
 incoming: 2 commits
-- 1a2b3c4 Ana Gómez: Fix the export of MR-SUP-1
-  changes your tasks: tasks/manuel/support/2026-10-20-MR-SUP-1-export.md
+- your tasks:
+  tasks/manuel/support/2026-10-20-MR-SUP-1-export.md, by 1a2b3c4 (Ana Gómez)
     @@ -3 +3 @@
     -status: open
     +status: blocked
@@ -238,8 +237,8 @@ push: ready
   `push: refused` when one problem of D4 stands.
 
 Exit 0 whatever the verdict: the command reports, the skill decides, and the hook is
-what refuses. The patch of a commit is printed whole: the agent reads it, and a person
-reads `git show` the same way.
+what refuses. The patch of the member's own tasks is printed whole: the agent reads it,
+and a person reads `git diff` the same way.
 
 ### D8. The hooks as part of the layout: `obeya.py`
 
@@ -406,8 +405,12 @@ with plain data; `tests/test_obeya.py` for `hook_script` and `hook_state`;
   pre-push hook of the clone that forced it refuses it.
 - [A new branch that merges two branches of the remote, neither holding the other, has
   two bases, and a path counts in its net change only when it differs from both] → A
-  change that one of those branches already holds is not reported again; the commits
-  that are not merges are still checked one by one.
+  change that one of those branches already holds is not reported, since the remote
+  already has it.
+- [A change to another member's file or to a shared file, made and undone among the
+  outgoing commits, goes out unreported] → The remote's tree ends as it was, and the
+  members' tasks are no secret within the team; only a private path is refused for
+  entering the history (D3).
 - [The net change of a push that is not a fast-forward is taken from the merge base, not
   from the remote's current commit] → Git refuses such a push unless it is forced, and
   neither the skill nor gemba ever forces one.
