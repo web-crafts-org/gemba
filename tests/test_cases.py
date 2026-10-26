@@ -26,7 +26,8 @@ YAML documents, one case each. A case uses this vocabulary:
   or is `git`, run as `git <arguments>` in `cwd`, which it requires, with no `--root`
   and the environment every command gets, so that a case runs a `git push` or a
   `git pull` and the hooks it triggers.
-- `stdin`: text given to the standard input of the `run` command; without it the
+- `stdin`: text given to the standard input of the `run` command, as UTF-8 bytes with
+  its newlines as written on every platform, as git gives a hook; without it the
   command gets an empty input, never the one of the suite, which a hook may have given.
 - `cwd`: folder, relative to the root, to start the command from. When present,
   `--root` is not passed, so the command must discover the root by walking up.
@@ -365,15 +366,19 @@ class CaseRunner(unittest.TestCase):
         else:
             cwd = root
             args += ["--root", str(root)]
-        return subprocess.run(
-            [executable, *command[1:], *args],
-            cwd=cwd,
-            env=environment(),
-            input=stdin,
-            capture_output=True,
-            encoding="utf-8",
-            timeout=60,
-        )
+        # A file in binary mode, since input= in text mode turns "\n" into "\r\n" on Windows.
+        with tempfile.TemporaryFile() as source:
+            source.write(stdin.encode("utf-8"))
+            source.seek(0)
+            return subprocess.run(
+                [executable, *command[1:], *args],
+                cwd=cwd,
+                env=environment(),
+                stdin=source,
+                capture_output=True,
+                encoding="utf-8",
+                timeout=60,
+            )
 
     def check(self, root, case, label, before, result):
         output = f"\n--- stdout ---\n{result.stdout}--- stderr ---\n{result.stderr}"
