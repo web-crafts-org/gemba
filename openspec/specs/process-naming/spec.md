@@ -11,8 +11,9 @@ rule instead of from a case-by-case choice.
 ### Requirement: The task is the implicit object of the command
 A subcommand of `gemba` that acts on a task SHALL be a bare verb with no object noun.
 The command SHALL NOT expose a `task` group or a `task` noun for those subcommands.
-Initializing an obeya SHALL be the bare subcommand `init`, acting on the obeya itself; the config of the obeya, an object with verbs of its own, SHALL be
-the group `gemba config`.
+Initializing an obeya and checking it before a pull and a push SHALL be the bare
+subcommands `init` and `sync`, acting on the obeya itself; the config of the obeya, an
+object with verbs of its own, SHALL be the group `gemba config`.
 
 #### Scenario: Task subcommands take no noun
 - **WHEN** a process registers, lists, updates, reports on or closes a task
@@ -21,6 +22,10 @@ the group `gemba config`.
 #### Scenario: Harness initialization is plain
 - **WHEN** a process initializes an obeya in a folder
 - **THEN** its subcommand is `gemba init`, with no object noun, and its skill is `gemba-init`
+
+#### Scenario: Sync is plain
+- **WHEN** a process checks an obeya before a pull and a push
+- **THEN** its subcommand is `gemba sync`, with no object noun, and its skill is `gemba-sync`
 
 #### Scenario: Config subcommands are grouped
 - **WHEN** a process checks or shows the config of the obeya
@@ -75,9 +80,13 @@ process gains that subcommand and its skill keeps its name, as the report did.
 
 ### Requirement: A maintenance command has no skill
 A subcommand or group that no process needs, because a person runs it to maintain the
-obeya rather than an agent following steps, SHALL have no skill; `gemba skills` is
-one.
+obeya or git runs it from a hook, rather than an agent following steps, SHALL have no
+skill; `gemba skills` and `gemba hook` are such groups.
 
 #### Scenario: Maintenance group has no skill
 - **WHEN** the skills are written with `gemba skills update`
 - **THEN** no skill named `gemba-skills` exists in the package registry or in any skills folder the command writes
+
+#### Scenario: Hook group has no skill
+- **WHEN** the skills are written with `gemba skills update`
+- **THEN** no skill named `gemba-hook` exists in the package registry or in any skills folder the command writes
