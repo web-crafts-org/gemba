@@ -22,11 +22,17 @@ YAML documents, one case each. A case uses this vocabulary:
 - `tree`: files to create before running, as `path: content`. The content is written
   as UTF-8 with its line endings as given, so `\r\n` escapes make a CRLF file; a
   `!!binary` value is written as those bytes, for a file in another encoding.
-- `run`: command name followed by its arguments; the name is resolved through COMMANDS.
+- `run`: command name followed by its arguments; the name is resolved through COMMANDS,
+  or is `git`, run as `git <arguments>` in `cwd`, which it requires, with no `--root`
+  and the environment every command gets, so that a case runs a `git push` or a
+  `git pull` and the hooks it triggers.
+- `stdin`: text given to the standard input of the `run` command, as UTF-8 bytes with
+  its newlines as written on every platform, as git gives a hook; without it the
+  command gets an empty input, never the one of the suite, which a hook may have given.
 - `cwd`: folder, relative to the root, to start the command from. When present,
   `--root` is not passed, so the command must discover the root by walking up.
-- `setup`: commands, each written like `run`, run in order before the snapshot that
-  `unchanged` compares with; each must exit 0.
+- `setup`: commands, each written like `run`, `git` included, run in order before the
+  snapshot that `unchanged` compares with, each with an empty input; each must exit 0.
 - `tree_after_setup`: files to create like `tree`, after the `setup` commands and
   before the snapshot, so that a file can sit uncommitted in a harness that a `launch`
   in `setup` created and committed.
@@ -67,6 +73,13 @@ for the current date, so a case can check the default date. The token `{version}
 the same places, stands for the version of the installed gemba CLI package, and
 `{root}` for the absolute path of the root the case runs in, as the system spells it.
 
+The token `{rev:<path>:<revision>}` stands for the full id of the commit `<revision>`
+names in the git repository at `<path>`, relative to the root, and `{short:<path>:
+<revision>}` for its short id, as `git rev-parse --short` and `%h` abbreviate it there.
+Both are resolved once, after `git_after_setup` and before `run`, in `run`, `stdin`,
+`stdout`, `stdout_contains` and `stderr_contains`, so that a case gives and expects the
+id of a commit made while it runs.
+
 Git must be on PATH: harness commands run it. Every command runs with the user's and
 the system's git config ignored, a fixed identity and none of the variables that tie
 git to a repository, so commits never depend on the machine running the suite, and a
@@ -81,6 +94,7 @@ import datetime
 import importlib.metadata
 import json
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -106,6 +120,8 @@ COMMANDS = {
     "set": ["gemba", "set"],
     "worktree": ["gemba", "worktree"],
     "config": ["gemba", "config"],
+    "sync": ["gemba", "sync"],
+    "hook": ["gemba", "hook"],
     # Not a subcommand: the option of the command itself, run with no subcommand.
     "--version": ["gemba", "--version"],
 }
@@ -149,6 +165,12 @@ GIT_LOCAL_VARIABLES = frozenset(
     }
 )
 GLOB_CHARACTERS = "*?["
+# The name of `run` and `setup` that runs git itself rather than a gemba command.
+GIT = "git"
+# `{rev:<path>:<revision>}` and `{short:<path>:<revision>}`: the full or short id of a commit made while a case runs.
+REVISION_TOKEN = re.compile(r"\{(rev|short):([^:{}]+):([^{}]+)\}")
+# The keys whose tokens of a revision are resolved before the command runs.
+REVISION_KEYS = ("run", "stdin", "stdout", "stdout_contains", "stderr_contains")
 # Executables the cases may name in a config, such as `ide: "code -n"`, replaced by stubs.
 STUBS = ("code",)
 _STUBS_DIR = tempfile.TemporaryDirectory(prefix="gemba-stubs-")
@@ -237,8 +259,9 @@ class CaseRunner(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp).resolve()
             self.prepare(root, case, label)
+            case = self.resolve_revisions(root, case, label)
             before = snapshot(root)
-            result = self.execute(root, case, label, case["run"])
+            result = self.execute(root, case, label, case["run"], case.get("stdin", ""))
             self.check(root, case, label, before, result)
 
     def prepare(self, root, case, label):
@@ -305,10 +328,36 @@ class CaseRunner(unittest.TestCase):
         self.assertEqual(result.returncode, 0, f"{label}: git {' '.join(args)}\n{result.stdout}{result.stderr}")
         return result
 
-    def execute(self, root, case, label, run):
+    def resolve_revisions(self, root, case, label):
+        """The case with every token of a revision in REVISION_KEYS replaced by the id of its commit."""
+
+        def resolved(text):
+            return REVISION_TOKEN.sub(lambda match: self.revision(root, *match.groups(), label=label), str(text))
+
+        replaced = dict(case)
+        for key in REVISION_KEYS:
+            if key in case:
+                value = case[key]
+                replaced[key] = [resolved(item) for item in value] if isinstance(value, list) else resolved(value)
+        return replaced
+
+    def revision(self, root, kind, relative, revision, label):
+        """The full id, or the short one for `short`, of the commit `revision` names in the repository at `relative`."""
+        short = ["--short"] if kind == "short" else []
+        result = git(root, relative, "rev-parse", "--verify", *short, f"{revision}^{{commit}}")
+        self.assertEqual(
+            result.returncode, 0, f"{label}: {{{kind}:{relative}:{revision}}} names no commit\n{result.stderr}"
+        )
+        return result.stdout.strip()
+
+    def execute(self, root, case, label, run, stdin=""):
         name, *args = [str(arg) for arg in run]
-        self.assertIn(name, COMMANDS, f"{label} run: unknown command name '{name}'")
-        command = COMMANDS[name]
+        if name == GIT:
+            self.assertIn("cwd", case, f"{label} run: git needs cwd, the repository it runs in")
+            command = [GIT]
+        else:
+            self.assertIn(name, COMMANDS, f"{label} run: unknown command name '{name}'")
+            command = COMMANDS[name]
         executable = shutil.which(command[0])
         if executable is None:
             self.fail(f"{label} run: '{command[0]}' is not on PATH")
@@ -317,14 +366,19 @@ class CaseRunner(unittest.TestCase):
         else:
             cwd = root
             args += ["--root", str(root)]
-        return subprocess.run(
-            [executable, *command[1:], *args],
-            cwd=cwd,
-            env=environment(),
-            capture_output=True,
-            encoding="utf-8",
-            timeout=60,
-        )
+        # A file in binary mode, since input= in text mode turns "\n" into "\r\n" on Windows.
+        with tempfile.TemporaryFile() as source:
+            source.write(stdin.encode("utf-8"))
+            source.seek(0)
+            return subprocess.run(
+                [executable, *command[1:], *args],
+                cwd=cwd,
+                env=environment(),
+                stdin=source,
+                capture_output=True,
+                encoding="utf-8",
+                timeout=60,
+            )
 
     def check(self, root, case, label, before, result):
         output = f"\n--- stdout ---\n{result.stdout}--- stderr ---\n{result.stderr}"
@@ -529,6 +583,57 @@ class RunnerTest(CaseRunner):
                 self.prepare(root, {"repos": {"nakatomi-web": {}}}, "hook")
             self.assertEqual(branches(root, "repos/nakatomi-web"), ["main"])
             self.assertEqual(snapshot(outer / ".git"), before)
+
+    def test_git_runs_in_cwd_with_stdin_and_without_root(self):
+        case = {
+            "repos": {"nakatomi-web": {}},
+            "cwd": "repos/nakatomi-web",
+            "run": ["git", "hash-object", "--stdin"],
+            "stdin": "a\n",
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            self.prepare(root, case, "git")
+            result = self.execute(root, case, "git", case["run"], case["stdin"])
+            self.assertEqual((result.returncode, result.stdout), (0, "78981922613b2afb6025042ff6bd878ac1994e85\n"))
+            listed = self.execute(root, case, "git", ["git", "log", "--format=%s"])
+            self.assertEqual(listed.stdout, "add main\n")
+            with self.assertRaises(AssertionError):
+                self.execute(root, {}, "git", ["git", "status"])
+
+    def test_command_without_stdin_gets_an_empty_input(self):
+        case = {"repos": {"nakatomi-web": {}}, "cwd": "repos/nakatomi-web"}
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            self.prepare(root, case, "stdin")
+            result = self.execute(root, case, "stdin", ["git", "hash-object", "--stdin"])
+            self.assertEqual(result.stdout, "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391\n")
+
+    def test_revision_tokens_name_a_commit_made_after_setup(self):
+        case = {
+            "repos": {"nakatomi-web": {}},
+            "cwd": "repos/nakatomi-web",
+            "git_after_setup": [["repos/nakatomi-web", "commit", "--quiet", "--allow-empty", "-m", "local work"]],
+            "run": ["git", "log", "-1", "--format=%s %H", "{rev:repos/nakatomi-web:HEAD~1}"],
+            "stdout": "add main {rev:repos/nakatomi-web:HEAD~1}\n",
+            "stdout_contains": ["main {short:repos/nakatomi-web:HEAD~1}"],
+            "stderr_contains": [],
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp).resolve()
+            self.prepare(root, case, "rev")
+            resolved = self.resolve_revisions(root, case, "rev")
+            full = git(root, "repos/nakatomi-web", "rev-parse", "HEAD~1").stdout.strip()
+            short = git(root, "repos/nakatomi-web", "rev-parse", "--short", "HEAD~1").stdout.strip()
+            self.assertEqual(resolved["run"][-1], full)
+            self.assertEqual(resolved["stdout"], f"add main {full}\n")
+            self.assertEqual(resolved["stdout_contains"], [f"main {short}"])
+            self.assertTrue(full.startswith(short) and len(short) < len(full))
+            self.assertEqual(resolved["git_after_setup"], case["git_after_setup"])
+            result = self.execute(root, resolved, "rev", resolved["run"])
+            self.check(root, resolved, "rev", snapshot(root), result)
+            with self.assertRaises(AssertionError):
+                self.resolve_revisions(root, {"stdout": "{rev:repos/nakatomi-web:no-such-branch}"}, "rev")
 
     def test_new_command_names_resolve_to_the_binary(self):
         for name in ("mark", "archive", "report", "set", "worktree", "init", "config"):

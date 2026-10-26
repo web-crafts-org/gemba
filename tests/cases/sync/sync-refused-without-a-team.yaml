@@ -1,0 +1,44 @@
+name: sync in the clone of an obeya without a team is refused, saying it needs a team in gemba.yaml
+scenario: "obeya-sync: Sync refused without a team"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+        .gitignore: |
+          harnesses/
+          gemba.local.yaml
+          /update.md
+        README.md: |
+          The obeya of the support team.
+        tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+          ---
+          status: open
+          ref: MR-SUP-1
+          updated_at: 2026-10-20
+          metadata: {}
+          ---
+
+          Export times out.
+
+          ## Updates
+        tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+          ---
+          status: open
+          ref: AG-SUP-1
+          updated_at: 2026-10-21
+          metadata: {}
+          ---
+
+          Login fails on Safari.
+
+          ## Updates
+cwd: repos/obeya
+run: [sync]
+exit: 1
+stderr_contains:
+  - "sync needs a team: gemba.yaml declares none"
+unchanged: true

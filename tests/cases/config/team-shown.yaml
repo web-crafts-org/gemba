@@ -23,6 +23,7 @@ stdout_json:
     manuel: { initials: MR, active: true }
     ana: { initials: AG, active: false }
   me: null
+  git_hooks: false
   workstreams:
     - id: support
       prefix: SUP

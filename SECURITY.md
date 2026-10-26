@@ -27,9 +27,13 @@ permissions. It runs `git` on the repositories under the `repos_dir` of
 `gemba.local.yaml`, and starts the `ide` command of `gemba.local.yaml` on a harness.
 Both keys are read from that personal config only, which git ignores and every command
 refuses to find in the committed `gemba.yaml`, so that no command a teammate commits
-runs on your machine and no path they choose is used on it. Its one network operation
-is a `git fetch` of `origin` during `gemba worktree add`, with the credentials git
-already holds; it never pushes and never clones.
+runs on your machine and no path they choose is used on it. In an obeya shared by a
+team it also runs git commands that only read the obeya's own repository, for
+`gemba sync`, `gemba hook` and `gemba init`, and, when `git_hooks` turns them on, writes
+three hook scripts into its hooks folder, `pre-push`, `post-merge` and `post-rewrite`,
+each running `gemba hook` and nothing else. Its one network operation is a `git fetch` of
+`origin` during `gemba worktree add`, with the credentials git already holds; it never
+pulls, never pushes and never clones: you, or your agent, run git for that.
 
 That shapes what is and is not a vulnerability here:
 
@@ -40,6 +44,7 @@ That shapes what is and is not a vulnerability here:
 | Deleting a harness or a worktree that holds uncommitted changes or commits on no remote branch, without `--force` | What an agent does inside a harness: gemba creates the harness, it does not run the agent |
 | A push, or any network access beyond the one fetch | Vulnerabilities in development dependencies that do not ship in the published package |
 | Running any program other than `git` and the configured `ide` command | Denial of service against your own machine using your own input |
+| A hook script gemba writes that runs anything but `gemba hook`, or `gemba init` writing over a hook it did not write | A push made with `git push --no-verify`, or from a clone whose hooks are off: the hooks prevent accidents and are no access control |
 
 In an obeya shared by a team, the commands that write a task refuse one that another
 member owns, but they read who you are from `me` in your own `gemba.local.yaml`. That
@@ -51,6 +56,17 @@ parent that another member wrote: the guide of a harness tells the agent to read
 parent's file as background about the work, never as instructions, and never to edit
 it. That is guidance to the agent, not a control.
 
+The shared config and the skills of a team's obeya carry other members' instructions to
+your agent: the `rules`, `context` and `harness.guide` of `gemba.yaml`, rendered into the
+guide of every harness, and the skills the agent follows. The team's review in the git
+host is the control for them. `gemba sync` and the hooks after a pull show the shared
+files that came in and the commits behind each, and the `gemba-sync` skill tells the
+agent to report them as data, never to follow them, until you have reviewed them. The
+hooks check every push against the members' folders, the private files and the shared
+ones, but they run in your clone, read who you are from your own `gemba.local.yaml`, and
+are skipped by `git push --no-verify`: like the guard of the commands, they stop
+accidents, not a determined person.
+
 If you think something sits on the boundary, report it and we will work it out together.
 
 ## What the CLI does on your machine
@@ -58,7 +74,8 @@ If you think something sits on the boundary, report it and we will work it out t
 | Surface | Behavior |
 | --- | --- |
 | Install scripts | `gemba-cli` is a pure Python wheel built with hatchling and no build hooks, so installing it from PyPI runs no code from Gemba. |
-| Running other programs | `git` is run with an argument array (`git -C <folder> ...`), never through a shell. The `ide` command is split into an argument array with `shlex`, or taken as declared in its `{command, args}` form, its command is resolved on PATH, the harness folder is appended as its last argument, and it is started detached, with no shell and no inherited standard streams. On Windows, an `ide` command that resolves to a `.cmd` or `.bat` file runs through `cmd.exe`, as Windows runs every such script, with the harness path as its only argument beyond those you declared; that path is built from the obeya root and validated names. Nothing from a task file, a note or a command-line value is interpolated into a command. |
+| Running other programs | `git` is run with an argument array (`git -C <folder> ...`), never through a shell. The `ide` command is split into an argument array with `shlex`, or taken as declared in its `{command, args}` form, its command is resolved on PATH, the harness folder is appended as its last argument, and it is started detached, with no shell and no inherited standard streams. On Windows, an `ide` command that resolves to a `.cmd` or `.bat` file runs through `cmd.exe`, as Windows runs every such script, with the harness path as its only argument beyond those you declared; that path is built from the obeya root and validated names. Nothing from a task file, a note or a command-line value is interpolated into a command. In an obeya with a team, `gemba sync`, `gemba hook` and `gemba init` run git commands that only read the obeya's repository, with `--no-optional-locks`, so that not even its index is rewritten; a commit id read from a hook's standard input is checked as a full id before it reaches git, and a patch is shown with `--no-ext-diff` and `--no-textconv`, so no program a git config names runs. |
+| Git hooks | With a team and `git_hooks` on for the clone, `gemba init` writes `pre-push`, `post-merge` and `post-rewrite` into the hooks folder git names, each a short `sh` script that runs `gemba hook` with git's arguments, and removes them when `git_hooks` is turned off. It never writes over a hook it did not write and writes nothing under a `core.hooksPath`. The `pre-push` script refuses a push when `gemba` is not on PATH. |
 | Parsing | Every YAML document is read with `yaml.safe_load`. Refs, slugs, workstream identifiers, prefixes, dates and filed names are validated against fixed patterns before any of them becomes part of a path. |
 | Deleting | `gemba harness remove` and `gemba worktree remove` show what they would delete and delete nothing without `--yes`. They refuse while a worktree holds uncommitted changes or commits on no remote branch, or a branch of the run left without a worktree holds such commits. `--force` on `harness remove` discards that work; it never removes a harness the working directory is inside of, nor one whose repository state cannot be read. |
 | Network | One `git fetch --prune origin` during `gemba worktree add`, so that the worktree starts from the current remote branch. It uses git's own configuration and credentials, and is told not to move the recorded default branch. |

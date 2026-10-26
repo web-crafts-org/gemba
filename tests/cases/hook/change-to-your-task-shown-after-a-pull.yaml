@@ -1,0 +1,66 @@
+name: after a pull that brings a commit editing a task of the member, the hook names the commit, the file and the lines it changed
+scenario: "obeya-sync: Change to your task shown after a pull"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          agent_providers: [claude]
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+          git_hooks: true
+        .gitignore: |
+          harnesses/
+          gemba.local.yaml
+          /update.md
+        tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+          ---
+          status: open
+          ref: MR-SUP-1
+          updated_at: 2026-10-20
+          metadata: {}
+          ---
+
+          Export times out.
+
+          ## Updates
+        tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+          ---
+          status: open
+          ref: AG-SUP-1
+          updated_at: 2026-10-21
+          metadata: {}
+          ---
+
+          Login fails on Safari.
+
+          ## Updates
+    unfetched:
+      main:
+        tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+          ---
+          status: blocked
+          ref: MR-SUP-1
+          updated_at: 2026-10-20
+          metadata: {}
+          ---
+
+          Export times out.
+
+          ## Updates
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: manuel\n"
+setup:
+  - [init]
+git_after_setup:
+  - [repos/obeya, fetch, --quiet]
+run: [git, pull, --no-rebase]
+exit: 0
+stderr_contains:
+  - "gemba hook post-merge: 1 commit came in\n- your tasks:\n  tasks/manuel/support/2026-10-20-MR-SUP-1-export.md, by {short:repos/obeya:origin/main} (Gemba Cases)\n"
+  - "\n    -status: open\n    +status: blocked\n"

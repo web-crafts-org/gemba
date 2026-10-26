@@ -1,0 +1,83 @@
+name: after a rebasing pull brings an MR-SUP-3 created in another clone of the member, a push of a second MR-SUP-3 is refused, naming both files
+scenario: "obeya-sync: Ref created in two clones not pushed"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          agent_providers: [claude]
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+          git_hooks: true
+        .gitignore: |
+          harnesses/
+          gemba.local.yaml
+          /update.md
+        tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+          ---
+          status: open
+          ref: MR-SUP-1
+          updated_at: 2026-10-20
+          metadata: {}
+          ---
+
+          Export times out.
+
+          ## Updates
+        tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+          ---
+          status: open
+          ref: AG-SUP-1
+          updated_at: 2026-10-21
+          metadata: {}
+          ---
+
+          Login fails on Safari.
+
+          ## Updates
+    unfetched:
+      main:
+        tasks/manuel/support/2026-10-24-MR-SUP-3-reports.md: |
+          ---
+          status: open
+          ref: MR-SUP-3
+          updated_at: 2026-10-24
+          metadata: {}
+          ---
+
+          Reports are empty.
+
+          ## Updates
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: manuel\n"
+setup:
+  - [init]
+tree_after_setup:
+  repos/obeya/tasks/manuel/support/2026-10-25-MR-SUP-3-invoices.md: |
+    ---
+    status: open
+    ref: MR-SUP-3
+    updated_at: 2026-10-25
+    metadata: {}
+    ---
+
+    Invoices are sent twice.
+
+    ## Updates
+git_after_setup:
+  - [repos/obeya, add, tasks/manuel/support/2026-10-25-MR-SUP-3-invoices.md]
+  - [repos/obeya, commit, --quiet, -m, "Add MR-SUP-3"]
+  - [repos/obeya, pull, --quiet, --rebase]
+run: [git, push]
+exit: 1
+stderr_contains:
+  - "- MR-SUP-3 is held by tasks/manuel/support/2026-10-24-MR-SUP-3-reports.md and tasks/manuel/support/2026-10-25-MR-SUP-3-invoices.md: a ref is never held twice"
+git_log:
+  remotes/obeya.git:
+    - "unfetched main"
+    - "add main"

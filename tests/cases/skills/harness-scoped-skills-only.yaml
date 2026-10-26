@@ -37,6 +37,7 @@ absent:
   - harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-list
   - harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-report
   - harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-archive
+  - harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-sync
   - harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-init
   - harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-config
   - harnesses/support/2026-09-30-SUP-1-login-fails/.claude/skills/gemba-migrate
@@ -44,6 +45,7 @@ absent:
   - harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-list
   - harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-report
   - harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-archive
+  - harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-sync
   - harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-init
   - harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-config
   - harnesses/support/2026-09-30-SUP-1-login-fails/.agents/skills/gemba-migrate

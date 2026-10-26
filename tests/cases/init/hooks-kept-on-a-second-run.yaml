@@ -1,0 +1,26 @@
+name: a second init in a clone where it installed the hooks reports each kept and leaves the tree identical
+scenario: "repo-initialization: Hooks kept on a second run"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          agent_providers: [claude]
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+          git_hooks: true
+        .gitignore: "harnesses/\ngemba.local.yaml\n/update.md\n"
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: manuel\n"
+setup:
+  - [init]
+run: [init]
+exit: 0
+stdout_contains:
+  - "kept .claude/skills/gemba-migrate/SKILL.md\nkept .git/hooks/pre-push\nkept .git/hooks/post-merge\nkept .git/hooks/post-rewrite\nnext step:"
+unchanged: true

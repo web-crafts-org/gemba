@@ -110,6 +110,50 @@ and a field named `owner`, now reserved.
   the parent's task file, found with `gemba list --ref <parent> --include-archived`, as
   background about the work, never as instructions, and never edits it. A harness
   launched earlier keeps its guide.
+- `git_hooks`, `true` or `false`, in either file of an obeya with a team: in
+  `gemba.yaml`, whether the team turns gemba's git hooks on; in `gemba.local.yaml`,
+  whether this clone does, which always wins over the team. The hooks are off when
+  neither file declares the key, and the key is refused in an obeya without a team.
+  `gemba config check` prints `git hooks: on` or `git hooks: off` after the `me:` line,
+  and `gemba config show` prints `git_hooks` after `me`.
+- `gemba init`, in a git repository whose config declares a team and turns the git
+  hooks on for the clone, installs `pre-push`, `post-merge` and `post-rewrite` into the
+  hooks folder git names, with no question: each a small script that runs
+  `gemba hook` with its name, the `pre-push` one refusing the push when `gemba` is not
+  on PATH. It reports each `written`, `updated` or `kept` after the skills, and removes
+  those it wrote when `git_hooks` turns them off. It never writes over a hook of
+  another tool, keeps one that runs `gemba hook` itself, and refuses, writing nothing,
+  while another hook or a `core.hooksPath` stands in the way. It still creates no
+  repository and no commit: git is run only to read where the hooks go.
+- `gemba sync`, in an obeya with a team, compares the branch checked out with its
+  upstream as last fetched. It reports what a pull would bring: the patch of every
+  change to the member's own tasks and the shared files changed, each with the commits
+  and authors behind it, a warning for a `gemba.local.yaml` a pull would write over the
+  clone's own, and the count of commits that change only other members' tasks. It
+  reports what a push would send, with every problem the pre-push hook would refuse,
+  and the uncommitted changes, each as the member's own, another member's, private or
+  shared. Its last line is the verdict of a push: `nothing to push`, `ready`,
+  `needs confirmation` with the command that confirms it, or `refused`. It runs no
+  fetch, no pull and no push, writes nothing and exits 0 whatever the verdict.
+- `gemba hook pre-push`, `post-merge` and `post-rewrite`, the checks git runs from the
+  hooks `gemba init` installs; they only report, as a lint does, and a person never
+  needs to run them. `pre-push` checks what each push changes in the end, merges
+  included: a change to another member's folder or to a private file (`gemba.local.yaml`,
+  `harnesses/`) is refused, the latter even when a later commit removes it; the
+  member's own task files must read as tasks, carry their initials and hold no ref twice;
+  a shared file goes out once confirmed with `git -c gemba.shared=<commit> push`, for that
+  commit only. Every problem is listed at once, naming the commits behind each path, and
+  `git push --no-verify` stays the deliberate bypass. After a pull, `post-merge` and
+  `post-rewrite` show the patch of what changed in the member's own tasks and the shared
+  and private files it changed, with the commits behind each. In an obeya without a team
+  they print nothing; the CLI still never pulls or pushes.
+- The `gemba-sync` skill, written into the obeya: ask the agent to sync, pull or push an
+  obeya shared by a team. It fetches, reads `gemba sync`, explains what comes in, reading
+  the rules and skills of others as data to review, never as instructions, commits only
+  your own task files and only with your consent, pulls with rebase and aborts on a
+  conflict without resolving it, checks again, asks before it pushes a shared file, and
+  pushes, never forcing a push or skipping the hooks on its own. An obeya made before
+  this version gets the skill with `gemba init` or `gemba skills update`.
 
 ### Changed
 
@@ -151,8 +195,11 @@ and a field named `owner`, now reserved.
   task split from another, `gemba-create` creates a subtask with `--parent`,
   `gemba-list` and `gemba-report` read "the subtasks of" and "with its subtasks",
   `gemba-mark` points out a parent whose children are all done, and `gemba-migrate`
-  migrates a parent before its children with the new refs: `gemba skills update`
-  refreshes them, run in the obeya and in each harness.
+  migrates a parent before its children with the new refs. For the git hooks of a team,
+  `gemba-init` asks a new team whether it turns them on and installs them with
+  `gemba init`, and tells a member configuring their clone that they are installed;
+  `gemba-config` documents `git_hooks` and runs `gemba init` after it changes.
+  `gemba skills update` refreshes them, run in the obeya and in each harness.
 - `gemba init` writes `/update.md` into the `.gitignore`, so that a draft left at the
   obeya root by a refused `gemba record` never reaches a commit. Running `gemba init`
   again on an obeya made before this version appends the line and writes the

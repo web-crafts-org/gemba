@@ -1,0 +1,16 @@
+name: git_hooks in either file of an obeya without a team is refused under the path of each file, saying it needs a team
+scenario: "gemba-config: Hooks refused without a team"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  git_hooks: true
+local_config:
+  git_hooks: true
+run: [list]
+exit: 1
+stderr_contains:
+  - "invalid gemba config:\n"
+  - "gemba.yaml: git_hooks needs a team: gemba.yaml declares none"
+  - "gemba.local.yaml: git_hooks needs a team: gemba.yaml declares none"
+unchanged: true

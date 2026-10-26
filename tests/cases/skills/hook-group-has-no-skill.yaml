@@ -1,0 +1,12 @@
+name: the hook group, which git runs, writes no skill of its own
+scenario: "process-naming: Hook group has no skill"
+config:
+  default_workstream: operations
+  agent_providers: [claude, agents]
+  workstreams:
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+run: [skills, update]
+exit: 0
+files_contain:
+  .claude/skills/gemba-create/SKILL.md: ["name: gemba-create\n"]
+absent: [.claude/skills/gemba-hook, .agents/skills/gemba-hook]

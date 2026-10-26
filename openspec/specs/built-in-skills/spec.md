@@ -11,14 +11,15 @@ needed to tell an outdated copy from a hand edit.
 ### Requirement: Skills are assets of the package
 Every skill SHALL ship in the gemba CLI package, in a registry that gives each its
 scope: the obeya (`gemba-create`, `gemba-list`, `gemba-report`, `gemba-archive`,
-`gemba-init`, `gemba-config`, `gemba-migrate`), a harness (`gemba-worktree`), or both
-(`gemba-harness`, `gemba-record`, `gemba-mark`, `gemba-set`). `gemba skills update`
-and `gemba init` SHALL write exactly the registered skills whose scope includes their
-target, and nothing else under a provider's skills folder.
+`gemba-sync`, `gemba-init`, `gemba-config`, `gemba-migrate`), a harness
+(`gemba-worktree`), or both (`gemba-harness`, `gemba-record`, `gemba-mark`,
+`gemba-set`). `gemba skills update` and `gemba init` SHALL write exactly the registered
+skills whose scope includes their target, and nothing else under a provider's skills
+folder.
 
 #### Scenario: Every registered skill is written
 - **WHEN** `gemba skills update` runs in an obeya that declares one provider and has no skills folder
-- **THEN** one `SKILL.md` per registered skill whose scope includes the obeya appears under that provider's skills folder, each in a folder named after the skill, `gemba-record`, `gemba-init`, `gemba-config` and `gemba-migrate` included, and the command exits 0
+- **THEN** one `SKILL.md` per registered skill whose scope includes the obeya appears under that provider's skills folder, each in a folder named after the skill, `gemba-record`, `gemba-init`, `gemba-config`, `gemba-migrate` and `gemba-sync` included, and the command exits 0
 
 #### Scenario: Unregistered skills are not touched
 - **WHEN** the provider's skills folder already holds a skill that is not registered, such as one of another tool
@@ -26,7 +27,7 @@ target, and nothing else under a provider's skills folder.
 
 #### Scenario: Harness-scoped skills only
 - **WHEN** `gemba skills update` targets a harness
-- **THEN** only the skills whose scope includes the harness are written or reported, `gemba-harness`, `gemba-record`, `gemba-mark`, `gemba-set` and `gemba-worktree` at this change, and no `gemba-create`, `gemba-list`, `gemba-report`, `gemba-archive`, `gemba-init`, `gemba-config` or `gemba-migrate` folder is created there
+- **THEN** only the skills whose scope includes the harness are written or reported, `gemba-harness`, `gemba-record`, `gemba-mark`, `gemba-set` and `gemba-worktree` at this change, and no `gemba-create`, `gemba-list`, `gemba-report`, `gemba-archive`, `gemba-sync`, `gemba-init`, `gemba-config` or `gemba-migrate` folder is created there
 
 ### Requirement: Skills are written per agent provider
 `gemba skills update` SHALL write the skills under the skills folder of every provider

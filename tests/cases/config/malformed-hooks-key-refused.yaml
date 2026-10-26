@@ -1,0 +1,35 @@
+name: a git_hooks of the shared config that is not a boolean is refused, naming the key, its file and the two values
+scenario: "gemba-config: Malformed hooks key refused"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+  git_hooks: yes please
+local_config:
+  me: manuel
+run: [list]
+exit: 1
+stderr_contains:
+  - "invalid gemba config:\n"
+  - "gemba.yaml: git_hooks must be true or false (got 'yes please')"
+unchanged: true
+---
+name: a git_hooks of the personal config that is not a boolean is refused, naming the key, its file and the two values
+scenario: "gemba-config: Malformed hooks key refused"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+local_config:
+  me: manuel
+  git_hooks: [pre-push]
+run: [config, check]
+exit: 1
+stderr_contains:
+  - "invalid gemba config:\n"
+  - "gemba.local.yaml: git_hooks must be true or false (got ['pre-push'])"
+unchanged: true

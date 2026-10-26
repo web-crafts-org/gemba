@@ -1,0 +1,87 @@
+name: a merge that keeps the clone's old copy of a task ana changed on the remote is refused, naming the merge
+scenario: "obeya-sync: Merge that reverts another member's task not pushed"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          agent_providers: [claude]
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+          git_hooks: true
+        .gitignore: |
+          harnesses/
+          gemba.local.yaml
+          /update.md
+        tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+          ---
+          status: open
+          ref: MR-SUP-1
+          updated_at: 2026-10-20
+          metadata: {}
+          ---
+
+          Export times out.
+
+          ## Updates
+        tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+          ---
+          status: open
+          ref: AG-SUP-1
+          updated_at: 2026-10-21
+          metadata: {}
+          ---
+
+          Login fails on Safari.
+
+          ## Updates
+    unfetched:
+      main:
+        tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+          ---
+          status: done
+          ref: AG-SUP-1
+          updated_at: 2026-10-21
+          done_at: 2026-10-21
+          metadata: {}
+          ---
+
+          Login fails on Safari.
+
+          ## Updates
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: manuel\n"
+setup:
+  - [init]
+tree_after_setup:
+  repos/obeya/tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+    ---
+    status: blocked
+    ref: MR-SUP-1
+    updated_at: 2026-10-20
+    metadata: {}
+    ---
+
+    Export times out.
+
+    ## Updates
+git_after_setup:
+  - [repos/obeya, add, tasks/manuel/support/2026-10-20-MR-SUP-1-export.md]
+  - [repos/obeya, commit, --quiet, -m, "Block MR-SUP-1"]
+  - [repos/obeya, fetch, --quiet]
+  - [repos/obeya, merge, --quiet, --no-commit, origin/main]
+  - [repos/obeya, checkout, HEAD, --, tasks/ana/support/2026-10-21-AG-SUP-1-login.md]
+  - [repos/obeya, commit, --quiet, --no-edit]
+run: [git, push]
+exit: 1
+stderr_contains:
+  - "gemba hook pre-push: push to refs/heads/main refused:\n- merge {short:repos/obeya:HEAD} changes tasks/ana/support/2026-10-21-AG-SUP-1-login.md, in the folder of ana: only ana writes it\n"
+git_log:
+  remotes/obeya.git:
+    - "unfetched main"
+    - "add main"

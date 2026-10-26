@@ -5,10 +5,12 @@ from __future__ import annotations
 import argparse
 import sys
 from collections.abc import Callable
+from dataclasses import dataclass
 from importlib.metadata import version
 from pathlib import Path
 
 from gemba import config, obeya, skills
+from gemba.commands import obeya_git
 
 
 def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) -> None:
@@ -21,7 +23,11 @@ def register(subparsers: argparse._SubParsersAction[argparse.ArgumentParser]) ->
             f"{obeya.GITATTRIBUTES} and the obeya skills under the skills folder of every agent provider. "
             "Only what is missing is written: an existing "
             f"{config.CONFIG_FILENAME} is never rewritten and gives the providers, and a skill already on disk is "
-            "kept. Nothing is asked and no git is run."
+            "kept. In a git repository whose config declares a team, the git hooks of the team, "
+            f"{', '.join(obeya.HOOKS)}, are written into the hooks folder git names when git_hooks turns them on for "
+            "the clone, and those gemba wrote are removed when it turns them off; a hook of another tool is never "
+            "written over. Nothing is asked, no repository or commit is created, and git is run only to read where "
+            "the hooks go."
         ),
     )
     parser.add_argument(
@@ -60,6 +66,7 @@ def run(args: argparse.Namespace) -> int:
         return fail("nothing written:\n" + "\n".join(f"- {error}" for error in errors))
 
     providers: tuple[str, ...] = tuple(selected)
+    hooks: list[Hook] = []
     if exists:
         try:
             gemba_config = config.load(root=target)
@@ -68,6 +75,13 @@ def run(args: argparse.Namespace) -> int:
         if gemba_config.agent_providers is None:
             return fail(obeya.no_providers_problem())
         providers = gemba_config.agent_providers
+        if gemba_config.team is not None and obeya_git.has_repository(target):
+            try:
+                hooks, problems = plan_hooks(target, gemba_config.git_hooks)
+            except obeya_git.GitError as exc:
+                return fail(str(exc))
+            if problems:
+                return fail("nothing written:\n" + "\n".join(f"- {problem}" for problem in problems))
 
     target.mkdir(parents=True, exist_ok=True)
     if exists:
@@ -97,8 +111,56 @@ def run(args: argparse.Namespace) -> int:
         else:
             report("kept", action.path)
 
+    for hook in hooks:
+        if hook.action in ("written", "updated"):
+            hook.path.parent.mkdir(parents=True, exist_ok=True)
+            hook.path.write_text(obeya.hook_script(hook.name), encoding="utf-8", newline="\n")
+            hook.path.chmod(0o755)
+        elif hook.action == "removed":
+            hook.path.unlink()
+        report(hook.action, hook.location)
+
     print(obeya.NEXT_STEP)
     return 0
+
+
+@dataclass(frozen=True)
+class Hook:
+    """What init does with one git hook of the team: its name, its file, the location it reports and the action."""
+
+    name: str
+    path: Path
+    location: str
+    action: obeya.HookAction
+
+
+def plan_hooks(root: Path, on: bool) -> tuple[list[Hook], list[str]]:
+    """What init does with each hook of the team, as `git_hooks` resolves for the clone, and every hook it refuses.
+
+    Git is only read: the hooks folder it names and `core.hooksPath`.
+    """
+    folder = obeya_git.hooks_folder(root)
+    hooks_path = obeya_git.hooks_path(root)
+    planned: list[Hook] = []
+    problems: list[str] = []
+    for name in obeya.HOOKS:
+        path = folder / name
+        location = located(root, path)
+        action = obeya.hook_action(obeya.hook_state(name, obeya_git.hook_text(path)), on, hooks_path is not None)
+        if action == "refused":
+            problems.append(obeya.hook_problem(location, name, hooks_path))
+        elif action is not None:
+            planned.append(Hook(name=name, path=path, location=location, action=action))
+    return planned, problems
+
+
+def located(root: Path, path: Path) -> str:
+    """How a hook is named: relative to the root and POSIX when it lies under it, else absolute as the system spells
+    it."""
+    try:
+        return path.relative_to(root).as_posix()
+    except ValueError:
+        return str(path)
 
 
 def converge(path: Path, text_for: Callable[[str | None], str | None]) -> None:

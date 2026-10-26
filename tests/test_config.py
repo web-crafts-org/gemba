@@ -1064,5 +1064,63 @@ class TeamTest(ConfigTestCase):
         self.assertIsNone(self.load(VALID).team)
 
 
+class GitHooksTest(ConfigTestCase):
+    def problems(self, text, local=None):
+        """The problems of a refused config, as (file name, message) pairs in the order reported."""
+        self.write(text, local)
+        with self.assertRaises(config.ConfigError) as caught:
+            config.load(root=self.root)
+        return [(path.name, message) for path, message in caught.exception.problems]
+
+    def test_off_when_neither_file_declares_them(self):
+        self.assertFalse(self.load(VALID + TEAM, local="me: manuel\n").git_hooks)
+        (self.root / config.LOCAL_FILENAME).unlink()
+        self.assertFalse(self.load(VALID).git_hooks)
+
+    def test_shared_value_alone(self):
+        for declared in (True, False):
+            with self.subTest(git_hooks=declared):
+                loaded = self.load(VALID + TEAM + f"git_hooks: {str(declared).lower()}\n", local="me: manuel\n")
+                self.assertIs(loaded.git_hooks, declared)
+
+    def test_personal_value_alone(self):
+        for declared in (True, False):
+            with self.subTest(git_hooks=declared):
+                loaded = self.load(VALID + TEAM, local=f"git_hooks: {str(declared).lower()}\n")
+                self.assertIs(loaded.git_hooks, declared)
+
+    def test_personal_value_wins_both_ways(self):
+        for shared, personal in ((True, False), (False, True)):
+            with self.subTest(shared=shared, personal=personal):
+                loaded = self.load(
+                    VALID + TEAM + f"git_hooks: {str(shared).lower()}\n",
+                    local=f"me: manuel\ngit_hooks: {str(personal).lower()}\n",
+                )
+                self.assertIs(loaded.git_hooks, personal)
+
+    def test_refused_without_a_team_in_each_file(self):
+        problem = "git_hooks needs a team: gemba.yaml declares none"
+        self.assertEqual(self.problems(VALID + "git_hooks: true\n"), [("gemba.yaml", problem)])
+        self.assertEqual(self.problems(VALID, local="git_hooks: false\n"), [("gemba.local.yaml", problem)])
+        self.assertEqual(
+            self.problems(VALID + "git_hooks: false\n", local="git_hooks: true\n"),
+            [("gemba.yaml", problem), ("gemba.local.yaml", problem)],
+        )
+
+    def test_value_that_is_not_a_boolean(self):
+        problems = self.problems(VALID + TEAM + "git_hooks: yes please\n", local="git_hooks: [pre-push]\n")
+        self.assertEqual(
+            problems,
+            [
+                ("gemba.yaml", "git_hooks must be true or false (got 'yes please')"),
+                ("gemba.local.yaml", "git_hooks must be true or false (got ['pre-push'])"),
+            ],
+        )
+
+    def test_not_checked_against_a_team_that_did_not_parse(self):
+        problems = self.problems(VALID + "team: [manuel]\n", local="git_hooks: true\n")
+        self.assertEqual([name for name, _message in problems], ["gemba.yaml"])
+
+
 if __name__ == "__main__":
     unittest.main()

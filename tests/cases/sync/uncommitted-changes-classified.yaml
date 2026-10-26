@@ -1,0 +1,74 @@
+name: sync lists an edited task of the member as theirs, an edited task of ana as hers and an edited README.md as shared
+scenario: "obeya-sync: Uncommitted changes classified"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+        .gitignore: |
+          harnesses/
+          gemba.local.yaml
+          /update.md
+        README.md: |
+          The obeya of the support team.
+        tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+          ---
+          status: open
+          ref: MR-SUP-1
+          updated_at: 2026-10-20
+          metadata: {}
+          ---
+
+          Export times out.
+
+          ## Updates
+        tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+          ---
+          status: open
+          ref: AG-SUP-1
+          updated_at: 2026-10-21
+          metadata: {}
+          ---
+
+          Login fails on Safari.
+
+          ## Updates
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: manuel\n"
+tree_after_setup:
+  repos/obeya/tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+    ---
+    status: blocked
+    ref: MR-SUP-1
+    updated_at: 2026-10-20
+    metadata: {}
+    ---
+
+    Export times out.
+
+    ## Updates
+  repos/obeya/tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+    ---
+    status: done
+    ref: AG-SUP-1
+    updated_at: 2026-10-21
+    done_at: 2026-10-21
+    metadata: {}
+    ---
+
+    Login fails on Safari.
+
+    ## Updates
+  repos/obeya/README.md: "The obeya of the support team, shared by two.\n"
+run: [sync]
+exit: 0
+stdout_contains:
+  - "uncommitted:\n- yours: tasks/manuel/support/2026-10-20-MR-SUP-1-export.md\n- of ana: tasks/ana/support/2026-10-21-AG-SUP-1-login.md\n- shared: README.md\n"
+  - "push: nothing to push\n"

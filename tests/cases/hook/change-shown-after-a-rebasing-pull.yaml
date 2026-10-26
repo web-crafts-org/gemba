@@ -1,0 +1,99 @@
+name: after a rebasing pull, the hook shows the commit that edits a task of the member with its lines and the one that edits gemba.yaml, not the commit of the clone
+scenario: "obeya-sync: Change shown after a rebasing pull"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          agent_providers: [claude]
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+          git_hooks: true
+        .gitignore: |
+          harnesses/
+          gemba.local.yaml
+          /update.md
+        tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+          ---
+          status: open
+          ref: MR-SUP-1
+          updated_at: 2026-10-20
+          metadata: {}
+          ---
+
+          Export times out.
+
+          ## Updates
+        tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+          ---
+          status: open
+          ref: AG-SUP-1
+          updated_at: 2026-10-21
+          metadata: {}
+          ---
+
+          Login fails on Safari.
+
+          ## Updates
+    unfetched:
+      main:
+        tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+          ---
+          status: blocked
+          ref: MR-SUP-1
+          updated_at: 2026-10-20
+          metadata: {}
+          ---
+
+          Export times out.
+
+          ## Updates
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: manuel\n"
+setup:
+  - [init]
+tree_after_setup:
+  edits/gemba.yaml: |
+    default_workstream: support
+    agent_providers: [claude]
+    workstreams:
+      support: { prefix: SUP, description: Investigate a client-reported problem }
+    team:
+      manuel: { initials: MR }
+      ana: { initials: AG }
+    git_hooks: true
+    create:
+      rules:
+        - name the client in the title
+  repos/obeya/tasks/manuel/support/2026-10-25-MR-SUP-2-invoices.md: |
+    ---
+    status: open
+    ref: MR-SUP-2
+    updated_at: 2026-10-25
+    metadata: {}
+    ---
+
+    Invoices are sent twice.
+
+    ## Updates
+git_after_setup:
+  - [., clone, --quiet, remotes/obeya.git, ana]
+  - [ana, "--work-tree={root}/edits", add, gemba.yaml]
+  - [ana, commit, --quiet, --author, "Ana Gómez <ana@example.com>", -m, "Name the client in the title"]
+  - [ana, push, --quiet]
+  - [repos/obeya, fetch, --quiet]
+  - [repos/obeya, add, tasks/manuel/support/2026-10-25-MR-SUP-2-invoices.md]
+  - [repos/obeya, commit, --quiet, -m, "Add MR-SUP-2"]
+run: [git, pull, --rebase]
+exit: 0
+stderr_contains:
+  - "gemba hook post-rewrite: 2 commits came in\n- your tasks:\n  tasks/manuel/support/2026-10-20-MR-SUP-1-export.md, by {short:repos/obeya:origin/main~1} (Gemba Cases)\n"
+  - "\n    -status: open\n    +status: blocked\n"
+  - "- shared files:\n  gemba.yaml, by {short:repos/obeya:origin/main} (Ana Gómez)\n"
+stderr_excludes:
+  - "MR-SUP-2"

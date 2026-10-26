@@ -19,5 +19,6 @@ stdout: |
   default workstream: support
   team: manuel (MR), ana (AG, inactive)
   me: manuel
+  git hooks: off
   agent providers: claude
 unchanged: true

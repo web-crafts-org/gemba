@@ -1,0 +1,30 @@
+name: init in a clone that turns the git hooks on, under a team that declares nothing about them, writes the three hooks
+scenario: "repo-initialization: Hooks installed for a clone that turns them on"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          agent_providers: [claude]
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+        .gitignore: "harnesses/\ngemba.local.yaml\n/update.md\n"
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: ana\ngit_hooks: true\n"
+run: [init]
+exit: 0
+stdout_contains:
+  - "written .claude/skills/gemba-migrate/SKILL.md\nwritten .git/hooks/pre-push\nwritten .git/hooks/post-merge\nwritten .git/hooks/post-rewrite\nnext step:"
+files_contain:
+  repos/obeya/.git/hooks/pre-push: ["#!/bin/sh\n# Written by gemba init for the git hooks of a team (git_hooks); gemba init removes it.\n", "exec gemba hook pre-push \"$@\"\n"]
+  repos/obeya/.git/hooks/post-merge: ["#!/bin/sh\n# Written by gemba init for the git hooks of a team (git_hooks); gemba init removes it.\n", "exec gemba hook post-merge \"$@\"\n"]
+  repos/obeya/.git/hooks/post-rewrite: ["#!/bin/sh\n# Written by gemba init for the git hooks of a team (git_hooks); gemba init removes it.\n", "exec gemba hook post-rewrite \"$@\"\n"]
+lf_only:
+  - repos/obeya/.git/hooks/pre-push
+  - repos/obeya/.git/hooks/post-merge
+  - repos/obeya/.git/hooks/post-rewrite

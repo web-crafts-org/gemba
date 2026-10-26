@@ -1,8 +1,11 @@
-"""The layout of an obeya as `gemba init` creates it, and the rules of its convergence and its refusals."""
+"""The layout of an obeya as `gemba init` creates it, and the rules of its convergence and its refusals, the git
+hooks of a team included."""
 
+import re
 from collections.abc import Sequence
 from importlib import resources
 from pathlib import Path, PurePosixPath
+from typing import Literal
 
 from gemba import config, skills, tasks
 
@@ -21,6 +24,15 @@ TEMPLATE_PROVIDERS_TOKEN = "__PROVIDERS__"
 GITKEEP = PurePosixPath(tasks.TASKS_DIR, tasks.GITKEEP).as_posix()
 # The last line of the output of init, whatever it wrote.
 NEXT_STEP = "next step: open this obeya with your agent and ask it to configure gemba (the gemba-init skill)"
+# The git hooks of a team, in the order init reports them: each script runs `gemba hook` with its own name.
+HOOKS = ("pre-push", "post-merge", "post-rewrite")
+# The second line of every hook script gemba writes, by which init tells its own scripts from those of another tool.
+HOOK_MARKER = "# Written by gemba init for the git hooks of a team (git_hooks); gemba init removes it."
+# What a file of the hooks folder is to init: none, the script of this version, a script of an earlier version, a
+# script of another tool that runs `gemba hook` with its name, or a script of another tool.
+HookState = Literal["missing", "current", "earlier", "chained", "other"]
+# What init does with a hook, or `refused` when it may neither write it nor keep it.
+HookAction = Literal["written", "updated", "kept", "removed", "refused"]
 
 
 def render_config(providers: Sequence[str]) -> str:
@@ -57,6 +69,66 @@ def _completed(existing: str | None, lines: Sequence[str]) -> str | None:
         return None
     separator = "\n" if existing and not existing.endswith("\n") else ""
     return f"{existing}{separator}" + "".join(f"{line}\n" for line in missing)
+
+
+def hook_script(name: str) -> str:
+    """The script init writes for the hook `name`: it hands git's arguments and standard input to `gemba hook`.
+
+    Without `gemba` on PATH, the script says how to install it and how to skip the checks,
+    then refuses the push for `pre-push` and lets git go on for the other two.
+    """
+    status = 1 if name == "pre-push" else 0
+    return (
+        "#!/bin/sh\n"
+        f"{HOOK_MARKER}\n"
+        "if ! command -v gemba >/dev/null 2>&1; then\n"
+        f'  echo "gemba hook {name}: gemba is not on PATH: install it with uv tool install gemba-cli; '
+        'git push --no-verify skips these checks" >&2\n'
+        f"  exit {status}\n"
+        "fi\n"
+        f'exec gemba hook {name} "$@"\n'
+    )
+
+
+def hook_state(name: str, text: str | None) -> HookState:
+    """What the file of the hook `name` is, given its text, or None when there is no such file."""
+    if text is None:
+        return "missing"
+    if text == hook_script(name):
+        return "current"
+    lines = text.split("\n")
+    if len(lines) > 1 and lines[1].strip() == HOOK_MARKER:
+        return "earlier"
+    if re.search(rf"^[^#\n]*\bgemba hook {re.escape(name)}(?![\w-])", text, re.MULTILINE):
+        return "chained"
+    return "other"
+
+
+def hook_action(state: HookState, on: bool, redirected: bool) -> HookAction | None:
+    """What init does with a hook in `state`, when the hooks are `on` or off for the clone, or None to leave it out.
+
+    `redirected` says that `core.hooksPath` is set: init then writes and removes no hook, so
+    while the hooks are on a hook there that does not run `gemba hook` is refused.
+    """
+    if not on:
+        return "removed" if state in ("current", "earlier") and not redirected else None
+    if state in ("current", "chained"):
+        return "kept"
+    if redirected or state == "other":
+        return "refused"
+    return "written" if state == "missing" else "updated"
+
+
+def hook_problem(location: str, name: str, hooks_path: str | None = None) -> str:
+    """Why init refuses the hook `name` at `location`, and the two ways out; `hooks_path` is the value of
+    `core.hooksPath` when it is set."""
+    ways_out = (
+        f'run gemba hook {name} "$@" from {"it" if hooks_path is None else location}, '
+        f"or turn the hooks off for this clone with git_hooks: false in {config.LOCAL_FILENAME}"
+    )
+    if hooks_path is None:
+        return f"{location} is a hook gemba did not write: {ways_out}"
+    return f"core.hooksPath is set to {hooks_path}, where gemba writes no hook: {ways_out}"
 
 
 def nested_problem(target: Path, found_root: Path) -> str:

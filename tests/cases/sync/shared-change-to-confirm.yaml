@@ -1,0 +1,63 @@
+name: sync names the commit that edits gemba.yaml and ends with the command that confirms the push of the commit at the tip
+scenario: "obeya-sync: Shared change to confirm"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+        .gitignore: |
+          harnesses/
+          gemba.local.yaml
+          /update.md
+        README.md: |
+          The obeya of the support team.
+        tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+          ---
+          status: open
+          ref: MR-SUP-1
+          updated_at: 2026-10-20
+          metadata: {}
+          ---
+
+          Export times out.
+
+          ## Updates
+        tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+          ---
+          status: open
+          ref: AG-SUP-1
+          updated_at: 2026-10-21
+          metadata: {}
+          ---
+
+          Login fails on Safari.
+
+          ## Updates
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: manuel\n"
+tree_after_setup:
+  repos/obeya/gemba.yaml: |
+    default_workstream: support
+    workstreams:
+      support: { prefix: SUP, description: Investigate a client-reported problem }
+    team:
+      manuel: { initials: MR }
+      ana: { initials: AG }
+    create:
+      rules:
+        - name the client in the title
+git_after_setup:
+  - [repos/obeya, add, gemba.yaml]
+  - [repos/obeya, commit, --quiet, -m, "Name the client in the title"]
+run: [sync]
+exit: 0
+stdout_contains:
+  - "outgoing: 1 commit\n- {short:repos/obeya:HEAD} Gemba Cases: Name the client in the title\nto confirm:\n- {short:repos/obeya:HEAD} changes the shared file gemba.yaml\n"
+  - "push: needs confirmation: git -c gemba.shared={rev:repos/obeya:HEAD} push\n"

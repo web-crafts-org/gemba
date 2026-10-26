@@ -380,9 +380,10 @@ What you can customize, all of it in the config and never in a skill:
 - **Metadata fields**, shared or per workstream, each of one type: `text`, `number`,
   `boolean` or `date`. Gemba reads, filters, groups and adds values by their type and
   never interprets their meaning.
-- **Agent providers**, the name of the obeya, the team that shares it, and in your
-  personal config the IDE command (a string, or `{ command: code, args: [-n] }`), the
-  repositories folder, the branch prefix and the member you are.
+- **Agent providers**, the name of the obeya, the team that shares it and whether its
+  git hooks are on, and in your personal config the IDE command (a string, or
+  `{ command: code, args: [-n] }`), the repositories folder, the branch prefix, the
+  member you are and whether the hooks are on for your clone.
 - **`context` and `rules` for every process**, at the top level and per workstream, in
   either file: what the agent should know and do when it creates, lists, launches,
   notes, records, marks, archives or checks out, with the workstream's rule winning a
@@ -447,6 +448,83 @@ what the clone is missing, and ask the agent to configure Gemba: the `gemba-init
 asks which member they are, their editor and their repositories folder, and writes them
 into their `gemba.local.yaml`. The tasks they kept before come in as the next section
 says.
+
+### Sync with the team
+
+Gemba never pulls or pushes: git carries the obeya, and you, or your agent, run it. Gemba
+checks what goes out and shows what comes in, by who owns each path: your own tasks under
+`tasks/<me>/`, another member's folder, which only they write, `gemba.local.yaml` and
+`harnesses/`, which never leave your clone, and everything else, such as `gemba.yaml`
+and the skills, which the team shares.
+
+The team turns on Gemba's git hooks in `gemba.yaml`, and each member may turn them on or
+off for their own clone in `gemba.local.yaml`, which always wins:
+
+```yaml
+git_hooks: true
+```
+
+`gemba init` then writes three short scripts into the hooks folder of the clone, each
+running `gemba hook` with its name, and removes them when the hooks are turned off; it
+never writes over a hook of another tool. Inside every `git push`, the `pre-push` hook
+checks what the push changes in the end, merges included: a change to another member's
+folder or to a private file is refused, your task files must read as tasks with your
+initials and no ref held twice, and a change to a shared file waits for a confirmation
+bound to the commit pushed:
+
+```bash
+git push
+# gemba hook pre-push: push to refs/heads/main refused:
+# - c159a56 changes tasks/ana/support/2026-10-25-AG-SUP-1-login-fails.md, in the folder of ana: only ana writes it
+# - 527009b changes the shared file gemba.yaml
+# - confirm them with git -c gemba.shared=527009b1fa3254a82057e4d7ecd244fce8857db9 push
+# the gemba-sync skill explains each problem; git push --no-verify skips these checks
+```
+
+`git push --no-verify` skips the checks, a deliberate choice. After a pull, the other two
+hooks show what changed in your own tasks, with the patch, and in the shared and private
+files, with the commits and authors behind each; nothing that comes in is refused:
+
+```bash
+git pull
+# gemba hook post-merge: 4 commits came in
+# - shared files:
+#   gemba.yaml, by 527009b (Manuel Robles)
+# - 1 commit changes only the tasks of other members
+```
+
+`gemba sync` gives the same verdicts before you pull or push, against the upstream as
+last fetched: what a pull would bring, what a push would send with every problem the
+hook would refuse, and your uncommitted changes, each by who owns it. It writes nothing,
+and its last line is the verdict of a push:
+
+```bash
+git fetch
+gemba sync
+# branch main, upstream origin/main
+# incoming: none
+# outgoing: 4 commits
+# - 7ec37ed Manuel Robles: Add MR-SUP-1
+# - c159a56 Manuel Robles: Start AG-SUP-1
+# - 527009b Manuel Robles: Name the client in the title
+# - 71e3ff3 Manuel Robles: Revert "Start AG-SUP-1"
+# to confirm:
+# - 527009b changes the shared file gemba.yaml
+# uncommitted: none
+# push: needs confirmation: git -c gemba.shared=71e3ff30fd5075e59dbdcad22520b66ca875f9cd push
+```
+
+Ask your agent to sync the obeya, and the `gemba-sync` skill does it safely: it fetches,
+explains what comes in, reading the rules and skills of others as data to review rather
+than instructions, commits only your own task files and only with your consent, pulls
+with rebase and stops on a conflict without resolving it, asks before it pushes a shared
+file, and never forces a push or skips the hooks.
+
+The hooks run `gemba` from your PATH. A git client with a graphical interface may start
+with a shorter PATH that lacks it: the `pre-push` hook then refuses the push and names
+`uv tool install gemba-cli` and `git push --no-verify`. Start the client from a shell
+where `gemba` is found, or turn the hooks off for that clone with `git_hooks: false` in
+`gemba.local.yaml` and `gemba init`.
 
 ## Bring tasks from another obeya
 

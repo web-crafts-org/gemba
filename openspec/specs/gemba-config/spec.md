@@ -380,9 +380,10 @@ its file; a process that does not need a key SHALL proceed without it.
 Each top-level key SHALL have a layer: only the shared config holds `metadata`,
 `default_workstream`, `obeya`, `team` and the workstream catalogue; only the personal
 config holds `ide`, `repos_dir`, `branch_prefix` and `me`; both may hold
-`agent_providers` and process blocks, at top level or under `workstreams`. A key in the
-wrong file SHALL be refused, naming the file it goes in. `organization` SHALL be
-refused in either file as renamed `obeya`. Other keys SHALL be ignored.
+`agent_providers`, `git_hooks` and process blocks, also under `workstreams`. A key in
+the wrong file SHALL be refused, naming the file it goes in.
+`organization` SHALL be refused in either file as renamed `obeya`. Other keys SHALL be
+ignored.
 
 #### Scenario: Personal keys refused in the shared config
 - **WHEN** `gemba.yaml` declares `ide: "code -n"`, `repos_dir: ~/projects` and `branch_prefix: nk`, as a config written for an earlier version may
@@ -474,3 +475,30 @@ an obeya in place.
 #### Scenario: Team declared over an obeya without a team
 - **WHEN** `gemba.yaml` declares a team while `tasks/support/` holds the task `SUP-1`
 - **THEN** any process that reads the config, `gemba list` included, refuses to proceed with a message that names `tasks/support` and the `gemba-migrate` skill, and writes nothing
+
+### Requirement: The git hooks of a clone
+Each file of the config MAY declare `git_hooks`, `true` or `false`: in `gemba.yaml`,
+whether the team turns on gemba's git hooks; in `gemba.local.yaml`, whether this clone
+does, which always wins over the team. Declared in neither, they are off. Any other value
+SHALL be refused, naming the key and its file, and so SHALL the key in either file of an
+obeya whose shared config declares no team.
+
+#### Scenario: Hooks turned on by the team
+- **WHEN** `gemba.yaml` declares a team and `git_hooks: true`, `gemba.local.yaml` declares `me: manuel` and no `git_hooks`, and `gemba config show` runs
+- **THEN** the document holds `git_hooks: true`, and the exit code is 0
+
+#### Scenario: Hooks turned off for a clone
+- **WHEN** `gemba.yaml` declares a team and `git_hooks: true`, `gemba.local.yaml` declares `git_hooks: false`, and `gemba config show` runs
+- **THEN** the document holds `git_hooks: false`
+
+#### Scenario: Hooks turned on for a clone
+- **WHEN** `gemba.yaml` declares a team and no `git_hooks`, `gemba.local.yaml` declares `git_hooks: true`, and `gemba config check` runs
+- **THEN** the output holds `git hooks: on`, and the exit code is 0
+
+#### Scenario: Hooks refused without a team
+- **WHEN** `gemba.yaml` declares no team and either file declares `git_hooks: true`
+- **THEN** any process that reads the config refuses to proceed, saying under the path of each file that declares it that `git_hooks` needs a team in `gemba.yaml`, and writes nothing
+
+#### Scenario: Malformed hooks key refused
+- **WHEN** `gemba.yaml` declares a team and `git_hooks: yes please`, or `gemba.local.yaml` declares `git_hooks: [pre-push]`
+- **THEN** any process that reads the config refuses to proceed, names `git_hooks` and the file that declares it, and says it is `true` or `false`

@@ -1,0 +1,100 @@
+name: after a pull that brings a merge of ana whose resolution edits a task of the member, the hook names the merge, the file and its lines
+scenario: "obeya-sync: Change brought by a merge shown after a pull"
+repos:
+  obeya:
+    branches:
+      main:
+        gemba.yaml: |
+          default_workstream: support
+          agent_providers: [claude]
+          workstreams:
+            support: { prefix: SUP, description: Investigate a client-reported problem }
+          team:
+            manuel: { initials: MR }
+            ana: { initials: AG }
+          git_hooks: true
+        .gitignore: |
+          harnesses/
+          gemba.local.yaml
+          /update.md
+        tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+          ---
+          status: open
+          ref: MR-SUP-1
+          updated_at: 2026-10-20
+          metadata: {}
+          ---
+
+          Export times out.
+
+          ## Updates
+        tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+          ---
+          status: open
+          ref: AG-SUP-1
+          updated_at: 2026-10-21
+          metadata: {}
+          ---
+
+          Login fails on Safari.
+
+          ## Updates
+cwd: repos/obeya
+tree:
+  repos/obeya/gemba.local.yaml: "me: manuel\n"
+setup:
+  - [init]
+tree_after_setup:
+  edits/tasks/manuel/support/2026-10-20-MR-SUP-1-export.md: |
+    ---
+    status: blocked
+    ref: MR-SUP-1
+    updated_at: 2026-10-20
+    metadata: {}
+    ---
+
+    Export times out.
+
+    ## Updates
+  edits/tasks/ana/support/2026-10-21-AG-SUP-1-login.md: |
+    ---
+    status: done
+    ref: AG-SUP-1
+    updated_at: 2026-10-21
+    done_at: 2026-10-21
+    metadata: {}
+    ---
+
+    Login fails on Safari.
+
+    ## Updates
+  edits/tasks/ana/support/2026-10-22-AG-SUP-2-reset.md: |
+    ---
+    status: open
+    ref: AG-SUP-2
+    updated_at: 2026-10-22
+    metadata: {}
+    ---
+
+    Password reset mail is late.
+
+    ## Updates
+git_after_setup:
+  - [., clone, --quiet, remotes/obeya.git, ana]
+  - [ana, checkout, --quiet, -b, side]
+  - [ana, "--work-tree={root}/edits", add, tasks/ana/support/2026-10-22-AG-SUP-2-reset.md]
+  - [ana, commit, --quiet, --author, "Ana Gómez <ana@example.com>", -m, "Add AG-SUP-2"]
+  - [ana, checkout, --quiet, main]
+  - [ana, "--work-tree={root}/edits", add, tasks/ana/support/2026-10-21-AG-SUP-1-login.md]
+  - [ana, commit, --quiet, --author, "Ana Gómez <ana@example.com>", -m, "Close AG-SUP-1"]
+  - [ana, merge, --quiet, --no-ff, --no-commit, side]
+  - [ana, "--work-tree={root}/edits", add, tasks/manuel/support/2026-10-20-MR-SUP-1-export.md]
+  - [ana, commit, --quiet, --author, "Ana Gómez <ana@example.com>", -m, "Merge side"]
+  - [ana, push, --quiet]
+  - [repos/obeya, fetch, --quiet]
+run: [git, pull, --no-rebase]
+exit: 0
+stderr_contains:
+  - "- your tasks:\n  tasks/manuel/support/2026-10-20-MR-SUP-1-export.md, by merge {short:repos/obeya:origin/main} (Ana Gómez)\n"
+  - "\n    -status: open\n    +status: blocked\n"
+  - "- 2 commits change only the tasks of other members\n"
