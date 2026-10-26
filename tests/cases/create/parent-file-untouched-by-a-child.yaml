@@ -1,0 +1,53 @@
+name: creating a child writes the parent into the child alone, and the parent's file stays byte for byte as it was
+scenario: "task-relations: Parent file untouched by a child"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+tree:
+  tasks/support/2026-10-01-SUP-1-login-fails-on-safari.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-10-01
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app
+
+    ## Updates
+
+    ### 2026-10-01
+
+    - Reproduced on Safari 17.
+run: [create, --workstream, support, --slug, safari-css, --date, 2026-10-02, --parent, SUP-1]
+exit: 0
+stdout: |
+  tasks/support/2026-10-02-SUP-2-safari-css.md
+  SUP-2
+files:
+  tasks/support/2026-10-02-SUP-2-safari-css.md: |
+    ---
+    status: open
+    ref: SUP-2
+    parent: SUP-1
+    updated_at: 2026-10-02
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-10-01-SUP-1-login-fails-on-safari.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-10-01
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app
+
+    ## Updates
+
+    ### 2026-10-01
+
+    - Reproduced on Safari 17.

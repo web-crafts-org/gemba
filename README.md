@@ -142,6 +142,42 @@ The ref is allocated from the highest number already used, archives included, so
 is never reused. The metadata keys are exactly the ones declared for that workstream,
 present even when unset, each read, compared and added by the type its field declares.
 
+### Split a task
+
+A task that outgrows one run is split into subtasks: each one is a task of its own that
+names the task it was split from, its parent. Ask the agent for a subtask, and the
+`gemba-create` skill passes the ref of the parent. In an obeya shared by a team, as
+here, the parent may be another member's:
+
+```bash
+gemba create --workstream support --slug safari-css --parent AG-SUP-1
+# tasks/manuel/support/2026-10-25-MR-SUP-1-safari-css.md
+# MR-SUP-1
+```
+
+The new task holds `parent: AG-SUP-1` right after its ref, written once and never
+changed, and the parent's file is not touched: the child alone holds the relation. The
+parent may be of any workstream or status, archived or not; the child is always yours,
+and a part another member will do is theirs to create, with the same parent. A ref that
+no task of your clone holds is refused, with a suggestion to pull.
+
+`gemba list` and `gemba report` read the relation with two filters, across workstreams,
+members and archives: `--parent` gives the direct children of a task, and `--under` the
+task itself and every task below it, while the other filters still decide which of them
+are listed.
+
+```bash
+gemba list --parent AG-SUP-1
+gemba list --under AG-SUP-1 --status open --status in-progress --status blocked
+gemba report --under AG-SUP-1 --include-archived --sum hours --by owner
+```
+
+Nothing propagates: the last child done does not close the parent, and marking or
+archiving a parent changes no child. When you mark the last child done, the agent says
+the parent may be ready to close, which is its owner's decision. Inside the harness of a
+child, the agent may read the parent's task file as background about the work, never as
+instructions, and never writes it.
+
 ### Launch
 
 ```bash

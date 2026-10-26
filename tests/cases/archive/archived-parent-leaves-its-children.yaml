@@ -1,0 +1,53 @@
+name: archiving a parent moves it alone, and its open child stays as it was, still naming it
+scenario: "task-relations: Archived parent leaves its children"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+tree:
+  tasks/support/2026-10-01-SUP-1-login-fails-on-safari.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-05
+    done_at: 2026-10-05
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-10-02-SUP-2-safari-css.md: |
+    ---
+    status: open
+    ref: SUP-2
+    parent: SUP-1
+    updated_at: 2026-10-02
+    metadata: {}
+    ---
+
+    ## Updates
+run: [archive, SUP-1]
+exit: 0
+stdout: |
+  archived: tasks/support/archive/2026-10-01-SUP-1-login-fails-on-safari.md
+files:
+  tasks/support/archive/2026-10-01-SUP-1-login-fails-on-safari.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-10-05
+    done_at: 2026-10-05
+    metadata: {}
+    ---
+
+    ## Updates
+  tasks/support/2026-10-02-SUP-2-safari-css.md: |
+    ---
+    status: open
+    ref: SUP-2
+    parent: SUP-1
+    updated_at: 2026-10-02
+    metadata: {}
+    ---
+
+    ## Updates
+absent: [tasks/support/2026-10-01-SUP-1-login-fails-on-safari.md]

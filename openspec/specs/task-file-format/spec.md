@@ -77,11 +77,11 @@ link in the body. The ref in the frontmatter SHALL equal the ref in the filename
 
 ### Requirement: Built-in frontmatter fields
 The frontmatter SHALL be a YAML block between `---` lines at the start of the file
-holding exactly, in this order, `status`, `ref`, `updated_at`, `done_at` (only when
-the status is `done`) and `metadata`. `status` SHALL be `open`, `in-progress`,
-`blocked` or `done`. `updated_at` SHALL be an ISO date, the creation date at creation,
-that only moves forward. `done_at` SHALL be the ISO date the task reached `done`,
-removed when it leaves `done`, so it means "done since" and never "was once done".
+holding exactly, in this order, `status`, `ref`, `parent` (only with a parent),
+`updated_at`, `done_at` (only while `done`) and `metadata`. `status` SHALL be
+`open`, `in-progress`, `blocked` or `done`. `updated_at` SHALL be an ISO date, the
+creation date at creation, that only moves forward. `done_at` SHALL be the ISO date the
+task reached `done`, removed when it leaves `done`: "done since", never "was once done".
 
 #### Scenario: Frontmatter of a new task
 - **WHEN** a task is created on 2026-09-30 in a workstream whose effective metadata schema declares `client` and `project`, with `client` supplied as `acme`
@@ -104,6 +104,20 @@ removed when it leaves `done`, so it means "done since" and never "was once done
 #### Scenario: Done at follows the status
 - **WHEN** a task marked `done` on 2026-10-01 is marked `blocked` on 2026-10-02
 - **THEN** its frontmatter reads `status: blocked`, `updated_at: 2026-10-02` and holds no `done_at` key, with every other key as it was
+
+#### Scenario: Frontmatter of a child task
+- **WHEN** a task is created on 2026-09-30 with the parent `SUP-1`, in a workstream whose effective metadata schema declares `client`, with no value supplied
+- **THEN** its frontmatter is exactly
+  ```yaml
+  ---
+  status: open
+  ref: SUP-2
+  parent: SUP-1
+  updated_at: 2026-09-30
+  metadata:
+    client: null
+  ---
+  ```
 
 ### Requirement: Metadata contract
 `metadata` SHALL always be a flat map with snake_case keys. A gemba command that
@@ -193,9 +207,9 @@ neighbours.
 A process that reads tasks SHALL accept a `.md` file as a task only when its filename
 matches `YYYY-MM-DD-<ref>-<slug>.md` with a valid date, it starts with a YAML
 frontmatter that parses to a map, `status` is allowed, `ref` is a string equal to the
-filename's, `updated_at` and any `done_at` are ISO dates, and `metadata` is a map of
-scalars or lists of scalars. A file that fails a check SHALL be reported with its path
-and the rule, and never read as a task.
+filename's, any `parent` is another ref, `updated_at` and any `done_at` are ISO dates,
+and `metadata` is a map of scalars or lists of scalars. A file that fails a check SHALL
+be reported with its path and the rule, and never read as a task.
 
 #### Scenario: Valid file read
 - **WHEN** a file conforms to every rule above
@@ -216,6 +230,10 @@ and the rule, and never read as a task.
 #### Scenario: Metadata not a map
 - **WHEN** `metadata` is missing, or is a list or a scalar
 - **THEN** the file is reported as invalid, naming `metadata`
+
+#### Scenario: Invalid parent
+- **WHEN** one task file holds `parent: sup-1`, another `parent: 7`, and the file of `SUP-3` holds `parent: SUP-3`
+- **THEN** each of the three is reported as invalid, naming `parent`, and none is listed
 
 ### Requirement: Metadata read whatever the schema
 The reader SHALL NOT check the metadata keys against the effective schema of the

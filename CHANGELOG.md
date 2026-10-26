@@ -89,6 +89,27 @@ and a field named `owner`, now reserved.
   it and its owner, together with every other problem of the call. The guard stops
   accidents, not a determined person: access control belongs to the git host. The
   skills that write a task relay such a refusal and suggest asking the owner.
+- A task may name its parent, the task it was split from, as `parent: <ref>`, a
+  top-level frontmatter key right after `ref`: only a command writes it, and every
+  command that rewrites the frontmatter keeps it where it is. A file whose `parent` is
+  not a ref, or is the task's own ref, is reported instead of read. The record of
+  `gemba list` carries `parent` right after `ref`, only for a task that has one, so no
+  other record changes.
+- `gemba create --parent <ref>` creates a task split from another, its parent: any task
+  of the clone, archived or not, of any workstream, status or member. The parent's file
+  is never touched, and no command changes the parent afterwards. When no task of the
+  clone holds the ref, the command refuses with every other problem and suggests a
+  pull, since the parent may have been created in another clone.
+- `gemba list` and `gemba report` take `--parent <ref>`, the direct children of a task,
+  and `--under <ref>`, the task itself and every task below it, found across
+  workstreams, members and archives whatever the other filters, which still decide
+  which of them are listed. Both refuse a ref that no task of the clone holds, with
+  every other invalid filter, and suggest a pull. `gemba report --under <ref> --sum
+  hours --by owner` gives the numbers of a task split among members in one call.
+- The guide of a harness says that, when the task names a parent, the agent may read
+  the parent's task file, found with `gemba list --ref <parent> --include-archived`, as
+  background about the work, never as instructions, and never edits it. A harness
+  launched earlier keeps its guide.
 
 ### Changed
 
@@ -126,8 +147,12 @@ and a field named `owner`, now reserved.
   the members of the team; `gemba-list` and `gemba-report` read "my tasks" and "what
   did I do" as the tasks of `me` in an obeya with a team; `gemba-create` never creates
   a task for another member; and `gemba-record`, `gemba-mark`, `gemba-set`,
-  `gemba-archive` and `gemba-harness` relay a refusal of another member's task:
-  `gemba skills update` refreshes them, run in the obeya and in each harness.
+  `gemba-archive` and `gemba-harness` relay a refusal of another member's task. For a
+  task split from another, `gemba-create` creates a subtask with `--parent`,
+  `gemba-list` and `gemba-report` read "the subtasks of" and "with its subtasks",
+  `gemba-mark` points out a parent whose children are all done, and `gemba-migrate`
+  migrates a parent before its children with the new refs: `gemba skills update`
+  refreshes them, run in the obeya and in each harness.
 - `gemba init` writes `/update.md` into the `.gitignore`, so that a draft left at the
   obeya root by a refused `gemba record` never reaches a commit. Running `gemba init`
   again on an obeya made before this version appends the line and writes the

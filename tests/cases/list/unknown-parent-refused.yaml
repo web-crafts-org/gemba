@@ -1,0 +1,16 @@
+name: a parent filter that names no task of the clone is refused with a pull suggested, together with every other invalid filter
+scenario: "task-listing: Unknown parent refused"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+tree:
+  tasks/support/2026-10-01-SUP-1-login-fails-on-safari.md: "---\nstatus: open\nref: SUP-1\nupdated_at: 2026-10-01\nmetadata: {}\n---\n\n## Updates\n"
+run: [list, --parent, SUP-9, --status, closed]
+exit: 1
+stdout: ""
+stderr_contains:
+  - "nothing listed:"
+  - "--parent 'SUP-9' is not a task of this clone: if it was created in another clone, pull first"
+  - "invalid status 'closed'"
+unchanged: true

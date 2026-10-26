@@ -1,5 +1,6 @@
 """Unit tests for reading task files: every refusal, the display title and the description."""
 
+import dataclasses
 import datetime
 import tempfile
 import textwrap
@@ -61,6 +62,7 @@ class ReadTest(ReadTestCase):
                 workstream="support",
                 archived=False,
                 ref="SUP-1",
+                parent=None,
                 date=datetime.date(2026, 9, 30),
                 title="Login fails on safari",
                 status="open",
@@ -220,6 +222,54 @@ class ReadTest(ReadTestCase):
 
     def test_metadata_keys_not_checked_against_a_schema(self):
         self.assertEqual(self.read(VALID.replace("client: acme", "ticket_id: PROD-1")).metadata["ticket_id"], "PROD-1")
+
+
+class ParentTest(ReadTestCase):
+    def with_parent(self, value):
+        return VALID.replace("ref: SUP-1\n", f"ref: SUP-1\nparent: {value}\n")
+
+    def test_valid_parent(self):
+        for value in ("SUP-9", "MR-OPS-2"):
+            with self.subTest(value=value):
+                self.assertEqual(self.read(self.with_parent(value)).parent, value)
+
+    def test_absent_or_null_reads_as_no_parent(self):
+        self.assertIsNone(self.read(VALID).parent)
+        self.assertIsNone(self.read(self.with_parent("null")).parent)
+
+    def test_value_that_is_not_a_ref(self):
+        for value, shown in (("sup-1", "'sup-1'"), ("SUP-01", "'SUP-01'"), ("A-B-C-1", "'A-B-C-1'"), ("''", "''")):
+            with self.subTest(value=value):
+                self.assertRefused(
+                    self.with_parent(value), f"parent must be a ref such as SUP-1 or MR-SUP-1, not {shown}"
+                )
+
+    def test_value_that_is_not_a_string(self):
+        for value, shown in (("7", "7"), ("true", "true"), ("[SUP-2]", "['SUP-2']")):
+            with self.subTest(value=value):
+                self.assertRefused(
+                    self.with_parent(value), f"parent must be a ref such as SUP-1 or MR-SUP-1, not {shown}"
+                )
+
+    def test_own_ref(self):
+        self.assertRefused(self.with_parent("SUP-1"), "parent 'SUP-1' is the task's own ref")
+
+    def test_existence_not_checked(self):
+        self.assertEqual(self.read(self.with_parent("SUP-404")).parent, "SUP-404")
+
+
+class RenderTest(unittest.TestCase):
+    DAY = datetime.date(2026, 9, 30)
+
+    def test_parent_right_after_ref(self):
+        self.assertEqual(
+            tasks.render("open", "SUP-2", self.DAY, {"client": None}, parent="SUP-1"),
+            "---\nstatus: open\nref: SUP-2\nparent: SUP-1\nupdated_at: 2026-09-30\nmetadata:\n  client: null\n---\n"
+            "\n## Updates\n",
+        )
+
+    def test_no_parent_key_without_a_parent(self):
+        self.assertNotIn("parent", tasks.render("open", "SUP-1", self.DAY, {}, "Login fails"))
 
 
 class ScanTest(ReadTestCase):
@@ -518,6 +568,15 @@ class TransitionTest(unittest.TestCase):
         self.assertTrue(after.endswith(f"\n---\n{body}"))
         self.assertEqual(tasks.split(after)[1], body)
 
+    def test_parent_kept_right_after_ref(self):
+        shuffled = "---\nmetadata: {}\nparent: SUP-9\nupdated_at: 2026-10-01\nref: SUP-1\nstatus: open\n---\n"
+        after, _moved = tasks.transition(shuffled, "done", self.DAY)
+        self.assertEqual(
+            after,
+            "---\nstatus: done\nref: SUP-1\nparent: SUP-9\nupdated_at: 2026-10-03\ndone_at: 2026-10-03\nmetadata: {}\n"
+            "---\n",
+        )
+
     def test_windows_line_endings_of_the_body_kept(self):
         before = (
             "---\r\nstatus: open\r\nref: SUP-1\r\nupdated_at: 2026-09-30\r\nmetadata: {}\r\n---\r\n\r\n## Updates\r\n"
@@ -549,6 +608,14 @@ class SetMetadataTest(unittest.TestCase):
             "---\nstatus: open\nref: SUP-1\nupdated_at: 2026-09-30\nmetadata:\n  client: 'no'\n---\n\n## Updates\n",
         )
 
+    def test_parent_kept_right_after_ref(self):
+        text = "---\nstatus: open\nref: SUP-2\nparent: SUP-1\nupdated_at: 2026-09-30\nmetadata: {}\n---\n\n## Updates\n"
+        self.assertEqual(
+            tasks.set_metadata(text, {"hours": 1}),
+            "---\nstatus: open\nref: SUP-2\nparent: SUP-1\nupdated_at: 2026-09-30\nmetadata:\n  hours: 1\n---\n"
+            "\n## Updates\n",
+        )
+
     def test_windows_line_endings_of_the_body_kept(self):
         body = "\r\nLogin fails\r\n\r\n## Updates\r\n\r\n### 2026-09-30\r\n\r\n- A\r\n"
         text = "---\r\nstatus: open\r\nref: SUP-1\r\nupdated_at: 2026-09-30\r\nmetadata: {}\r\n---\r\n" + body
@@ -566,6 +633,7 @@ class ArchiveTest(unittest.TestCase):
             workstream="support",
             archived=archived,
             ref="SUP-1",
+            parent=None,
             date=datetime.date(2026, 9, 30),
             title="Login fails on safari",
             status=status,
@@ -793,6 +861,12 @@ class RecordTest(unittest.TestCase):
         text, _previous, _updated_at = self.record(frontmatter.format("2026-09-30") + body, "2026-10-01")
         self.assertEqual(text, frontmatter.format("2026-10-01") + body + "\n### 2026-10-01\n\n- Done\n")
 
+    def test_parent_kept_right_after_ref(self):
+        frontmatter = "---\nstatus: open\nref: SUP-2\nparent: SUP-1\nupdated_at: {}\nmetadata: {{}}\n---\n"
+        body = "\n## Updates\n"
+        text, _previous, _updated_at = self.record(frontmatter.format("2026-09-30") + body, "2026-10-01")
+        self.assertEqual(text, frontmatter.format("2026-10-01") + body + "\n### 2026-10-01\n\n- Done\n")
+
     def test_day_after_today_refused(self):
         with self.assertRaises(tasks.TaskError) as caught:
             self.record(self.task("\n## Updates\n"), "2026-10-04")
@@ -827,7 +901,7 @@ class MatchesTest(unittest.TestCase):
     def task(self, **metadata):
         day = datetime.date(2026, 9, 30)
         return tasks.Task(
-            f"tasks/support/{NAME}", None, "support", False, "SUP-1", day, "T", "open", day, None, metadata, None
+            f"tasks/support/{NAME}", None, "support", False, "SUP-1", None, day, "T", "open", day, None, metadata, None
         )
 
     def filters(self, declared, **equalities):
@@ -847,6 +921,18 @@ class MatchesTest(unittest.TestCase):
         self.assertFalse(tasks.matches(self.task(), self.filters([], client=[None])))
         conditions = self.filters(["client"], client=[None]).metadata
         self.assertFalse(tasks.matches(self.task(), tasks.Filters(metadata=conditions)))
+
+    def test_parent_filter_matches_the_direct_children(self):
+        child = dataclasses.replace(self.task(), parent="SUP-9")
+        self.assertTrue(tasks.matches(child, tasks.Filters(parent="SUP-9")))
+        self.assertFalse(tasks.matches(child, tasks.Filters(parent="SUP-8")))
+        self.assertFalse(tasks.matches(self.task(), tasks.Filters(parent="SUP-9")))
+
+    def test_subtree_filter_matches_the_refs_of_the_subtree(self):
+        self.assertTrue(tasks.matches(self.task(), tasks.Filters(subtree={"SUP-9", "SUP-1"})))
+        self.assertFalse(tasks.matches(self.task(), tasks.Filters(subtree={"SUP-9"})))
+        self.assertFalse(tasks.matches(self.task(), tasks.Filters(subtree=frozenset())))
+        self.assertTrue(tasks.matches(self.task(), tasks.Filters(subtree=None)))
 
 
 class DisplayTitleTest(unittest.TestCase):

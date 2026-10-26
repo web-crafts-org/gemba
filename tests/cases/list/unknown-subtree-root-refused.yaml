@@ -1,0 +1,15 @@
+name: a subtree filter whose root names no task of the clone is refused with a pull suggested
+scenario: "task-listing: Unknown subtree root refused"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+tree:
+  tasks/support/2026-10-01-SUP-1-login-fails-on-safari.md: "---\nstatus: open\nref: SUP-1\nupdated_at: 2026-10-01\nmetadata: {}\n---\n\n## Updates\n"
+run: [list, --under, SUP-9]
+exit: 1
+stdout: ""
+stderr_contains:
+  - "nothing listed:"
+  - "--under 'SUP-9' is not a task of this clone: if it was created in another clone, pull first"
+unchanged: true

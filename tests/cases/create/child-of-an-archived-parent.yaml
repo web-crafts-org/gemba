@@ -1,0 +1,25 @@
+name: an archived parent, of another workstream and done, is found and named by the child
+scenario: "task-creation: Child of an archived parent"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/archive/2026-09-20-SUP-1-login-fails.md: |
+    ---
+    status: done
+    ref: SUP-1
+    updated_at: 2026-09-25
+    done_at: 2026-09-25
+    metadata: {}
+    ---
+
+    ## Updates
+run: [create, --workstream, operations, --slug, follow-up, --date, 2026-10-01, --parent, SUP-1]
+exit: 0
+stdout: |
+  tasks/operations/2026-10-01-OPS-1-follow-up.md
+  OPS-1
+files_contain:
+  tasks/operations/2026-10-01-OPS-1-follow-up.md: ["ref: OPS-1\nparent: SUP-1\n"]

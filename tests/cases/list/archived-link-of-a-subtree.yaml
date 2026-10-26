@@ -1,0 +1,91 @@
+name: an archived task still links its subtree, and is listed only with the archived switch
+scenario: "task-relations: Archived link of a subtree"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+tree:
+  tasks/support/2026-10-01-SUP-1-login-fails-on-safari.md: "---\nstatus: in-progress\nref: SUP-1\nupdated_at: 2026-10-01\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/support/archive/2026-10-02-SUP-2-safari-css.md: "---\nstatus: done\nref: SUP-2\nparent: SUP-1\nupdated_at: 2026-10-03\ndone_at: 2026-10-03\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/support/2026-10-04-SUP-3-css-of-the-cart.md: "---\nstatus: open\nref: SUP-3\nparent: SUP-2\nupdated_at: 2026-10-04\nmetadata: {}\n---\n\n## Updates\n"
+run: [list, --under, SUP-1]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-10-01-SUP-1-login-fails-on-safari.md
+      workstream: support
+      archived: false
+      ref: SUP-1
+      date: 2026-10-01
+      title: Login fails on safari
+      status: in-progress
+      updated_at: 2026-10-01
+      done_at: null
+      metadata: {}
+      description: null
+    - path: tasks/support/2026-10-04-SUP-3-css-of-the-cart.md
+      workstream: support
+      archived: false
+      ref: SUP-3
+      parent: SUP-2
+      date: 2026-10-04
+      title: Css of the cart
+      status: open
+      updated_at: 2026-10-04
+      done_at: null
+      metadata: {}
+      description: null
+  problems: []
+unchanged: true
+---
+name: with the archived switch, the archived link of a subtree is listed too
+scenario: "task-relations: Archived link of a subtree"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+tree:
+  tasks/support/2026-10-01-SUP-1-login-fails-on-safari.md: "---\nstatus: in-progress\nref: SUP-1\nupdated_at: 2026-10-01\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/support/archive/2026-10-02-SUP-2-safari-css.md: "---\nstatus: done\nref: SUP-2\nparent: SUP-1\nupdated_at: 2026-10-03\ndone_at: 2026-10-03\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/support/2026-10-04-SUP-3-css-of-the-cart.md: "---\nstatus: open\nref: SUP-3\nparent: SUP-2\nupdated_at: 2026-10-04\nmetadata: {}\n---\n\n## Updates\n"
+run: [list, --under, SUP-1, --include-archived]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-10-01-SUP-1-login-fails-on-safari.md
+      workstream: support
+      archived: false
+      ref: SUP-1
+      date: 2026-10-01
+      title: Login fails on safari
+      status: in-progress
+      updated_at: 2026-10-01
+      done_at: null
+      metadata: {}
+      description: null
+    - path: tasks/support/archive/2026-10-02-SUP-2-safari-css.md
+      workstream: support
+      archived: true
+      ref: SUP-2
+      parent: SUP-1
+      date: 2026-10-02
+      title: Safari css
+      status: done
+      updated_at: 2026-10-03
+      done_at: 2026-10-03
+      metadata: {}
+      description: null
+    - path: tasks/support/2026-10-04-SUP-3-css-of-the-cart.md
+      workstream: support
+      archived: false
+      ref: SUP-3
+      parent: SUP-2
+      date: 2026-10-04
+      title: Css of the cart
+      status: open
+      updated_at: 2026-10-04
+      done_at: null
+      metadata: {}
+      description: null
+  problems: []
+unchanged: true

@@ -1,0 +1,62 @@
+name: in an obeya with a team, the subtree of a task crosses members and workstreams, and leaves out a task outside it
+scenario: "task-relations: Subtree across members and workstreams"
+config:
+  default_workstream: development
+  workstreams:
+    development: { prefix: DEV, description: Build a feature }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+  team:
+    manuel: { initials: MR }
+    ana: { initials: AG }
+local_config:
+  me: manuel
+tree:
+  tasks/manuel/development/2026-10-20-MR-DEV-1-reports-export.md: "---\nstatus: in-progress\nref: MR-DEV-1\nupdated_at: 2026-10-20\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/ana/development/2026-10-21-AG-DEV-1-export-csv.md: "---\nstatus: in-progress\nref: AG-DEV-1\nparent: MR-DEV-1\nupdated_at: 2026-10-21\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/manuel/operations/2026-10-22-MR-OPS-1-schedule-the-export.md: "---\nstatus: open\nref: MR-OPS-1\nparent: AG-DEV-1\nupdated_at: 2026-10-22\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/ana/support/2026-10-23-AG-SUP-1-login-fails.md: "---\nstatus: open\nref: AG-SUP-1\nupdated_at: 2026-10-23\nmetadata: {}\n---\n\n## Updates\n"
+run: [list, --under, MR-DEV-1]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/manuel/development/2026-10-20-MR-DEV-1-reports-export.md
+      owner: manuel
+      workstream: development
+      archived: false
+      ref: MR-DEV-1
+      date: 2026-10-20
+      title: Reports export
+      status: in-progress
+      updated_at: 2026-10-20
+      done_at: null
+      metadata: {}
+      description: null
+    - path: tasks/ana/development/2026-10-21-AG-DEV-1-export-csv.md
+      owner: ana
+      workstream: development
+      archived: false
+      ref: AG-DEV-1
+      parent: MR-DEV-1
+      date: 2026-10-21
+      title: Export csv
+      status: in-progress
+      updated_at: 2026-10-21
+      done_at: null
+      metadata: {}
+      description: null
+    - path: tasks/manuel/operations/2026-10-22-MR-OPS-1-schedule-the-export.md
+      owner: manuel
+      workstream: operations
+      archived: false
+      ref: MR-OPS-1
+      parent: AG-DEV-1
+      date: 2026-10-22
+      title: Schedule the export
+      status: open
+      updated_at: 2026-10-22
+      done_at: null
+      metadata: {}
+      description: null
+  problems: []
+unchanged: true

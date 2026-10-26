@@ -1,0 +1,23 @@
+name: a parent that no task of the clone holds is refused with a pull suggested, together with every other problem, and nothing is written
+scenario: "task-creation: Parent not in the clone"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+tree:
+  tasks/support/2026-10-01-SUP-1-login-fails.md: |
+    ---
+    status: open
+    ref: SUP-1
+    updated_at: 2026-10-01
+    metadata: {}
+    ---
+
+    ## Updates
+run: [create, --workstream, support, --slug, Bad-Slug, --date, 2026-10-02, --parent, SUP-9]
+exit: 1
+stderr_contains:
+  - "task not created:"
+  - "parent 'SUP-9' is not a task of this clone: if it was created in another clone, pull first"
+  - "invalid slug 'Bad-Slug'"
+unchanged: true

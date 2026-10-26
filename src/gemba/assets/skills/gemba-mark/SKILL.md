@@ -72,10 +72,24 @@ folder that holds `harness.yaml` is the harness root.
      when the problem is yours (the ref, the status, the date) and run it again. When
      it says the task is archived, relay the message and stop: whether to move the
      file out of `archive/` is the user's decision, not yours.
-6. **Relay the result** and stop: the task path, the `status:` line, the `done_at:` line
-   when there is one (the date written, or `removed`) and the `updated_at:` line. When
-   the command says the status was left as it was, say the task already had that
-   status.
+6. **Relay the result**: the task path, the `status:` line, the `done_at:` line when
+   there is one (the date written, or `removed`) and the `updated_at:` line. When the
+   command says the status was left as it was, say the task already had that status.
+7. **Point out a parent ready to close**, only when the task was just marked `done`, then
+   stop. Read its record with `gemba list --ref <ref>`; when it carries no `parent`,
+   stop here. Otherwise list the children of that parent and the parent itself:
+
+   ```bash
+   gemba list --parent <parent> --include-archived
+   gemba list --ref <parent> --include-archived
+   ```
+
+   When every child is `done` and the parent is not, say that the parent may be ready to
+   close. When it is the user's own (in an obeya with a team, its `owner` is `me` of
+   `gemba config show`), offer to mark it `done`, and run `gemba mark <parent> done`
+   only when the user agrees. When it belongs to another member, name its owner and say
+   that closing it is their decision. Mark nothing else: Gemba never closes a parent by
+   itself, and neither do you without the user's yes.
 
 ## Rules
 

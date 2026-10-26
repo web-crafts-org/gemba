@@ -1,0 +1,41 @@
+name: the subtree is found across workstreams, and a workstream filter still decides which of its tasks are listed
+scenario: "task-listing: Subtree within a workstream filter"
+config:
+  default_workstream: operations
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+    operations: { prefix: OPS, description: Anything that does not fit another workstream }
+tree:
+  tasks/support/2026-10-01-SUP-1-login-fails-on-safari.md: "---\nstatus: in-progress\nref: SUP-1\nupdated_at: 2026-10-01\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/operations/2026-10-02-OPS-1-renew-the-certificate.md: "---\nstatus: open\nref: OPS-1\nparent: SUP-1\nupdated_at: 2026-10-02\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/support/2026-10-03-SUP-2-check-the-redirect.md: "---\nstatus: open\nref: SUP-2\nparent: OPS-1\nupdated_at: 2026-10-03\nmetadata: {}\n---\n\n## Updates\n"
+  tasks/support/2026-10-04-SUP-3-export-fails.md: "---\nstatus: open\nref: SUP-3\nupdated_at: 2026-10-04\nmetadata: {}\n---\n\n## Updates\n"
+run: [list, --under, SUP-1, --workstream, support]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-10-01-SUP-1-login-fails-on-safari.md
+      workstream: support
+      archived: false
+      ref: SUP-1
+      date: 2026-10-01
+      title: Login fails on safari
+      status: in-progress
+      updated_at: 2026-10-01
+      done_at: null
+      metadata: {}
+      description: null
+    - path: tasks/support/2026-10-03-SUP-2-check-the-redirect.md
+      workstream: support
+      archived: false
+      ref: SUP-2
+      parent: OPS-1
+      date: 2026-10-03
+      title: Check the redirect
+      status: open
+      updated_at: 2026-10-03
+      done_at: null
+      metadata: {}
+      description: null
+  problems: []
+unchanged: true

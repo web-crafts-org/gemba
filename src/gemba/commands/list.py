@@ -39,10 +39,13 @@ def run(args: argparse.Namespace) -> int:
 
     found, problems = selection.select(gemba_config, scope, filters)
     records = [dataclasses.asdict(task) for task in found]
-    # A record carries its owner only in an obeya with a team, so the record of an obeya without one is unchanged.
-    if gemba_config.team is None:
-        for record in records:
+    # A record carries its owner only in an obeya with a team, and its parent only when the task has one, so the
+    # record of an obeya without a team, or of a task without a parent, is unchanged.
+    for record in records:
+        if gemba_config.team is None:
             del record["owner"]
+        if record["parent"] is None:
+            del record["parent"]
     document = {
         "tasks": records,
         "problems": [dataclasses.asdict(problem) for problem in problems],

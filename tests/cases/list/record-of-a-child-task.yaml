@@ -1,0 +1,61 @@
+name: the record of a task with a parent carries it right after its ref, and a task without one carries no parent key
+scenario: "task-listing: Record of a child task"
+config:
+  default_workstream: support
+  workstreams:
+    support: { prefix: SUP, description: Investigate a client-reported problem }
+tree:
+  tasks/support/2026-10-01-SUP-1-login-fails-on-safari.md: |
+    ---
+    status: in-progress
+    ref: SUP-1
+    updated_at: 2026-10-01
+    metadata: {}
+    ---
+
+    Login fails on Safari for the checkout app
+
+    ## Updates
+  tasks/support/2026-10-02-SUP-2-safari-css.md: |
+    ---
+    status: open
+    ref: SUP-2
+    parent: SUP-1
+    updated_at: 2026-10-02
+    metadata: {}
+    ---
+
+    The CSS of the login form breaks on Safari
+
+    ## Updates
+run: [list]
+exit: 0
+stdout_json:
+  tasks:
+    - path: tasks/support/2026-10-01-SUP-1-login-fails-on-safari.md
+      workstream: support
+      archived: false
+      ref: SUP-1
+      date: 2026-10-01
+      title: Login fails on safari
+      status: in-progress
+      updated_at: 2026-10-01
+      done_at: null
+      metadata: {}
+      description: Login fails on Safari for the checkout app
+    - path: tasks/support/2026-10-02-SUP-2-safari-css.md
+      workstream: support
+      archived: false
+      ref: SUP-2
+      parent: SUP-1
+      date: 2026-10-02
+      title: Safari css
+      status: open
+      updated_at: 2026-10-02
+      done_at: null
+      metadata: {}
+      description: The CSS of the login form breaks on Safari
+  problems: []
+stdout_contains:
+  - "\"ref\": \"SUP-2\",\n      \"parent\": \"SUP-1\","
+unchanged: true

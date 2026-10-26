@@ -1,6 +1,6 @@
 ---
 name: gemba-list
-description: List, find or count tasks in this obeya. Use whenever the user asks to list, show, find, count or filter tasks, or asks "what do I have open", "what am I working on", what the team has open or what happened on a task, whatever the workstream.
+description: List, find or count tasks in this obeya. Use whenever the user asks to list, show, find, count or filter tasks, or asks "what do I have open", "what am I working on", what the team has open, the subtasks of a task or what happened on a task, whatever the workstream.
 ---
 
 # List tasks
@@ -60,6 +60,8 @@ Python files directly and do not build the list by reading the task folders your
    | one or more statuses by name (open, in progress, blocked) | one `--status` per named status |
    | done, finished, closed | `--status done --include-archived` |
    | a task ref, `<PREFIX>-<N>` | `--ref <PREFIX>-<N> --include-archived` and no other filter |
+   | the subtasks of a task, the tasks split from it | `--parent <ref> --include-archived` |
+   | a task with everything split from it, what is under a task | `--under <ref> --include-archived` |
    | created on a day or in a period | `--from` and `--to` (the creation date) |
    | updated, touched or worked on in a period | `--updated-from` and `--updated-to` |
    | finished in a period | `--done-from` and `--done-to`, with `--include-archived` |
@@ -70,8 +72,15 @@ Python files directly and do not build the list by reading the task folders your
 
    - A time word restricts dates only when it qualifies an event (created, updated,
      finished). "What do I have open today" is the open listing with no date filter.
-   - Archived tasks are left out unless the request asks for them, for finished work or
-     for a task by its ref.
+   - Archived tasks are left out unless the request asks for them, for finished work,
+     for a task by its ref or for the tasks split from a task. For the last, drop
+     `--include-archived` when the user asks only for live work, such as what is still
+     open under a task, which also takes the statuses of the open listing.
+   - `--parent` and `--under` take the ref of a task; when the user names the task by its
+     title or description, find its ref with a first `gemba list`. `--parent` gives its
+     direct children; `--under` gives the task itself and every task below it, across
+     workstreams and members, and the other filters still decide which of them are
+     listed.
    - For metadata, compare what the user said with the `name` and `description` of
      every field under `metadata` in the entries of the document, and use the declared
      name exactly. The command refuses a key that no workstream declares.
@@ -92,7 +101,7 @@ Python files directly and do not build the list by reading the task folders your
 
    ```bash
    gemba list [--workstream <id> ...] [--owner <member> ...] \
-     [--status <status> ...] [--ref <ref>] \
+     [--status <status> ...] [--ref <ref>] [--parent <ref>] [--under <ref>] \
      [--from YYYY-MM-DD] [--to YYYY-MM-DD] \
      [--updated-from YYYY-MM-DD] [--updated-to YYYY-MM-DD] \
      [--done-from YYYY-MM-DD] [--done-to YYYY-MM-DD] \
@@ -105,12 +114,15 @@ Python files directly and do not build the list by reading the task folders your
      argument for the shell when it contains spaces.
    - If the command refuses, its message lists every invalid filter at once, with the
      valid workstreams, the allowed statuses or the declared fields. Fix the call and
-     run it again, asking the user only when the request itself is unclear. If the
-     config is missing or invalid, stop and report the message.
+     run it again, asking the user only when the request itself is unclear. When it
+     says the ref of `--parent` or `--under` is not a task of this clone, relay it and
+     suggest pulling the obeya, since the task may have been created in another clone.
+     If the config is missing or invalid, stop and report the message.
 6. **Read the result.** The command prints one JSON object. `tasks` holds one record per
    matching task: `path` (relative to the obeya root), `owner` (only in an obeya with a
-   team), `workstream`, `archived`, `ref`, `date` (created), `title`, `status`,
-   `updated_at`, `done_at`, `metadata` and `description`. `problems` holds the files
+   team), `workstream`, `archived`, `ref`, `parent` (only for a task split from
+   another, the ref of that task), `date` (created), `title`, `status`, `updated_at`,
+   `done_at`, `metadata` and `description`. `problems` holds the files
    that are not valid tasks and the metadata values that are not of the type their field
    declares, each with its `path` and the `problem`.
 7. **Open a task file only when the answer needs its body**: what happened last, the
@@ -134,7 +146,9 @@ Python files directly and do not build the list by reading the task folders your
 
    The layout is a suggestion, not a contract; nothing depends on it. In an obeya with
    a team, show the owner of each task whenever the listing covers more than the user's
-   own tasks. When no task matches, say so plainly and name the filters you used.
+   own tasks. Show the parent of each task whenever the listing holds tasks of several
+   parents, as `--under` does. When no task matches, say so plainly and name the
+   filters you used.
 9. **Relay every problem** the command returned, even when the question was about
    something else: give each path and its problem. Say that a file that is not a valid
    task is left out of the listing until it is fixed, and that a task whose value is of

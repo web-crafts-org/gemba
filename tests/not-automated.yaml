@@ -42,6 +42,8 @@
 "task-creation: Successful creation reported": the agent reports to the user by following the gemba-create skill
 "task-creation: Config change without skill change": a property of the gemba-create skill text, not of the command
 "task-creation: Text value in use reused": the agent looks up the values in use with gemba report --by and reuses their spelling by following the gemba-create skill
+"task-creation: Subtask asked": the agent runs gemba create with --parent and the ref of the task, found with the gemba-list skill when named otherwise, by following the gemba-create skill; the option is covered by the create cases
+"task-creation: Task split among members": the agent creates the user's part with --parent and drafts what the other member needs to create theirs with the same parent, running no command on their behalf, by following the gemba-create skill
 "task-file-format: Agent records progress": the agent drafts and gemba record writes, by the gemba-record skill
 "task-file-format: Workstream customization consumes its own field": no launch customization exists yet
 "task-recording: Agent records the day": the agent reads the notes, drafts and runs the command by following the gemba-record skill
@@ -64,8 +66,11 @@
 "task-migration: Task without history": the agent runs no gemba record for a task with no dated subsection by following the gemba-migrate skill
 "task-migration: Old tasks archived": the agent archives the migrated tasks in the old obeya with gemba archive --root, relays them and commits nothing by following the gemba-migrate skill
 "task-migration: Config change without skill change": a property of the gemba-migrate skill text, not of a command
+"task-migration: Child migrated after its parent": the agent creates the parent first and the child with --parent and the new ref of the parent by following the gemba-migrate skill; the option is covered by the create cases
+"task-migration: Parent left behind": the agent creates the child without a parent and names the old refs of the task and of its parent in the migration paragraph by following the gemba-migrate skill
 "task-ownership: Task asked for another member": the agent says each member creates their own tasks, offers to create one for the user or to draft what the other member needs, and runs no command on their behalf, by following the gemba-create skill
 "task-ownership: Refusal of another member's task relayed": the agent relays the refusal, suggests asking the owner and leaves the task file as it is, by following the skill of the command; the refusal is covered by the cases of each command
+"task-relations: Parent read from the child's harness": the agent reads the parent's task file as background, follows only its own task, the guide and the user, and leaves the parent's file as it was, by following the guide of the harness; the guide text is covered by the harness cases
 "task-reporting: Candidates listed by the command": the agent runs gemba list with the report filters by following the gemba-report skill
 "task-reporting: Candidates of a month": the agent runs gemba list with the filters of the period by following the gemba-report skill
 "task-reporting: Task created after the date is not a candidate": the agent relies on the listing filters by following the gemba-report skill; the filters are covered by the list cases
@@ -83,6 +88,7 @@
 "task-reporting: Config change without skill change": a property of the gemba-report skill text, not of a command
 "task-reporting: What I did in a team": the agent reads me from gemba config show and lists the candidates with --owner by following the gemba-report skill
 "task-reporting: Report of the team": the agent runs gemba report without --owner and with --by owner by following the gemba-report skill
+"task-reporting: Hours of a task with its subtasks": the agent runs gemba report --under with --include-archived, no period and no owner, grouped by owner, and says what the numbers cover by following the gemba-report skill; the command is covered by the report cases
 "task-listing: Conversational open": the agent maps the phrase to statuses by following the gemba-list skill
 "task-listing: Detail beyond the record": the agent opens the task file by following the gemba-list skill
 "task-listing: Problems relayed": the agent reports each problem by following the gemba-list skill
@@ -91,11 +97,15 @@
 "task-listing: Config change without skill change": a property of the gemba-list skill text, not of the command
 "task-listing: My open tasks in a team": the agent reads me from gemba config show and runs gemba list --owner with it by following the gemba-list skill
 "task-listing: Open tasks of the team": the agent runs gemba list without --owner and shows the owner of each task by following the gemba-list skill
+"task-listing: Subtasks asked": the agent runs gemba list --parent with the ref of the task and --include-archived by following the gemba-list skill; the filter is covered by the list cases
+"task-listing: Open work under a task asked": the agent runs gemba list --under with the ref of the task and the open statuses by following the gemba-list skill; the filter is covered by the list cases
 "task-marking: Agent marks a task": the agent maps the user's words to a status and runs gemba mark by following the gemba-mark skill
 "task-marking: Reopen defaults to open": the agent chooses open or in-progress from the user's words by following the gemba-mark skill
 "task-marking: Record before done": the agent checks the day's record and offers gemba-record by following the gemba-mark skill
 "task-marking: Agent follows the verb's rules": the agent follows mark.rules through the gemba-mark skill
 "task-marking: Config change without skill change": a property of the gemba-mark skill text, not of the command
+"task-marking: Parent of another member pointed out": the agent lists the children of the parent after marking a task done, says the parent may be ready to close and that closing it is its owner's decision, and runs no other command, by following the gemba-mark skill
+"task-marking: Own parent offered": the agent offers to mark its own parent done when every child is done, and runs gemba mark on it only when the user agrees, by following the gemba-mark skill
 "task-archiving: Agent archives cold tasks": the agent finds candidates with gemba list, asks and runs gemba archive by following the gemba-archive skill
 "task-archiving: Agent follows the verb's rules": the agent follows archive.rules through the gemba-archive skill
 "task-archiving: Config change without skill change": a property of the gemba-archive skill text, not of the command
