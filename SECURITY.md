@@ -102,8 +102,8 @@ pip show gemba-cli   # Requires: pyyaml
 | Tool | Covers |
 | --- | --- |
 | [CodeQL](https://github.com/web-crafts-org/gemba/security/code-scanning) | Static analysis of the Python code and the workflows on every push and pull request to `main` |
-| [Dependabot](https://github.com/web-crafts-org/gemba/security/dependabot) | Dependency advisories, plus weekly grouped update pull requests for the lock file and the CI actions |
-| Release quarantine | uv resolves no release younger than 30 days (`exclude-newer` in `pyproject.toml`), and Dependabot's cooldown matches it. Dependabot security updates are off because they ignore that cooldown and cannot resolve; a patched release is picked up by the weekly update once it leaves the quarantine, or earlier by a deliberate `exclude-newer-package` exception |
+| [Dependabot](https://github.com/web-crafts-org/gemba/security/dependabot) | Dependency advisories, plus weekly grouped update pull requests for the lock file, transitive dependencies included, and the CI actions |
+| Release quarantine | uv resolves no release younger than 30 days (`exclude-newer` in `pyproject.toml`), and Dependabot's cooldown matches it. Dependabot security updates are off because they ignore that cooldown and cannot resolve; a patched release, of a direct or a transitive dependency, is picked up by the weekly update once it leaves the quarantine, or earlier by a deliberate `exclude-newer-package` exception |
 | Secret scanning | Enabled on the repository, including push protection |
 | Pinned actions | Every GitHub Action runs from a commit SHA, so a moved tag cannot change what CI executes |
 | Workflow permissions | Both workflows are read-only by default; the release jobs that publish or create the release grant themselves the one permission they need |
