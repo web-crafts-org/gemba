@@ -101,7 +101,7 @@ pip show gemba-cli   # Requires: pyyaml
 
 | Tool | Covers |
 | --- | --- |
-| [CodeQL](https://github.com/web-crafts-org/gemba/security/code-scanning) | Static analysis of the Python code and the workflows on every push and pull request to `main` |
+| [CodeQL](https://github.com/web-crafts-org/gemba/security/code-scanning) | Static analysis of the Python code and the workflows on every push to `main`, on every pull request to it opened by a person, and weekly. Default setup does not analyze pull requests opened by Dependabot: their CodeQL check ends neutral, and the update is analyzed once it reaches `main` |
 | [Dependabot](https://github.com/web-crafts-org/gemba/security/dependabot) | Dependency advisories, plus weekly grouped update pull requests for the lock file, transitive dependencies included, and the CI actions |
 | Release quarantine | uv resolves no release younger than 30 days (`exclude-newer` in `pyproject.toml`), and Dependabot's cooldown matches it. Dependabot security updates are off because they ignore that cooldown and cannot resolve; a patched release, of a direct or a transitive dependency, is picked up by the weekly update once it leaves the quarantine, or earlier by a deliberate `exclude-newer-package` exception |
 | Secret scanning | Enabled on the repository, including push protection |
